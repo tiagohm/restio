@@ -154,6 +154,17 @@ class HttpTransport implements Transport {
             request.body.contentType.toContentType();
       }
 
+      // Accept-Encoding.
+      if (!request.headers.has(HttpHeaders.acceptEncodingHeader)) {
+        clientRequest.headers
+            .set(HttpHeaders.acceptEncodingHeader, 'gzip, deflate');
+      }
+
+      // Connection.
+      if (!request.headers.has(HttpHeaders.connectionHeader)) {
+        clientRequest.headers.set(HttpHeaders.connectionHeader, 'Keep-Alive');
+      }
+
       // Headers.
       request.headers?.forEach((key, value) {
         switch (key) {

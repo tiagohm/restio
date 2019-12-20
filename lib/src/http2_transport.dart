@@ -77,6 +77,16 @@ class Http2Transport implements Transport {
         );
       }
 
+      // Accept-Encoding.
+      if (!request.headers.has(HttpHeaders.acceptEncodingHeader)) {
+        headers.add(
+          Header.ascii(
+            HttpHeaders.acceptEncodingHeader,
+            'gzip, deflate',
+          ),
+        );
+      }
+
       // Headers.
       request.headers?.forEach((key, value) {
         headers.add(Header.ascii(key, value));
