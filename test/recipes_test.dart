@@ -121,7 +121,7 @@ void main() {
   test('Posting Binary File', () async {
     var isDone = false;
 
-    final ProgressListener<Request> onProgress = (request, sent, total, done) {
+    final RequestProgressListener onProgress = (request, sent, total, done) {
       print('sent: $sent, total: $total, done: $done');
       isDone = done;
     };
@@ -190,7 +190,7 @@ void main() {
 
   test('Basic Auth 1', () async {
     final authClient = client.copyWith(
-      auth: BasicAuthenticator(
+      auth: const BasicAuthenticator(
         username: 'postman',
         password: 'password',
       ),
@@ -207,7 +207,7 @@ void main() {
 
   test('Basic Auth 2', () async {
     final authClient = client.copyWith(
-      auth: BasicAuthenticator(
+      auth: const BasicAuthenticator(
         username: 'a',
         password: 'b',
       ),
@@ -224,7 +224,7 @@ void main() {
 
   test('Bearer Auth', () async {
     final authClient = client.copyWith(
-      auth: BearerAuthenticator(
+      auth: const BearerAuthenticator(
         token: '123',
       ),
     );
@@ -241,7 +241,7 @@ void main() {
 
   test('Digest Auth', () async {
     final authClient = client.copyWith(
-      auth: DigestAuthenticator(
+      auth: const DigestAuthenticator(
         username: 'postman',
         password: 'password',
       ),
@@ -258,7 +258,7 @@ void main() {
 
   test('Hawk Auth', () async {
     final authClient = client.copyWith(
-      auth: HawkAuthenticator(
+      auth: const HawkAuthenticator(
         id: 'dh37fgj492je',
         key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
       ),
@@ -377,8 +377,7 @@ void main() {
   test('Chunked', () async {
     var isDone = false;
 
-    final ProgressListener<Response> onProgress =
-        (response, sent, total, done) {
+    final ResponseProgressListener onProgress = (response, sent, total, done) {
       print('sent: $sent, total: $total, done: $done');
       isDone = done;
     };
@@ -476,11 +475,11 @@ void main() {
 
   test('Proxy', () async {
     final proxyClient = client.copyWith(
-      proxy: Proxy(
+      proxy: const Proxy(
         host: 'localhost',
         port: 3001,
       ),
-      auth: BasicAuthenticator(
+      auth: const BasicAuthenticator(
         username: 'c',
         password: 'd',
       ),
@@ -500,7 +499,7 @@ void main() {
 
   test('Auth Proxy', () async {
     final proxyClient = client.copyWith(
-      proxy: Proxy(
+      proxy: const Proxy(
         host: 'localhost',
         port: 3002,
         auth: BasicAuthenticator(
@@ -508,7 +507,7 @@ void main() {
           password: 'b',
         ),
       ),
-      auth: BasicAuthenticator(
+      auth: const BasicAuthenticator(
         username: 'c',
         password: 'd',
       ),

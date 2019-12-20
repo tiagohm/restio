@@ -6,7 +6,7 @@ class Part {
   final Map<String, String> headers;
   final RequestBody body;
 
-  Part({
+  const Part({
     this.headers = const {},
     this.body,
   });

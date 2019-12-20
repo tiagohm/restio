@@ -1,33 +1,31 @@
+import 'package:equatable/equatable.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-// https://developer.mozilla.org/pt-BR/docs/Web/HTTP/Headers/Cache-Control
-class CacheControl {
-  /// In a response, this field's name "no-cache" is misleading. It doesn't prevent us from caching
-  /// the response; it only means we have to validate the response with the origin server before
-  /// returning it. We can do this with a conditional GET.
-  /// In a request, it means do not use a cache to satisfy the request.
+class CacheControl extends Equatable {
   final bool noCache;
-
-  /// If true, this response should not be cached.
   final bool noStore;
-
-  /// The duration past the response's served date that it can be served without validation.
-  final Duration maxAgeSeconds;
+  final Duration maxAge;
+  final Duration maxStale;
+  final Duration minFresh;
   final bool isPrivate;
   final bool isPublic;
   final bool noTransform;
   final bool immutable;
   final bool mustRevalidate;
+  final bool onlyIfCached;
 
   const CacheControl({
     this.noCache = false,
     this.noStore = false,
-    this.maxAgeSeconds,
+    this.maxAge,
     this.isPrivate = false,
     this.isPublic = false,
     this.noTransform = false,
     this.immutable = false,
     this.mustRevalidate = false,
+    this.onlyIfCached = false,
+    this.maxStale,
+    this.minFresh,
   });
 
   factory CacheControl.parse(String text) {
@@ -42,7 +40,7 @@ class CacheControl {
     return CacheControl(
       noStore: params.containsKey('no-store'),
       noCache: params.containsKey('no-cache'),
-      maxAgeSeconds: params['max-age'] != null
+      maxAge: params['max-age'] != null
           ? Duration(seconds: int.parse(params['max-age']))
           : null,
       immutable: params.containsKey('immutable'),
@@ -50,6 +48,13 @@ class CacheControl {
       isPrivate: params.containsKey('private'),
       isPublic: params.containsKey('public'),
       mustRevalidate: params.containsKey('must-revalidate'),
+      onlyIfCached: params.containsKey('only-if-cached'),
+      maxStale: params['max-stale'] != null
+          ? Duration(seconds: int.parse(params['max-stale']))
+          : null,
+      minFresh: params['min-fresh'] != null
+          ? Duration(seconds: int.parse(params['min-fresh']))
+          : null,
     );
   }
 
@@ -134,37 +139,68 @@ class CacheControl {
   CacheControl copyWith({
     bool noCache,
     bool noStore,
-    Duration maxAgeSeconds,
+    Duration maxAge,
     bool isPrivate,
     bool isPublic,
     bool noTransform,
     bool immutable,
     bool mustRevalidate,
+    bool onlyIfCached,
   }) {
     return CacheControl(
       noCache: noCache ?? this.noCache,
       noStore: noStore ?? this.noStore,
-      maxAgeSeconds: maxAgeSeconds ?? this.maxAgeSeconds,
+      maxAge: maxAge ?? this.maxAge,
       isPrivate: isPrivate ?? this.isPrivate,
       isPublic: isPublic ?? this.isPublic,
       noTransform: noTransform ?? this.noTransform,
       immutable: immutable ?? this.immutable,
       mustRevalidate: mustRevalidate ?? this.mustRevalidate,
+      onlyIfCached: onlyIfCached ?? this.onlyIfCached,
     );
   }
 
   @override
   String toString() {
     final sb = StringBuffer();
+
     if (noCache) sb.write('no-cache, ');
     if (noStore) sb.write('no-store, ');
-    if (maxAgeSeconds != null) {
-      sb..write('max-age=')..write(maxAgeSeconds)..write(', ');
+
+    if (maxAge != null) {
+      sb..write('max-age=')..write(maxAge.inSeconds)..write(', ');
     }
+
+    if (maxStale != null) {
+      sb..write('max-stale=')..write(maxStale.inSeconds)..write(', ');
+    }
+
+    if (minFresh != null) {
+      sb..write('min-fresh=')..write(minFresh.inSeconds)..write(', ');
+    }
+
     if (isPrivate) sb.write('private, ');
     if (isPublic) sb.write('public, ');
     if (noTransform) sb.write('no-transform, ');
     if (immutable) sb.write('immutable, ');
+    if (mustRevalidate) sb.write('must-revalidate, ');
+    if (onlyIfCached) sb.write('only-if-cached, ');
+
     return sb.toString();
   }
+
+  @override
+  List<Object> get props => [
+        noCache,
+        noStore,
+        maxAge,
+        maxStale,
+        minFresh,
+        isPrivate,
+        isPublic,
+        noTransform,
+        immutable,
+        mustRevalidate,
+        onlyIfCached,
+      ];
 }

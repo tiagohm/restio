@@ -57,7 +57,9 @@ class Decompressor {
   }
 
   void pause() {
-    if (!isPaused) _subscription?.pause();
+    if (!isPaused) {
+      _subscription?.pause();
+    }
   }
 
   bool get isPaused => _subscription != null && _subscription.isPaused;

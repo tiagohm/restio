@@ -1,22 +1,22 @@
 class RestioException implements Exception {
   final String message;
 
-  RestioException(this.message);
+  const RestioException(this.message);
 }
 
 class TooManyRedirectsException extends RestioException {
   final Uri uri;
 
-  TooManyRedirectsException(
+  const TooManyRedirectsException(
     String message,
     this.uri,
   ) : super(message);
 }
 
 class TimedOutException extends RestioException {
-  TimedOutException(String message) : super(message);
+  const TimedOutException(String message) : super(message);
 }
 
 class CancelledException extends RestioException {
-  CancelledException(String message) : super(message);
+  const CancelledException(String message) : super(message);
 }

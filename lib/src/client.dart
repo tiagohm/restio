@@ -33,8 +33,8 @@ class Restio {
   final Proxy proxy;
   final Uri baseUri;
   final bool withTrustedRoots;
-  final ProgressListener<Request> onUploadProgress;
-  final ProgressListener<Response> onDownloadProgress;
+  final RequestProgressListener onUploadProgress;
+  final ResponseProgressListener onDownloadProgress;
   final BadCertificateListener onBadCertificate;
   final bool isHttp2;
   final ClientCertificateJar clientCertificateJar;
@@ -45,7 +45,7 @@ class Restio {
     this.receiveTimeout,
     this.interceptors = const [],
     this.networkInterceptors = const [],
-    this.cookieJar = CookieJar.noCookies,
+    this.cookieJar,
     ClientAdapter adapter,
     this.auth,
     this.followRedirects = true,
@@ -86,8 +86,8 @@ class Restio {
     Uri baseUri,
     SecurityContext securityContext,
     bool withTrustedRoots,
-    ProgressListener<Request> onUploadProgress,
-    ProgressListener<Response> onDownloadProgress,
+    RequestProgressListener onUploadProgress,
+    ResponseProgressListener onDownloadProgress,
     BadCertificateListener onBadCertificate,
     bool isHttp2,
     ClientCertificateJar clientCertificateJar,
@@ -121,7 +121,7 @@ class _Call extends Call {
   final Restio client;
   @override
   final Request request;
-  final _cancellable = Cancellable();  
+  final _cancellable = Cancellable();
   var _executed = false;
   var _executing = false;
 

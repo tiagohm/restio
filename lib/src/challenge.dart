@@ -1,35 +1,33 @@
 import 'dart:convert';
 
+import 'package:equatable/equatable.dart';
 import 'package:http_parser/http_parser.dart';
 import 'package:restio/src/utils.dart';
 
-class Challenge {
+class Challenge extends Equatable {
   final String scheme;
   final Map<String, String> parameters;
 
   const Challenge({
     this.scheme,
-    this.parameters = const {},
-  });
+    Map<String, String> parameters = const {},
+  }) : parameters = parameters ?? const {};
 
   static List<Challenge> parse(String text) {
     try {
       final challenges = AuthenticationChallenge.parseHeader(text);
       return [
         for (final challenge in challenges)
-          Challenge(scheme: challenge.scheme, parameters: challenge.parameters)
+          Challenge(
+            scheme: challenge.scheme,
+            parameters: challenge.parameters,
+          ),
       ];
     } catch (e) {
       // Falha em https://httpbin.org/bearer.
       return const [];
     }
   }
-
-  Challenge.withRealmAndCharset(
-    this.scheme,
-    String realm, [
-    String charset = 'utf-8',
-  ]) : parameters = {'realm': realm, 'charset': charset};
 
   bool get isBasic => scheme?.toLowerCase() == 'basic';
 
@@ -43,15 +41,24 @@ class Challenge {
 
   String get realm => parameters['realm'];
 
-  Encoding get encoding => obtainEncodingByName(parameters['charset'], latin1);
+  String get charset => parameters['charset'];
+
+  Encoding get encoding => obtainEncodingByName(charset, latin1);
 
   Challenge copyWith({
     String scheme,
     Map<String, String> parameters,
+    String charset,
   }) {
     return Challenge(
       scheme: scheme ?? this.scheme,
-      parameters: parameters ?? this.parameters,
+      parameters: {
+        ...parameters ?? this.parameters,
+        if (charset != null) 'charset': charset,
+      },
     );
   }
+
+  @override
+  List<Object> get props => [scheme, parameters];
 }

@@ -92,7 +92,7 @@ class Http2Transport implements Transport {
 
       await _stream.outgoingMessages.close();
     } on TimeoutException {
-      throw TimedOutException(''); // Connect time out.
+      throw const TimedOutException(''); // Connect time out.
     }
 
     // Monta a resposta.

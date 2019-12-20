@@ -19,16 +19,16 @@ void main() {
 
   test('Parse max-age', () {
     var cacheControl = CacheControl.parse('max-age=12345678');
-    expect(cacheControl.maxAgeSeconds, const Duration(seconds: 12345678));
+    expect(cacheControl.maxAge, const Duration(seconds: 12345678));
     cacheControl = CacheControl.parse('max-age="12345678\"');
-    expect(cacheControl.maxAgeSeconds, const Duration(seconds: 12345678));
+    expect(cacheControl.maxAge, const Duration(seconds: 12345678));
   });
 
   test('Parse public', () {
     final cacheControl = CacheControl.parse('public, max-age=60');
     expect(cacheControl.isPublic, true);
     expect(cacheControl.isPrivate, false);
-    expect(cacheControl.maxAgeSeconds, const Duration(seconds: 60));
+    expect(cacheControl.maxAge, const Duration(seconds: 60));
   });
 
   test('Parse private', () {
@@ -47,7 +47,7 @@ void main() {
         'private, public,max-age="12345678", must-revalidate,no-cache,no-transform, no-store, immutable, s-maxage=60');
     expect(cacheControl.isPrivate, true);
     expect(cacheControl.isPublic, true);
-    expect(cacheControl.maxAgeSeconds, const Duration(seconds: 12345678));
+    expect(cacheControl.maxAge, const Duration(seconds: 12345678));
     expect(cacheControl.mustRevalidate, true);
     expect(cacheControl.noCache, true);
     expect(cacheControl.noStore, true);

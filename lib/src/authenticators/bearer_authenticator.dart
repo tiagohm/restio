@@ -8,7 +8,7 @@ class BearerAuthenticator implements Authenticator {
   final String token;
   final String prefix;
 
-  BearerAuthenticator({
+  const BearerAuthenticator({
     this.token,
     this.prefix = 'Bearer',
   }) : assert(prefix != null);
@@ -49,4 +49,7 @@ class BearerAuthenticator implements Authenticator {
           .build(),
     );
   }
+
+  @override
+  List<Object> get props => [token, prefix];
 }

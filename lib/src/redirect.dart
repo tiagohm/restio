@@ -7,7 +7,7 @@ class Redirect implements RedirectInfo {
   final Request request;
   final Response response;
 
-  Redirect({
+  const Redirect({
     this.request,
     this.response,
   });

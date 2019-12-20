@@ -10,7 +10,7 @@ class BasicAuthenticator implements Authenticator {
   final String username;
   final String password;
 
-  BasicAuthenticator({
+  const BasicAuthenticator({
     this.username,
     this.password,
   });
@@ -70,4 +70,7 @@ class BasicAuthenticator implements Authenticator {
     final hash = base64.encode(encoding.encode(usernameAndPassword));
     return 'Basic $hash';
   }
+
+  @override
+  List<Object> get props => [username, password];
 }

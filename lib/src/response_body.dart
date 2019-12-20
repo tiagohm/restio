@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert' as convert;
-import 'dart:io';
 
 import 'package:restio/src/compression_type.dart';
 import 'package:restio/src/decompressor.dart';
@@ -91,6 +90,10 @@ class ResponseBody {
     return _decompressor.decompress();
   }
 
+  Future<List<int>> compressed() => raw(false);
+
+  Future<List<int>> decompressed() => raw(true);
+
   Future<String> string() async {
     final encoded = await raw(true);
     return contentType?.encoding != null
@@ -100,13 +103,6 @@ class ResponseBody {
 
   Future<dynamic> json() async {
     return convert.json.decode(await string());
-  }
-
-  Future<File> downloadToFile(
-    String path, [
-    bool decompress = true,
-  ]) async {
-    return File(path).writeAsBytes(await raw(decompress));
   }
 
   void pause() {

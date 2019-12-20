@@ -1,11 +1,12 @@
+import 'package:equatable/equatable.dart';
 import 'package:restio/src/headers.dart';
 
-class WebSocketRequest {
+class WebSocketRequest extends Equatable {
   final Uri uri;
   final List<String> protocols;
   final Headers headers;
 
-  WebSocketRequest({
+  const WebSocketRequest({
     this.uri,
     this.protocols,
     this.headers,
@@ -15,7 +16,7 @@ class WebSocketRequest {
     String url, {
     this.protocols,
     this.headers,
-  })  : uri = Uri.parse(url);
+  }) : uri = Uri.parse(url);
 
   WebSocketRequest copyWith({
     Uri uri,
@@ -28,4 +29,7 @@ class WebSocketRequest {
       headers: headers,
     );
   }
+
+  @override
+  List<Object> get props => [uri, protocols, headers];
 }

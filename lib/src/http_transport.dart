@@ -213,7 +213,7 @@ class HttpTransport implements Transport {
         ),
       );
     } on TimeoutException {
-      throw TimedOutException(''); // connect time out
+      throw const TimedOutException(''); // connect time out
     }
   }
 

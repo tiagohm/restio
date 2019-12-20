@@ -2,14 +2,13 @@ import 'package:restio/src/media_type.dart';
 import 'package:restio/src/request_body.dart';
 
 class FormBody implements RequestBody {
+  @override
+  final MediaType contentType;
   final _data = <String>[];
-  MediaType _contentType;
 
   FormBody({
     String charset,
-  }) {
-    _contentType = MediaType.formUrlEncoded.copyWith(charset: charset);
-  }
+  }) : contentType = MediaType.formUrlEncoded.copyWith(charset: charset);
 
   factory FormBody.fromMap(
     Map<String, dynamic> formItems, [
@@ -30,14 +29,11 @@ class FormBody implements RequestBody {
     return body;
   }
 
-  @override
-  MediaType get contentType => _contentType;
-
   int get size => _data.length;
 
   @override
   Stream<List<int>> write() async* {
-    final encoding = _contentType.encoding;
+    final encoding = contentType.encoding;
 
     for (var i = 0; i < _data.length; i++) {
       if (i > 0) {
@@ -48,13 +44,16 @@ class FormBody implements RequestBody {
     }
   }
 
-  void add(String name, String value) {
+  void add(
+    String name,
+    String value,
+  ) {
     if (name == null || name.isEmpty || value == null) return;
     _data.add('$name=$value');
   }
 
   @override
   String toString() {
-    return 'FormBody { contentType: $_contentType, data: $_data }';
+    return 'FormBody { contentType: $contentType, data: $_data }';
   }
 }

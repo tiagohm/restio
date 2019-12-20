@@ -139,7 +139,7 @@ final response = await call.execute();
 
 #### Listening for download progress:
 ```dart
-final ProgressListener<Response> onProgress = (response, sent, total, done) {
+final ResponseProgressListener onProgress = (response, sent, total, done) {
   print('sent: $sent, total: $total, done: $done');
 };
 
@@ -156,7 +156,7 @@ final data = await response.body.raw(false);
 
 #### Listening for upload progress:
 ```dart
-final ProgressListener<Request> onProgress = (request, sent, total, done) {
+final RequestProgressListener onProgress = (request, sent, total, done) {
   print('sent: $sent, total: $total, done: $done');
 };
 
@@ -214,7 +214,8 @@ final client = Restio(
 
 final request = Request.get('https://postman-echo.com/basic-auth');
 
-final response = await requestResponse(client, request);
+final call = client.newCall(request);
+final response = await call.execute();
 ```
 
 > Supports Bearer, Digest and Hawk authorization method too.
@@ -264,6 +265,20 @@ final response = await call.execute();
 
 // Cancel the request with 'cancelled' message.
 call.cancel('cancelled');
+```
+
+### Proxy
+```dart
+final client = Restio(
+  proxy: Proxy(
+    host: 'localhost',
+    port: 3001,
+  ),
+);
+
+final request = Request.get('http://localhost:3000');
+final call = client.newCall(request);
+final response = await call.execute();
 ```
 
 #### HTTP2

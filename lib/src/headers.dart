@@ -1,10 +1,11 @@
-class Headers {
-  final List<String> _namesAndValues;
+import 'package:equatable/equatable.dart';
 
-  Headers._(HeadersBuilder builder)
-      : _namesAndValues = builder._namesAndValues ?? <String>[];
+class Headers extends Equatable {
+  final List<String> _items;
 
-  int get length => _namesAndValues.length ~/ 2;
+  Headers._(HeadersBuilder builder) : _items = builder._items ?? <String>[];
+
+  int get length => _items.length ~/ 2;
 
   bool get isEmpty => length == 0;
 
@@ -12,16 +13,12 @@ class Headers {
 
   String nameAt(int index) {
     final realIndex = index * 2;
-    return realIndex < _namesAndValues.length
-        ? _namesAndValues[realIndex]
-        : null;
+    return realIndex < _items.length ? _items[realIndex] : null;
   }
 
   String valueAt(int index) {
     final realIndex = index * 2 + 1;
-    return realIndex < _namesAndValues.length
-        ? _namesAndValues[realIndex]
-        : null;
+    return realIndex < _items.length ? _items[realIndex] : null;
   }
 
   bool has(String name) {
@@ -31,8 +28,8 @@ class Headers {
 
     name = name.toLowerCase();
 
-    for (var i = 0; i < _namesAndValues.length; i += 2) {
-      if (_namesAndValues[i] == name) return true;
+    for (var i = 0; i < _items.length; i += 2) {
+      if (_items[i] == name) return true;
     }
 
     return false;
@@ -45,8 +42,8 @@ class Headers {
 
     name = name.toLowerCase();
 
-    for (var i = 0; i < _namesAndValues.length; i += 2) {
-      if (_namesAndValues[i] == name) return _namesAndValues[i + 1];
+    for (var i = 0; i < _items.length; i += 2) {
+      if (_items[i] == name) return _items[i + 1];
     }
 
     return null;
@@ -57,8 +54,8 @@ class Headers {
 
     name = name.toLowerCase();
 
-    for (var i = _namesAndValues.length - 2; i >= 0; i -= 2) {
-      if (_namesAndValues[i] == name) return _namesAndValues[i + 1];
+    for (var i = _items.length - 2; i >= 0; i -= 2) {
+      if (_items[i] == name) return _items[i + 1];
     }
 
     return null;
@@ -70,8 +67,8 @@ class Headers {
     name = name.toLowerCase();
     final res = <String>[];
 
-    for (var i = 0; i < _namesAndValues.length; i += 2) {
-      if (_namesAndValues[i] == name) res.add(_namesAndValues[i + 1]);
+    for (var i = 0; i < _items.length; i += 2) {
+      if (_items[i] == name) res.add(_items[i + 1]);
     }
 
     return res;
@@ -79,30 +76,29 @@ class Headers {
 
   Set<String> names() {
     return {
-      for (var i = 0; i < _namesAndValues.length; i += 2) _namesAndValues[i],
+      for (var i = 0; i < _items.length; i += 2) _items[i],
     };
   }
 
   List<String> values() {
     return [
-      for (var i = 1; i < _namesAndValues.length; i += 2) _namesAndValues[i],
+      for (var i = 1; i < _items.length; i += 2) _items[i],
     ];
   }
 
   Map<String, List<String>> toMap() {
     final res = <String, List<String>>{};
 
-    for (var i = 0; i < _namesAndValues.length; i += 2) {
-      res.putIfAbsent(_namesAndValues[i], () => [])
-        ..add(_namesAndValues[i + 1]);
+    for (var i = 0; i < _items.length; i += 2) {
+      res.putIfAbsent(_items[i], () => [])..add(_items[i + 1]);
     }
 
     return res;
   }
 
   void forEach(void Function(String name, String value) f) {
-    for (var i = 0; i < _namesAndValues.length; i += 2) {
-      f(_namesAndValues[i], _namesAndValues[i + 1]);
+    for (var i = 0; i < _items.length; i += 2) {
+      f(_items[i], _items[i + 1]);
     }
   }
 
@@ -122,24 +118,27 @@ class Headers {
 
     sb.write('Headers {');
 
-    for (var i = 0; i < _namesAndValues.length; i += 2) {
+    for (var i = 0; i < _items.length; i += 2) {
       if (i > 0) sb.write(', ');
-      sb..write(_namesAndValues[i])..write(': ')..write(_namesAndValues[i + 1]);
+      sb..write(_items[i])..write(': ')..write(_items[i + 1]);
     }
 
     sb.write('}');
 
     return sb.toString();
   }
+
+  @override
+  List<Object> get props => [_items];
 }
 
 class HeadersBuilder {
-  final _namesAndValues = <String>[];
+  final _items = <String>[];
 
   HeadersBuilder();
 
   HeadersBuilder._(Headers headers) {
-    _namesAndValues.addAll(headers._namesAndValues);
+    _items.addAll(headers._items);
   }
 
   HeadersBuilder add(String name, dynamic value) {
@@ -150,13 +149,13 @@ class HeadersBuilder {
     if (value is Iterable) {
       for (final item in value) {
         if (item is String || item is num || item is bool) {
-          _namesAndValues.add(name.toLowerCase());
-          _namesAndValues.add('$item'.trim());
+          _items.add(name.toLowerCase());
+          _items.add('$item'.trim());
         }
       }
     } else if (value is String || value is num || value is bool) {
-      _namesAndValues.add(name.toLowerCase());
-      _namesAndValues.add('$value'.trim());
+      _items.add(name.toLowerCase());
+      _items.add('$value'.trim());
     }
 
     return this;
@@ -169,10 +168,10 @@ class HeadersBuilder {
   }
 
   HeadersBuilder remove(String name) {
-    for (var i = 0; i < _namesAndValues.length; i += 2) {
-      if (_namesAndValues[i] == name) {
-        _namesAndValues.removeAt(i);
-        _namesAndValues.removeAt(i);
+    for (var i = 0; i < _items.length; i += 2) {
+      if (_items[i] == name) {
+        _items.removeAt(i);
+        _items.removeAt(i);
         i -= 2;
       }
     }
@@ -183,19 +182,19 @@ class HeadersBuilder {
   HeadersBuilder removeAt(int index) {
     final realIndex = index * 2;
 
-    if (realIndex < _namesAndValues.length) {
-      _namesAndValues.removeAt(realIndex);
-      _namesAndValues.removeAt(realIndex);
+    if (realIndex < _items.length) {
+      _items.removeAt(realIndex);
+      _items.removeAt(realIndex);
     }
 
     return this;
   }
 
   HeadersBuilder removeFirst(String name) {
-    for (var i = 0; i < _namesAndValues.length; i += 2) {
-      if (_namesAndValues[i] == name) {
-        _namesAndValues.removeAt(i);
-        _namesAndValues.removeAt(i);
+    for (var i = 0; i < _items.length; i += 2) {
+      if (_items[i] == name) {
+        _items.removeAt(i);
+        _items.removeAt(i);
         break;
       }
     }
@@ -204,10 +203,10 @@ class HeadersBuilder {
   }
 
   HeadersBuilder removeLast(String name) {
-    for (var i = _namesAndValues.length - 2; i >= 0; i -= 2) {
-      if (_namesAndValues[i] == name) {
-        _namesAndValues.removeAt(i);
-        _namesAndValues.removeAt(i);
+    for (var i = _items.length - 2; i >= 0; i -= 2) {
+      if (_items[i] == name) {
+        _items.removeAt(i);
+        _items.removeAt(i);
         break;
       }
     }

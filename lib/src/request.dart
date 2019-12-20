@@ -5,6 +5,7 @@ import 'package:restio/src/request_body.dart';
 
 class Request {
   final Uri uri;
+  final Uri uriWithQueries;
   final String method;
   final Headers headers;
   final Queries queries;
@@ -20,6 +21,7 @@ class Request {
     this.extra,
   })  : assert(uri != null),
         uri = _obtainUriWithoutQueries(uri),
+        uriWithQueries = _obtainUriWithQueries(uri, queries),
         headers = headers ?? HeadersBuilder().build(),
         queries = _obtainQueries(uri, queries);
 
@@ -108,15 +110,6 @@ class Request {
           extra: extra,
         );
 
-  Uri get uriWithQueries => Uri(
-        host: uri.host,
-        pathSegments: uri.pathSegments,
-        port: uri.port,
-        scheme: uri.scheme,
-        userInfo: uri.userInfo,
-        queryParameters: queries?.isNotEmpty == true ? queries.toMap() : null,
-      );
-
   static Uri _obtainUriWithoutQueries(Uri uri) {
     return Uri(
       host: uri.host,
@@ -124,6 +117,23 @@ class Request {
       port: uri.port,
       scheme: uri.scheme,
       userInfo: uri.userInfo,
+    );
+  }
+
+  static Uri _obtainUriWithQueries(
+    Uri uri,
+    Queries queries,
+  ) {
+    queries = _obtainQueries(uri, queries);
+    uri = _obtainUriWithoutQueries(uri);
+
+    return Uri(
+      host: uri.host,
+      pathSegments: uri.pathSegments,
+      port: uri.port,
+      scheme: uri.scheme,
+      userInfo: uri.userInfo,
+      queryParameters: queries?.isNotEmpty == true ? queries.toMap() : null,
     );
   }
 

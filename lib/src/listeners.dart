@@ -2,8 +2,15 @@ import 'dart:io';
 
 import 'package:restio/restio.dart';
 
-typedef ProgressListener<T> = void Function(
-  T o,
+typedef RequestProgressListener = void Function(
+  Request request,
+  int sent,
+  int total,
+  bool done,
+);
+
+typedef ResponseProgressListener = void Function(
+  Response response,
   int sent,
   int total,
   bool done,

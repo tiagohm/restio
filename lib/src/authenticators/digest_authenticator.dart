@@ -10,7 +10,7 @@ class DigestAuthenticator implements Authenticator {
   final String username;
   final String password;
 
-  DigestAuthenticator({
+  const DigestAuthenticator({
     this.username,
     this.password,
   });
@@ -155,4 +155,7 @@ class DigestAuthenticator implements Authenticator {
       return hashAlgorithm.convert('$ha1:$nonce:$ha2'.codeUnits).toString();
     }
   }
+
+  @override
+  List<Object> get props => [username, password];
 }

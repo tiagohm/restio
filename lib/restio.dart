@@ -19,7 +19,6 @@ export 'package:restio/src/decompressor.dart';
 export 'package:restio/src/encodings.dart';
 export 'package:restio/src/exceptions.dart';
 export 'package:restio/src/form_body.dart';
-export 'package:restio/src/handshake.dart';
 export 'package:restio/src/headers.dart';
 export 'package:restio/src/interceptor.dart';
 export 'package:restio/src/listeners.dart';

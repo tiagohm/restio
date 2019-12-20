@@ -1,28 +1,41 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:equatable/equatable.dart';
 import 'package:mime/mime.dart';
 import 'package:restio/src/utils.dart';
 
-class MediaType {
+class MediaType extends Equatable {
   final String type;
   final String subType;
   final Map<String, String> parameters;
 
-  static const formUrlEncoded =
-      MediaType._(type: 'application', subType: 'x-www-form-urlencoded');
+  static const formUrlEncoded = MediaType._(
+    type: 'application',
+    subType: 'x-www-form-urlencoded',
+  );
 
-  static const multipartFormData =
-      MediaType._(type: 'multipart', subType: 'form-data');
+  static const multipartFormData = MediaType._(
+    type: 'multipart',
+    subType: 'form-data',
+  );
 
   static const json = MediaType._(
-      type: 'application', subType: 'json', parameters: {'charset': 'utf-8'});
+    type: 'application',
+    subType: 'json',
+    parameters: {'charset': 'utf-8'},
+  );
 
-  static const octetStream =
-      MediaType._(type: 'application', subType: 'octet-stream');
+  static const octetStream = MediaType._(
+    type: 'application',
+    subType: 'octet-stream',
+  );
 
   static const text = MediaType._(
-      type: 'text', subType: 'plain', parameters: {'charset': 'utf-8'});
+    type: 'text',
+    subType: 'plain',
+    parameters: {'charset': 'utf-8'},
+  );
 
   const MediaType._({
     this.type,
@@ -43,7 +56,11 @@ class MediaType {
       if (boundary != null) 'boundary': boundary,
     };
 
-    return MediaType._(type: type, subType: subType, parameters: parameters);
+    return MediaType._(
+      type: type,
+      subType: subType,
+      parameters: parameters,
+    );
   }
 
   factory MediaType.fromContentType(ContentType contentType) {
@@ -95,7 +112,7 @@ class MediaType {
 
   String get mimeType => '$type/$subType';
 
-  String get charset => parameters['charset'] ?? 'utf-8';
+  String get charset => parameters['charset'];
 
   String get boundary => parameters['boundary'];
 
@@ -125,4 +142,7 @@ class MediaType {
 
     return text.toString();
   }
+
+  @override
+  List<Object> get props => [type, subType, parameters];
 }

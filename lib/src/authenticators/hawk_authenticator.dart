@@ -17,7 +17,7 @@ class HawkAuthenticator implements Authenticator {
   final HawkAlgorithm algorithm;
   final String ext;
 
-  HawkAuthenticator({
+  const HawkAuthenticator({
     this.id,
     this.key,
     this.algorithm = HawkAlgorithm.sha256,
@@ -125,4 +125,7 @@ class HawkAuthenticator implements Authenticator {
     final bytes = hmac.convert(encodeUtf8(normalizedReqStr)).bytes;
     return base64.encode(bytes);
   }
+
+  @override
+  List<Object> get props => [id, key, algorithm, ext];
 }
