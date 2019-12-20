@@ -265,7 +265,7 @@ class Http2Transport implements Transport {
     final contentEncoding = headers.first(HttpHeaders.contentEncodingHeader);
 
     if (contentEncoding != null && contentEncoding.isNotEmpty) {
-      switch (contentEncoding[0]) {
+      switch (contentEncoding) {
         case 'gzip':
           return CompressionType.gzip;
         case 'deflate':
