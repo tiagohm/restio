@@ -8,10 +8,8 @@ In `pubspec.yaml` add the following dependency:
 
 ```yaml
 dependencies:
-  restio: # latest version
+  restio: ^0.2.0
 ```
-
-The latest version is: [![Pub](https://img.shields.io/pub/v/restio?color=blueviolet)](https://pub.dev/packages/restio)
 
 ### How to use
 
@@ -27,6 +25,8 @@ final request = Request(
     method: 'GET',
 );
 ```
+
+or
 
 ```dart
 final request = Request.get('https://httpbin.org/json');
@@ -267,7 +267,7 @@ final response = await call.execute();
 call.cancel('cancelled');
 ```
 
-### Proxy
+#### Proxy
 ```dart
 final client = Restio(
   proxy: Proxy(
@@ -290,7 +290,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-### WebSocket
+#### WebSocket
 ```dart
 final client = WebSocketClient();
 final request = WebSocketRequest.url('wss://echo.websocket.org');
@@ -307,7 +307,7 @@ conn.addString('🎾');
 await conn.close();
 ```
 
-### DNS
+#### DNS
 
 Thanks to [dart-protocol](https://github.com/dart-protocol) for this great [dns](https://github.com/dart-protocol/dns) library!
 
