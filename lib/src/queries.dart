@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+// ignore_for_file: avoid_returning_this
+
 class Queries extends Equatable {
   final List<String> _items;
 
@@ -208,6 +210,7 @@ class QueriesBuilder {
     return this;
   }
 
+  // ignore: use_to_and_as_if_applicable
   Queries build() {
     return Queries._(this);
   }

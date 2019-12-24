@@ -121,10 +121,10 @@ void main() {
   test('Posting Binary File', () async {
     var isDone = false;
 
-    final RequestProgressListener onProgress = (request, sent, total, done) {
+    void onProgress(request, sent, total, done) {
       print('sent: $sent, total: $total, done: $done');
       isDone = done;
-    };
+    }
 
     final progressClient = client.copyWith(
       onUploadProgress: onProgress,
@@ -318,7 +318,7 @@ void main() {
 
     final call = client.newCall(request);
     final response = await call.execute();
-    final dynamic data = await response.body.raw(false);
+    final dynamic data = await response.body.compressed();
 
     expect(data.length, 50);
   });
@@ -377,10 +377,10 @@ void main() {
   test('Chunked', () async {
     var isDone = false;
 
-    final ResponseProgressListener onProgress = (response, sent, total, done) {
+    void onProgress(response, sent, total, done) {
       print('sent: $sent, total: $total, done: $done');
       isDone = done;
-    };
+    }
 
     final progressClient = client.copyWith(
       onDownloadProgress: onProgress,
@@ -390,7 +390,7 @@ void main() {
 
     final call = progressClient.newCall(request);
     final response = await call.execute();
-    final dynamic data = await response.body.raw(false);
+    final dynamic data = await response.body.compressed();
 
     expect(data.length, 36001);
     expect(isDone, true);

@@ -154,9 +154,9 @@ class Response {
 
   @override
   String toString() {
-    return 'Response { body: $body, code: $code, elapsedMilliseconds: $elapsedMilliseconds, receivedAt: $receivedAt,' +
-        ' headers: $headers, cookies: $cookies, message: $message, request: $request,' +
-        ' connectionInfo: $connectionInfo, redirects: $redirects, originalRequest: $originalRequest,' +
+    return 'Response { body: $body, code: $code, elapsedMilliseconds: $elapsedMilliseconds, receivedAt: $receivedAt,'
+        ' headers: $headers, cookies: $cookies, message: $message, request: $request,'
+        ' connectionInfo: $connectionInfo, redirects: $redirects, originalRequest: $originalRequest,'
         ' connectRequest: $connectRequest }';
   }
 }

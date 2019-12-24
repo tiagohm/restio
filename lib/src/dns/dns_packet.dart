@@ -185,7 +185,7 @@ class DnsResourceRecord extends SelfCodec {
   List<String> nameParts = const <String>[];
 
   set name(String value) {
-    this.nameParts = value.split('.');
+    nameParts = value.split('.');
   }
 
   String get name => nameParts.join('.');
@@ -288,7 +288,7 @@ class DnsPacket extends Packet {
     op = opQuery;
     isResponse = true;
     if (request != null) {
-      this.questions = <DnsQuestion>[];
+      questions = <DnsQuestion>[];
     }
   }
 
@@ -486,16 +486,16 @@ class DnsQuestion extends SelfCodec {
   List<String> nameParts = <String>[];
 
   set name(String value) {
-    this.nameParts = value.split('.');
+    nameParts = value.split('.');
   }
 
   String get name => nameParts.join('.');
 
   /// 16-bit type.
-  var type = typeIp4;
+  int type = typeIp4;
 
   /// 16-bit class.
-  var classy = classInternetAddress;
+  int classy = classInternetAddress;
 
   DnsQuestion({String host}) {
     if (host != null) {
@@ -523,7 +523,7 @@ class DnsQuestion extends SelfCodec {
     int startIndex,
   }) {
     // Name.
-    this.nameParts = _readDnsName(reader, startIndex);
+    nameParts = _readDnsName(reader, startIndex);
     // 2-byte question type.
     type = reader.readUint16();
     // 2-byte question class.

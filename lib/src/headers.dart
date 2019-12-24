@@ -1,5 +1,7 @@
 import 'package:equatable/equatable.dart';
 
+// ignore_for_file: avoid_returning_this
+
 class Headers extends Equatable {
   final List<String> _items;
 
@@ -214,6 +216,7 @@ class HeadersBuilder {
     return this;
   }
 
+  // ignore: use_to_and_as_if_applicable
   Headers build() {
     return Headers._(this);
   }

@@ -69,7 +69,9 @@ class ResponseBody {
     );
   }
 
-  Future<List<int>> raw(bool decompress) {
+  Future<List<int>> raw({
+    bool decompress = true,
+  }) {
     var sent = 0;
     _decompressor = Decompressor(
       compressionType:
@@ -88,12 +90,12 @@ class ResponseBody {
     return _decompressor.decompress();
   }
 
-  Future<List<int>> compressed() => raw(false);
+  Future<List<int>> compressed() => raw(decompress: false);
 
-  Future<List<int>> decompressed() => raw(true);
+  Future<List<int>> decompressed() => raw(decompress: true);
 
   Future<String> string() async {
-    final encoded = await raw(true);
+    final encoded = await decompressed();
     return contentType?.encoding != null
         ? contentType.encoding.decode(encoded)
         : convert.utf8.decode(encoded);

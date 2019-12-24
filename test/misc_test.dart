@@ -13,17 +13,17 @@ void main() {
     expect(challenges[0].parameters['error_description'],
         'The access token is invalid or has expired');
 
-    challenges = AuthenticationChallenge.parseHeader('OAuth realm="Example",' +
-        ' oauth_consumer_key="0685bd9184jfhq22",' +
-        ' oauth_token="ad180jjd733klru7",' +
-        ' oauth_signature_method="HMAC-SHA1",' +
-        ' oauth_signature="wOJIO9A2W5mFwDgiDvZbTSMK%2FPY%3D",' +
-        ' oauth_timestamp="137131200",' +
-        ' oauth_nonce="4572616e48616d6d65724c61686176",' +
-        ' oauth_version="1.0",' +
-        ' Digest realm="testrealm@host.com",' +
-        ' qop="auth,auth-int",' +
-        ' nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",' +
+    challenges = AuthenticationChallenge.parseHeader('OAuth realm="Example",'
+        ' oauth_consumer_key="0685bd9184jfhq22",'
+        ' oauth_token="ad180jjd733klru7",'
+        ' oauth_signature_method="HMAC-SHA1",'
+        ' oauth_signature="wOJIO9A2W5mFwDgiDvZbTSMK%2FPY%3D",'
+        ' oauth_timestamp="137131200",'
+        ' oauth_nonce="4572616e48616d6d65724c61686176",'
+        ' oauth_version="1.0",'
+        ' Digest realm="testrealm@host.com",'
+        ' qop="auth,auth-int",'
+        ' nonce="dcd98b7102dd2f0e8b11d0f600bfb0c093",'
         ' opaque="5ccc069c403ebaf9f0171e9517f40e41"');
 
     expect(challenges[0].scheme, 'oauth');

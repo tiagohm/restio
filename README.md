@@ -73,12 +73,14 @@ final stream = response.body.data;
 
 #### Get raw response bytes:
 ```dart
-final bytes = response.body.raw(false);
+final bytes = response.body.raw(decompress: false);
+final bytes = response.body.compressed();
 ```
 
 #### Get decompressed response bytes (gzip or deflate):
 ```dart
-final bytes = response.body.raw(true);
+final bytes = response.body.raw(decompress: true);
+final bytes = response.body.decompressed();
 ```
 
 #### Get response string:

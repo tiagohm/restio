@@ -1,0 +1,7 @@
+include: package:effective_dart/analysis_options.yaml
+
+linter:
+  rules:
+    public_member_api_docs: false
+    avoid_catches_without_on_clauses: false
+    one_member_abstracts: false

@@ -35,7 +35,7 @@ class DnsOverHttps extends PacketBasedDns {
     this.timeout,
     this.maximalPrivacy = false,
     this.dns,
-  }) : this.host = Uri.parse(url).host;
+  }) : host = Uri.parse(url).host;
 
   DnsOverHttps.google(
     Restio client, {

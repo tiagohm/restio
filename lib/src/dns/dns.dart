@@ -122,6 +122,7 @@ class _SystemDns extends Dns {
 }
 
 abstract class PacketBasedDns extends Dns {
+  @override
   Future<DnsPacket> lookupPacket(
     String host, {
     InternetAddressType type = InternetAddressType.any,
