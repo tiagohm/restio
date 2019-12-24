@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:restio/restio.dart';
 import 'package:restio/src/cache/cache_control.dart';
 import 'package:restio/src/challenge.dart';
 import 'package:restio/src/headers.dart';
@@ -8,7 +9,6 @@ import 'package:restio/src/request.dart';
 import 'package:restio/src/response_body.dart';
 
 class Response {
-  final Request request;
   final String message;
   final int code;
   final Headers headers;
@@ -18,9 +18,17 @@ class Response {
   final List<Challenge> challenges;
   final HttpConnectionInfo connectionInfo;
   final List<Redirect> redirects;
+
+  /// É o Request criado pelo usuário (não sofreu nenhuma transformação).
   final Request originalRequest;
-  final CacheControl cacheControl;
+
+  /// É o Request que iniciou a chamada (transformado pelos interceptors: Cookies, Auth headers).
+  final Request request;
+
+  /// É o Request que realizou a chamada (transformado pelo ConnectInterceptor: BaseUri, DNS).
   final Request connectRequest;
+  final CacheControl cacheControl;
+
   final DateTime receivedAt;
   final X509Certificate certificate;
 

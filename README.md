@@ -307,6 +307,23 @@ conn.addString('🎾');
 await conn.close();
 ```
 
+### DNS
+
+Thanks to [dart-protocol](https://github.com/dart-protocol) for this great [dns](https://github.com/dart-protocol/dns) library!
+
+```dart
+final dns = DnsOverUdp.google();
+final client = Restio(
+  dns: dns,
+);
+
+final request = Request.get('https://postman-echo.com/get');
+final call = client.newCall(request);
+final response = await call.execute();
+```
+
+> Supports DnsOverHttps too.
+
 ### Projects using this library
 
 * [Restler](https://play.google.com/store/apps/details?id=br.tiagohm.restler): Restler is an Android app built with simplicity and ease of use in mind. It allows you send custom HTTP/HTTPS requests and test your REST API anywhere and anytime.

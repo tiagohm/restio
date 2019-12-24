@@ -73,7 +73,9 @@ class MediaType extends Equatable {
   }
 
   factory MediaType.parse(String text) {
-    return MediaType.fromContentType(ContentType.parse(text));
+    return text == null
+        ? null
+        : MediaType.fromContentType(ContentType.parse(text));
   }
 
   factory MediaType.fromFile(

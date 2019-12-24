@@ -2,6 +2,9 @@ class RestioException implements Exception {
   final String message;
 
   const RestioException(this.message);
+
+  @override
+  String toString() => message;
 }
 
 class TooManyRedirectsException extends RestioException {

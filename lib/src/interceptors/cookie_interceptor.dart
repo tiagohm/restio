@@ -16,16 +16,28 @@ class CookieInterceptor implements Interceptor {
   Future<Response> intercept(Chain chain) async {
     var request = chain.request;
 
+    // TODO: O usuário pode ter seu próprio header de cookie. Devemos apenas concatená-lo?
     if (cookieJar != null) {
       final cookies = await cookieJar.loadForRequest(request);
 
       final cookieHeader = _cookieHeader(cookies);
 
+      // Se tem cookies para enviar, seta no header.
       if (cookieHeader != null && cookieHeader.isNotEmpty) {
         request = request.copyWith(
           headers: request.headers
               .toBuilder()
               .set(HttpHeaders.cookieHeader, cookieHeader)
+              .build(),
+        );
+      }
+      // Se não, remove para não ficar da requisição antes do redirecionamento.
+      // TODO: Poderia ter uma opção para desabilitar isto?
+      else {
+        request = request.copyWith(
+          headers: request.headers
+              .toBuilder()
+              .remove(HttpHeaders.cookieHeader)
               .build(),
         );
       }

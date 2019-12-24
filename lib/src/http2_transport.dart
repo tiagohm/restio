@@ -33,7 +33,7 @@ class Http2Transport implements Transport {
   }
 
   @override
-  Future<Response> send(Request request) async {
+  Future<Response> send(final Request request) async {
     try {
       final socket = await _createSocket(request);
       _transport = ClientTransportConnection.viaSocket(socket);
@@ -215,7 +215,6 @@ class Http2Transport implements Transport {
         data.close();
 
         var res = Response(
-          connectRequest: request,
           code: code,
           headers: headers.build(),
           // message: response.reasonPhrase,

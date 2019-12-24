@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:restio/restio.dart';
 import 'package:restio/src/authenticator.dart';
 import 'package:restio/src/call.dart';
 import 'package:restio/src/cancellable.dart';
@@ -38,6 +39,7 @@ class Restio {
   final BadCertificateListener onBadCertificate;
   final bool isHttp2;
   final ClientCertificateJar clientCertificateJar;
+  final Dns dns;
 
   Restio({
     this.connectTimeout,
@@ -60,6 +62,7 @@ class Restio {
     this.onBadCertificate,
     this.isHttp2 = false,
     this.clientCertificateJar,
+    this.dns,
   })  : assert(interceptors != null),
         assert(maxRedirects != null),
         assert(followRedirects != null),
@@ -91,6 +94,7 @@ class Restio {
     BadCertificateListener onBadCertificate,
     bool isHttp2,
     ClientCertificateJar clientCertificateJar,
+    Dns dns,
   }) {
     return Restio(
       connectTimeout: connectTimeout ?? this.connectTimeout,
@@ -113,6 +117,7 @@ class Restio {
       onBadCertificate: onBadCertificate ?? this.onBadCertificate,
       isHttp2: isHttp2 ?? this.isHttp2,
       clientCertificateJar: clientCertificateJar ?? this.clientCertificateJar,
+      dns: dns ?? this.dns,
     );
   }
 }

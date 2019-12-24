@@ -95,7 +95,7 @@ class HttpTransport implements Transport {
   }
 
   @override
-  Future<Response> send(Request request) async {
+  Future<Response> send(final Request request) async {
     HttpClientRequest clientRequest;
 
     _httpClient = await _buildHttpClient(client, request);
@@ -103,6 +103,7 @@ class HttpTransport implements Transport {
     final proxy = client.proxy;
     var hasProxy = false;
 
+    // Usar proxy.
     if (proxy != null &&
         (proxy.http && request.uri.scheme == 'http' ||
             proxy.https && request.uri.scheme == 'https')) {
@@ -203,7 +204,6 @@ class HttpTransport implements Transport {
 
       // Monta a resposta.
       final res = Response(
-        connectRequest: request,
         code: response.statusCode,
         headers: _obtainHeadersfromHttpHeaders(response.headers),
         message: response.reasonPhrase,

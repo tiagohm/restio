@@ -52,12 +52,13 @@ class ConnectInterceptor implements Interceptor {
       }
     });
 
-    var realRequest = request;
+    var connectRequest = request;
 
     try {
       final requestUri = request.uri;
       final baseUri = client.baseUri;
 
+      // Troca pela BaseUri.
       if (baseUri != null && requestUri.scheme.isEmpty) {
         final scheme = baseUri.scheme;
         final userinfo = requestUri.userInfo.isEmpty
@@ -70,7 +71,7 @@ class ConnectInterceptor implements Interceptor {
           ...requestUri.queryParametersAll,
         };
 
-        realRequest = request.copyWith(
+        connectRequest = request.copyWith(
           uri: Uri(
             scheme: scheme,
             host: host,
@@ -82,10 +83,29 @@ class ConnectInterceptor implements Interceptor {
         );
       }
 
-      final response = await transport.send(realRequest);
+      // Busca o real endereço (IP) do host através de um DNS.
+      if (client.dns != null) {
+        final addresses = await client.dns.lookup(connectRequest.uri.host);
+
+        if (addresses != null && addresses.isNotEmpty) {
+          connectRequest = connectRequest.copyWith(
+            uri: Uri(
+              pathSegments: connectRequest.uri.pathSegments,
+              port: connectRequest.uri.port,
+              queryParameters: connectRequest.uri.queryParameters,
+              scheme: connectRequest.uri.scheme,
+              userInfo: connectRequest.uri.userInfo,
+              host: addresses[0].toString(),
+            ),
+          );
+        }
+      }
+
+      final response = await transport.send(connectRequest);
 
       return response.copyWith(
         request: request,
+        connectRequest: connectRequest,
       );
     } on Exception {
       if (cancellable != null && cancellable.isCancelled) {

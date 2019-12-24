@@ -16,6 +16,8 @@ dependencies:
   meta: ^1.1.8
   http2: ^1.0.0
   equatable: ^1.0.1
+  raw: ^0.2.0
+  ip: ^0.1.1
 
 dev_dependencies:
   test: ^1.6.5
