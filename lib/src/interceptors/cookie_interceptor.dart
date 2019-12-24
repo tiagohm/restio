@@ -24,7 +24,7 @@ class CookieInterceptor implements Interceptor {
       if (cookieHeader != null && cookieHeader.isNotEmpty) {
         request = request.copyWith(
           headers: request.headers
-              .builder()
+              .toBuilder()
               .set(HttpHeaders.cookieHeader, cookieHeader)
               .build(),
         );

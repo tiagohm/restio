@@ -69,9 +69,7 @@ class ResponseBody {
     );
   }
 
-  Future<List<int>> raw([
-    bool decompress = true,
-  ]) {
+  Future<List<int>> raw(bool decompress) {
     var sent = 0;
     _decompressor = Decompressor(
       compressionType:

@@ -72,7 +72,7 @@ class HawkAuthenticator implements Authenticator {
 
     return originalRequest.copyWith(
       headers: originalRequest.headers
-          .builder()
+          .toBuilder()
           .set(headerName, headerValue)
           .build(),
     );

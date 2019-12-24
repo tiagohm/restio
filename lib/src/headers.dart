@@ -102,7 +102,7 @@ class Headers extends Equatable {
     }
   }
 
-  HeadersBuilder builder() {
+  HeadersBuilder toBuilder() {
     return HeadersBuilder._(this);
   }
 

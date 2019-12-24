@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http2/http2.dart';
 import 'package:restio/src/client.dart';
 import 'package:restio/src/compression_type.dart';
 import 'package:restio/src/exceptions.dart';
@@ -12,7 +13,6 @@ import 'package:restio/src/response.dart';
 import 'package:restio/src/response_body.dart';
 import 'package:restio/src/transport.dart';
 import 'package:restio/src/utils/output_buffer.dart';
-import 'package:http2/http2.dart';
 
 class Http2Transport implements Transport {
   @override

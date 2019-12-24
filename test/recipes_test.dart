@@ -539,7 +539,7 @@ class _RetryAfterInterceptor implements Interceptor {
 
     return response.copyWith(
       headers: response.headers
-          .builder()
+          .toBuilder()
           .set(HttpHeaders.retryAfterHeader, seconds)
           .build(),
     );

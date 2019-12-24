@@ -51,7 +51,7 @@ class BasicAuthenticator implements Authenticator {
 
     return originalRequest.copyWith(
       headers: originalRequest.headers
-          .builder()
+          .toBuilder()
           .set(
             headerName,
             header(username, password, encoding: challenge?.encoding),

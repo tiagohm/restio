@@ -96,7 +96,7 @@ class Queries extends Equatable {
     }
   }
 
-  QueriesBuilder builder() {
+  QueriesBuilder toBuilder() {
     return QueriesBuilder._(this);
   }
 

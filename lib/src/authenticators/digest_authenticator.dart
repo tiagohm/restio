@@ -63,7 +63,7 @@ class DigestAuthenticator implements Authenticator {
 
         return response.request.copyWith(
           headers: response.request.headers
-              .builder()
+              .toBuilder()
               .set(headerName, headerValue)
               .build(),
         );

@@ -9,7 +9,7 @@ environment:
 dependencies:
   utf: ^0.9.0+5
   http_parser: ^3.1.3
-  crypto: ^2.1.3
+  crypto: ^2.1.4
   path: ^1.6.4
   string_scanner: ^1.0.5
   mime: ^0.9.6+3
@@ -19,4 +19,3 @@ dependencies:
 
 dev_dependencies:
   test: ^1.6.5
-  pedantic: ^1.8.0+1
