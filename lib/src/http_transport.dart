@@ -2,8 +2,6 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:restio/src/client.dart';
-import 'package:restio/src/client_certificate.dart';
-import 'package:restio/src/client_certificate_jar.dart';
 import 'package:restio/src/compression_type.dart';
 import 'package:restio/src/exceptions.dart';
 import 'package:restio/src/headers.dart';
@@ -35,8 +33,7 @@ class HttpTransport implements Transport {
     final securityContext =
         SecurityContext(withTrustedRoots: client.withTrustedRoots ?? true);
 
-    final clientCertificate = await _pickClientCertificate(
-      client.clientCertificateJar,
+    final clientCertificate = await client.clientCertificateJar?.get(
       request.uri.host,
       request.uri.port,
     );
@@ -69,19 +66,11 @@ class HttpTransport implements Transport {
         ((X509Certificate cert, String host, int port) {
       // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
       return client.verifySSLCertificate
-          ? client.onBadCertificate?.call(client, cert, host, port) ?? false
+          ? (client.onBadCertificate?.call(client, cert, host, port) ?? false)
           : true;
     });
 
     return httpClient;
-  }
-
-  Future<ClientCertificate> _pickClientCertificate(
-    ClientCertificateJar jar,
-    String host,
-    int port,
-  ) {
-    return jar?.get(host, port);
   }
 
   @override
@@ -158,7 +147,7 @@ class HttpTransport implements Transport {
       // Accept-Encoding.
       if (!request.headers.has(HttpHeaders.acceptEncodingHeader)) {
         clientRequest.headers
-            .set(HttpHeaders.acceptEncodingHeader, 'gzip, deflate');
+            .set(HttpHeaders.acceptEncodingHeader, 'gzip, deflate, br');
       }
 
       // Connection.
@@ -213,7 +202,7 @@ class HttpTransport implements Transport {
       );
 
       return res.copyWith(
-        body: ResponseBody.fromStream(
+        body: ResponseBody.stream(
           response.cast<List<int>>(),
           contentType: MediaType.fromContentType(response.headers.contentType),
           contentLength: response.headers.contentLength,
@@ -238,6 +227,7 @@ class HttpTransport implements Transport {
         case 'deflate':
           return CompressionType.deflate;
         case 'brotli':
+        case 'br':
           return CompressionType.brotli;
       }
     }

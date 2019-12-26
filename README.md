@@ -77,7 +77,7 @@ final bytes = response.body.raw(decompress: false);
 final bytes = response.body.compressed();
 ```
 
-#### Get decompressed response bytes (gzip or deflate):
+#### Get decompressed response bytes (gzip, deflate or brotli):
 ```dart
 final bytes = response.body.raw(decompress: true);
 final bytes = response.body.decompressed();

@@ -21,7 +21,7 @@ class ResponseBody {
     this.onProgress,
   });
 
-  factory ResponseBody.fromBytes(
+  factory ResponseBody.bytes(
     List<int> data, {
     MediaType contentType,
     int contentLength = -1,
@@ -37,7 +37,7 @@ class ResponseBody {
     );
   }
 
-  factory ResponseBody.fromString(
+  factory ResponseBody.string(
     String text, {
     MediaType contentType,
     int contentLength = -1,
@@ -53,7 +53,7 @@ class ResponseBody {
     );
   }
 
-  factory ResponseBody.fromStream(
+  factory ResponseBody.stream(
     Stream<List<int>> data, {
     MediaType contentType,
     int contentLength = -1,

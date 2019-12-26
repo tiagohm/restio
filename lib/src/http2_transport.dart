@@ -82,7 +82,7 @@ class Http2Transport implements Transport {
         headers.add(
           Header.ascii(
             HttpHeaders.acceptEncodingHeader,
-            'gzip, deflate',
+            'gzip, deflate, br',
           ),
         );
       }
@@ -224,7 +224,7 @@ class Http2Transport implements Transport {
         );
 
         res = res.copyWith(
-          body: ResponseBody.fromStream(
+          body: ResponseBody.stream(
             data.stream,
             contentType: _obtainMediaType(res.headers),
             contentLength: _obtainContentLength(res.headers),
@@ -280,6 +280,7 @@ class Http2Transport implements Transport {
         case 'deflate':
           return CompressionType.deflate;
         case 'brotli':
+        case 'br':
           return CompressionType.brotli;
       }
     }

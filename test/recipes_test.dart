@@ -97,8 +97,8 @@ void main() {
       'https://postman-echo.com/post',
       body: MultipartBody(
         parts: [
-          Part.formData('a', 'b'),
-          Part.formData('c', 'd'),
+          Part.form('a', 'b'),
+          Part.form('c', 'd'),
           Part.file(
             'e',
             'text.txt',
@@ -337,6 +337,14 @@ void main() {
     final dynamic data = await requestJson(client, request);
 
     expect(data['deflated'], true);
+  });
+
+  test('Brotli', () async {
+    final request = Request.get('https://httpbin.org/brotli');
+
+    final dynamic data = await requestJson(client, request);
+
+    expect(data['brotli'], true);
   });
 
   group('Redirects', () {

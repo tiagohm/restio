@@ -11,7 +11,10 @@ class Part {
     this.body,
   });
 
-  factory Part.formData(String name, String value) {
+  factory Part.form(
+    String name,
+    String value,
+  ) {
     final headers = {
       'Content-Disposition': 'form-data; name=\"$name\"',
     };

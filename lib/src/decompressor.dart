@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:brotli/brotli.dart';
 import 'package:restio/src/compression_type.dart';
 import 'package:restio/src/utils/output_buffer.dart';
 
@@ -33,6 +34,8 @@ class Decompressor {
       sink = gzip.decoder.startChunkedConversion(output);
     } else if (compressionType == CompressionType.deflate) {
       sink = zlib.decoder.startChunkedConversion(output);
+    } else if (compressionType == CompressionType.brotli) {
+      sink = brotli.decoder.startChunkedConversion(output);
     } else {
       throw UnsupportedError(
         'Compression type $compressionType is unsupported',
