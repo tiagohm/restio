@@ -534,8 +534,31 @@ void main() {
     expect(response.headers.first('x-http-proxy'), 'true');
   });
 
-  test('DNS', () async {
+  test('DNS-Over-UDP', () async {
     final dns = DnsOverUdp.google();
+
+    final dnsClient = client.copyWith(
+      dns: dns,
+      auth: BasicAuthenticator(
+        username: 'postman',
+        password: 'password',
+      ),
+    );
+
+    final request = Request.get('https://postman-echo.com/basic-auth');
+    final call = dnsClient.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+
+    final dynamic json = await response.body.json();
+
+    expect(json['authenticated'], true);
+    expect(response.dnsIp, isNotNull);
+  });
+
+  test('DNS-Over-HTTPS', () async {
+    final dns = DnsOverHttps.google();
 
     final dnsClient = client.copyWith(
       dns: dns,

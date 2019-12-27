@@ -22,60 +22,43 @@ import 'package:restio/src/dns/dns_over_udp.dart';
 import 'package:restio/src/dns/dns_packet.dart';
 
 class DnsOverHttps extends PacketBasedDns {
-  final String url;
-  final String host;
+  final Uri uri;
   final Dns dns;
   final bool maximalPrivacy;
   final Duration timeout;
   final Queries queries;
-  final Restio client;
+  final Restio _client;
 
   DnsOverHttps(
-    this.client,
-    this.url, {
+    this.uri, {
+    Restio client,
     this.timeout,
     this.maximalPrivacy = false,
     this.dns,
     this.queries,
-  }) : host = Uri.parse(url).host;
+  }) : _client = client ?? Restio(connectTimeout: timeout);
 
-  DnsOverHttps.google(
-    Restio client, {
+  DnsOverHttps.google({
+    Restio client,
     Duration timeout,
     bool maximalPrivacy = false,
     Dns dns,
   }) : this(
-          client,
-          'https://dns.google.com/resolve',
+          Uri.parse('https://dns.google.com/resolve'),
+          client: client,
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
           dns: dns,
         );
 
-  DnsOverHttps.cloudflare(
-    Restio client, {
+  DnsOverHttps.cloudflare({
+    Restio client,
     Duration timeout,
     bool maximalPrivacy = false,
     Dns dns,
   }) : this(
-          client,
-          'https://cloudflare-dns.com/dns-query',
-          timeout: timeout,
-          maximalPrivacy: maximalPrivacy,
-          dns: dns,
-          queries: Queries.of({
-            'ct': 'application/dns-json',
-          }),
-        );
-
-  DnsOverHttps.mozilla(
-    Restio client, {
-    Duration timeout,
-    bool maximalPrivacy = false,
-    Dns dns,
-  }) : this(
-          client,
-          'https://mozilla.cloudflare-dns.com/dns-query',
+          Uri.parse('https://cloudflare-dns.com/dns-query'),
+          client: client,
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
           dns: dns,
@@ -84,9 +67,25 @@ class DnsOverHttps extends PacketBasedDns {
           }),
         );
 
-  Future<Response> execute(String url) async {
-    final request = Request.get(url);
-    final call = client.newCall(request);
+  DnsOverHttps.mozilla({
+    Restio client,
+    Duration timeout,
+    bool maximalPrivacy = false,
+    Dns dns,
+  }) : this(
+          Uri.parse('https://mozilla.cloudflare-dns.com/dns-query'),
+          client: client,
+          timeout: timeout,
+          maximalPrivacy: maximalPrivacy,
+          dns: dns,
+          queries: Queries.of({
+            'ct': 'application/dns-json',
+          }),
+        );
+
+  Future<Response> _execute(Uri uri) async {
+    final request = Request(uri: uri, method: 'GET');
+    final call = _client.newCall(request);
     return await call.execute();
   }
 
@@ -96,38 +95,38 @@ class DnsOverHttps extends PacketBasedDns {
     InternetAddressType type = InternetAddressType.any,
   }) async {
     //  Are we are resolving host of the DNS-over-HTTPS service?
-    if (host == this.host) {
+    if (host == uri.host) {
       final dns = this.dns ?? DnsOverUdp.google();
       return dns.lookupPacket(host, type: type);
     }
 
     // Build URL.
-    final s = this.url.contains('?') ? '&' : '?';
-    var url = '${this.url}${s}name=${Uri.encodeQueryComponent(host)}';
+    final queries = <String, dynamic>{};
+    queries['name'] = Uri.encodeQueryComponent(host);
 
     // Add: IPv4 or IPv6?
     if (type == null) {
       throw ArgumentError.notNull('type');
     } else if (type == InternetAddressType.any ||
         type == InternetAddressType.IPv4) {
-      url += '&type=A';
+      queries['type'] = 'A';
     } else {
-      url += '&type=AAAA';
+      queries['type'] = 'AAAA';
     }
 
     // Hide my IP?
     if (maximalPrivacy) {
-      url += '&edns_client_subnet=0.0.0.0/0';
+      queries['edns_client_subnet'] = '0.0.0.0/0';
     }
 
     // Additional queries.
-    queries?.forEach((key, name) => url += '&$key=$name');
+    this.queries?.forEach((key, name) => queries[key] = name);
 
-    final response = await execute(url);
+    final response = await _execute(uri.replace(queryParameters: queries));
 
     if (response.code != 200) {
-      throw StateError(
-        'HTTP response was ${response.code} (${response.message}). URL was: $url',
+      throw RestioException(
+        'Bad DNS response: ${response.code} (${response.message})',
       );
     }
 
