@@ -1,3 +1,7 @@
+## 0.3.2
+
+- Fix DNS timeout bug.
+
 ## 0.3.1
 
 - Added 'dnsIp' property.
