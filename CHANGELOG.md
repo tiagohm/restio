@@ -1,3 +1,7 @@
+## 0.3.3
+
+- Fix DNS bugs.
+
 ## 0.3.2
 
 - Fix DNS timeout bug.
