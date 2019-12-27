@@ -27,6 +27,7 @@ class DnsOverHttps extends PacketBasedDns {
   final Dns dns;
   final bool maximalPrivacy;
   final Duration timeout;
+  final Queries queries;
   final Restio client;
 
   DnsOverHttps(
@@ -35,6 +36,7 @@ class DnsOverHttps extends PacketBasedDns {
     this.timeout,
     this.maximalPrivacy = false,
     this.dns,
+    this.queries,
   }) : host = Uri.parse(url).host;
 
   DnsOverHttps.google(
@@ -49,6 +51,44 @@ class DnsOverHttps extends PacketBasedDns {
           maximalPrivacy: maximalPrivacy,
           dns: dns,
         );
+
+  DnsOverHttps.cloudflare(
+    Restio client, {
+    Duration timeout,
+    bool maximalPrivacy = false,
+    Dns dns,
+  }) : this(
+          client,
+          'https://cloudflare-dns.com/dns-query',
+          timeout: timeout,
+          maximalPrivacy: maximalPrivacy,
+          dns: dns,
+          queries: Queries.of({
+            'ct': 'application/dns-json',
+          }),
+        );
+
+  DnsOverHttps.mozilla(
+    Restio client, {
+    Duration timeout,
+    bool maximalPrivacy = false,
+    Dns dns,
+  }) : this(
+          client,
+          'https://mozilla.cloudflare-dns.com/dns-query',
+          timeout: timeout,
+          maximalPrivacy: maximalPrivacy,
+          dns: dns,
+          queries: Queries.of({
+            'ct': 'application/dns-json',
+          }),
+        );
+
+  Future<Response> execute(String url) async {
+    final request = Request.get(url);
+    final call = client.newCall(request);
+    return await call.execute();
+  }
 
   @override
   Future<DnsPacket> lookupPacket(
@@ -80,9 +120,10 @@ class DnsOverHttps extends PacketBasedDns {
       url += '&edns_client_subnet=0.0.0.0/0';
     }
 
-    final request = Request.get(url);
-    final call = client.newCall(request);
-    final response = await call.execute();
+    // Additional queries.
+    queries?.forEach((key, name) => url += '&$key=$name');
+
+    final response = await execute(url);
 
     if (response.code != 200) {
       throw StateError(
@@ -90,23 +131,13 @@ class DnsOverHttps extends PacketBasedDns {
       );
     }
 
-    final contentType = response.body.contentType;
-
-    if (contentType == null ||
-        (contentType?.mimeType != 'application/json' &&
-            contentType?.mimeType != 'application/x-javascript')) {
-      throw StateError(
-        "HTTP response content type was $contentType'. URL was: $url",
-      );
-    }
-
     // Decode JSON.
     final data = await response.body.json();
     // Decode DNS packet from JSON.
-    return decodeDnsPacket(data);
+    return _decodeDnsPacket(data);
   }
 
-  DnsPacket decodeDnsPacket(Object json) {
+  DnsPacket _decodeDnsPacket(Object json) {
     if (json is Map) {
       final result = DnsPacket.withResponse();
       for (var key in json.keys) {
@@ -116,69 +147,61 @@ class DnsOverHttps extends PacketBasedDns {
           case 'Status':
             result.responseCode = (value as num).toInt();
             break;
-
           case 'AA':
             result.isAuthorativeAnswer = value as bool;
             break;
-
           case 'ID':
             result.id = (value as num).toInt();
             break;
-
           case 'QR':
             result.isResponse = value as bool;
             break;
-
           case 'RA':
             result.isRecursionAvailable = value as bool;
             break;
-
           case 'RD':
             result.isRecursionDesired = value as bool;
             break;
-
           case 'TC':
             result.isTruncated = value as bool;
             break;
-
           case 'Question':
             final questions = <DnsQuestion>[];
             result.questions = questions;
             if (value is List) {
               for (var item in value) {
-                questions.add(decodeDnsQuestion(item));
+                questions.add(_decodeDnsQuestion(item));
               }
             }
             break;
-
           case 'Answer':
             final answers = <DnsResourceRecord>[];
             result.answers = answers;
             if (value is List) {
               for (var item in value) {
-                answers.add(decodeDnsResourceRecord(item));
+                answers.add(_decodeDnsResourceRecord(item));
               }
             }
             break;
-
           case 'Additional':
             final additionalRecords = <DnsResourceRecord>[];
             result.additionalRecords = additionalRecords;
             if (value is List) {
               for (var item in value) {
-                additionalRecords.add(decodeDnsResourceRecord(item));
+                additionalRecords.add(_decodeDnsResourceRecord(item));
               }
             }
             break;
         }
       }
+
       return result;
     } else {
       throw ArgumentError.value(json);
     }
   }
 
-  DnsQuestion decodeDnsQuestion(Object json) {
+  DnsQuestion _decodeDnsQuestion(Object json) {
     if (json is Map) {
       final result = DnsQuestion();
 
@@ -196,7 +219,7 @@ class DnsOverHttps extends PacketBasedDns {
     }
   }
 
-  DnsResourceRecord decodeDnsResourceRecord(Object json) {
+  DnsResourceRecord _decodeDnsResourceRecord(Object json) {
     if (json is Map) {
       final result = DnsResourceRecord();
 

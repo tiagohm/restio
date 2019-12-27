@@ -92,8 +92,22 @@ void main() {
       expect(packet.answers[0].data, hasLength(greaterThan(1)));
     });
 
-    test('Lookup', () async {
+    test('Google Lookup', () async {
       final dns = DnsOverHttps.google(client);
+      final response = await dns.lookup('tiagohm.xyz');
+      expect(response, hasLength(greaterThan(0)));
+      expect(response[0].toString(), '104.248.51.46');
+    });
+
+    test('Cloudflare Lookup', () async {
+      final dns = DnsOverHttps.cloudflare(client);
+      final response = await dns.lookup('tiagohm.xyz');
+      expect(response, hasLength(greaterThan(0)));
+      expect(response[0].toString(), '104.248.51.46');
+    });
+
+    test('Mozilla Lookup', () async {
+      final dns = DnsOverHttps.mozilla(client);
       final response = await dns.lookup('tiagohm.xyz');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
