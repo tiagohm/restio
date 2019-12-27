@@ -572,6 +572,18 @@ void main() {
     expect(response.code, 200);
     expect(response.headers.first(HttpHeaders.contentEncodingHeader), 'gzip');
   });
+
+  test('Fix DNS timeout bug', () async {
+    final dns = DnsOverUdp.ip('1.1.1.1');
+
+    final dnsClient = client.copyWith(dns: dns);
+
+    final request = Request.get('https://httpbin.org/absolute-redirect/5');
+    final call = dnsClient.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+  });
 }
 
 class _RetryAfterInterceptor implements Interceptor {

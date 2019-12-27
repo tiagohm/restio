@@ -104,16 +104,16 @@ class DnsOverUdp extends PacketBasedDns {
         return;
       }
 
-      // Remove from the list of response waiters
+      // Remove from the list of response waiters.
       responseWaiter.unlink();
 
-      // Complete the future
+      // Complete the future.
       responseWaiter.completer.completeError(
         TimeoutException("DNS query '$host' timeout"),
       );
     });
 
-    // Return future
+    // Return future.
     return responseWaiter.completer.future;
   }
 
