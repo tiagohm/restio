@@ -20,7 +20,7 @@ class Part {
     };
     return Part(
       headers: headers,
-      body: RequestBody.fromString(value),
+      body: RequestBody.string(value),
     );
   }
 

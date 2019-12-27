@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:ip/ip.dart';
 import 'package:restio/restio.dart';
 import 'package:restio/src/cache/cache_control.dart';
 import 'package:restio/src/challenge.dart';
@@ -32,6 +33,8 @@ class Response {
   final DateTime receivedAt;
   final X509Certificate certificate;
 
+  final IpAddress dnsIp;
+
   Response({
     this.request,
     this.message,
@@ -46,6 +49,7 @@ class Response {
     this.connectRequest,
     this.receivedAt,
     this.certificate,
+    this.dnsIp,
   })  : challenges = _challenges(code, headers),
         cacheControl =
             CacheControl.parse(headers?.first(HttpHeaders.cacheControlHeader));
@@ -134,6 +138,7 @@ class Response {
     Request connectRequest,
     DateTime receivedAt,
     X509Certificate certificate,
+    IpAddress dnsIp,
   }) {
     return Response(
       request: request ?? this.request,
@@ -149,6 +154,7 @@ class Response {
       connectRequest: connectRequest ?? this.connectRequest,
       receivedAt: receivedAt ?? this.receivedAt,
       certificate: certificate ?? this.certificate,
+      dnsIp: dnsIp ?? this.dnsIp,
     );
   }
 
@@ -157,6 +163,6 @@ class Response {
     return 'Response { body: $body, code: $code, elapsedMilliseconds: $elapsedMilliseconds, receivedAt: $receivedAt,'
         ' headers: $headers, cookies: $cookies, message: $message, request: $request,'
         ' connectionInfo: $connectionInfo, redirects: $redirects, originalRequest: $originalRequest,'
-        ' connectRequest: $connectRequest }';
+        ' connectRequest: $connectRequest, dns: $dnsIp }';
   }
 }

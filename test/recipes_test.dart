@@ -24,7 +24,7 @@ void main() {
   test('Performing a POST request', () async {
     final request = Request.post(
       'https://postman-echo.com/post',
-      body: RequestBody.fromString(
+      body: RequestBody.string(
         'This is expected to be sent back as part of response body.',
         contentType: MediaType.text,
       ),
@@ -66,7 +66,7 @@ void main() {
   test('Posting a String', () async {
     final request = Request.post(
       'https://postman-echo.com/post',
-      body: RequestBody.fromString('Olá!', contentType: MediaType.text),
+      body: RequestBody.string('Olá!', contentType: MediaType.text),
       headers: HeadersBuilder().add('content-type', 'application/json').build(),
     );
 
@@ -102,7 +102,7 @@ void main() {
           Part.file(
             'e',
             'text.txt',
-            RequestBody.fromFile(
+            RequestBody.file(
               File('./test/assets/text.txt'),
             ),
           ),
@@ -137,7 +137,7 @@ void main() {
           Part.file(
             'binary',
             'binary.dat',
-            RequestBody.fromFile(
+            RequestBody.file(
               File('./test/assets/binary.dat'),
             ),
           ),
@@ -174,7 +174,7 @@ void main() {
   test('Posting a File', () async {
     final request = Request.post(
       'https://api.github.com/markdown/raw',
-      body: RequestBody.fromString(
+      body: RequestBody.string(
         '# Restio',
         contentType: MediaType(
           type: 'text',
@@ -463,6 +463,7 @@ void main() {
     expect(json['http2'], 1);
     expect(json['protocol'], 'HTTP/2.0');
     expect(json['push'], 0);
+    expect(response.headers.first(HttpHeaders.contentEncodingHeader), 'br');
   });
 
   test('Client Certificate', () async {
@@ -553,7 +554,23 @@ void main() {
     final dynamic json = await response.body.json();
 
     expect(json['authenticated'], true);
-    expect(response.connectRequest.uri.host, '34.202.227.208');
+    expect(response.dnsIp, isNotNull);
+  });
+
+  test('Force Accept-Encoding', () async {
+    final http2Client = client.copyWith(isHttp2: true);
+
+    final request = Request.get(
+      'https://http2.pro/api/v1',
+      headers: Headers.of({
+        HttpHeaders.acceptEncodingHeader: 'gzip',
+      }),
+    );
+    final call = http2Client.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+    expect(response.headers.first(HttpHeaders.contentEncodingHeader), 'gzip');
   });
 }
 

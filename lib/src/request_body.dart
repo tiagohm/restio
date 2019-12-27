@@ -8,9 +8,9 @@ abstract class RequestBody {
 
   Stream<List<int>> write();
 
-  factory RequestBody.empty() => RequestBody.fromBytes(const []);
+  factory RequestBody.empty() => RequestBody.bytes(const []);
 
-  factory RequestBody.fromBytes(
+  factory RequestBody.bytes(
     List<int> data, {
     MediaType contentType,
   }) {
@@ -20,7 +20,7 @@ abstract class RequestBody {
     );
   }
 
-  factory RequestBody.fromString(
+  factory RequestBody.string(
     String text, {
     MediaType contentType,
   }) {
@@ -30,7 +30,7 @@ abstract class RequestBody {
     );
   }
 
-  factory RequestBody.fromFile(
+  factory RequestBody.file(
     File file, {
     MediaType contentType,
   }) {
@@ -42,8 +42,8 @@ abstract class RequestBody {
     );
   }
 
-  factory RequestBody.fromJson(Object o) {
-    return RequestBody.fromString(
+  factory RequestBody.json(Object o) {
+    return RequestBody.string(
       json.encoder.convert(o),
       contentType: MediaType.json,
     );

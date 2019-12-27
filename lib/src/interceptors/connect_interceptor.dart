@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:ip/ip.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/src/cancellable.dart';
 import 'package:restio/src/chain.dart';
@@ -83,11 +84,15 @@ class ConnectInterceptor implements Interceptor {
         );
       }
 
+      IpAddress dnsIp;
+
       // Busca o real endereço (IP) do host através de um DNS.
       if (client.dns != null) {
         final addresses = await client.dns.lookup(connectRequest.uri.host);
 
         if (addresses != null && addresses.isNotEmpty) {
+          dnsIp = addresses[0];
+          
           connectRequest = connectRequest.copyWith(
             uri: Uri(
               pathSegments: connectRequest.uri.pathSegments,
@@ -95,7 +100,7 @@ class ConnectInterceptor implements Interceptor {
               queryParameters: connectRequest.uri.queryParameters,
               scheme: connectRequest.uri.scheme,
               userInfo: connectRequest.uri.userInfo,
-              host: addresses[0].toString(),
+              host: dnsIp.toString(),
             ),
           );
         }
@@ -106,6 +111,7 @@ class ConnectInterceptor implements Interceptor {
       return response.copyWith(
         request: request,
         connectRequest: connectRequest,
+        dnsIp: dnsIp,
       );
     } on Exception {
       if (cancellable != null && cancellable.isCancelled) {
