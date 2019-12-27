@@ -1,3 +1,7 @@
+## 0.3.1
+
+- Added 'dnsIp' property.
+
 ## 0.3.0
 
 - Added support to Brotli decode.
