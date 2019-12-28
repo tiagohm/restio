@@ -4,7 +4,7 @@ import 'package:restio/src/authenticator.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
 
-class BearerAuthenticator implements Authenticator {
+class BearerAuthenticator extends Authenticator {
   final String token;
   final String prefix;
 

@@ -6,7 +6,7 @@ import 'package:restio/src/challenge.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
 
-class BasicAuthenticator implements Authenticator {
+class BasicAuthenticator extends Authenticator {
   final String username;
   final String password;
 

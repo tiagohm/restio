@@ -43,7 +43,7 @@ class Decompressor {
     }
 
     _subscription = data.listen(
-      (List<int> chunk) {
+      (chunk) {
         onChunkReceived?.call(chunk);
         sink.add(chunk);
       },

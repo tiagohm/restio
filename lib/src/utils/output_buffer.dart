@@ -22,7 +22,7 @@ class OutputBuffer extends ByteConversionSinkBase {
     _bytes = Uint8List(_contentLength);
     var offset = 0;
 
-    for (var chunk in _chunks) {
+    for (final chunk in _chunks) {
       _bytes.setRange(offset, offset + chunk.length, chunk);
       offset += chunk.length;
     }

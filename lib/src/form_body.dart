@@ -48,7 +48,10 @@ class FormBody implements RequestBody {
     String name,
     String value,
   ) {
-    if (name == null || name.isEmpty || value == null) return;
+    if (name == null || name.isEmpty || value == null) {
+      return;
+    }
+
     _data.add('$name=$value');
   }
 

@@ -76,15 +76,15 @@ class DnsOverUdp extends PacketBasedDns {
 
   @override
   Future<DnsPacket> lookupPacket(
-    String host, {
+    String name, {
     InternetAddressType type = InternetAddressType.any,
   }) async {
     final socket = await _getSocket();
     final dnsPacket = DnsPacket();
-    dnsPacket.questions = [DnsQuestion(host: host)];
+    dnsPacket.questions = [DnsQuestion(host: name)];
 
     // Add query to list of unfinished queries.
-    final responseWaiter = _DnsResponseWaiter(host);
+    final responseWaiter = _DnsResponseWaiter(name);
     _responseWaiters.add(responseWaiter);
 
     // Send query.
@@ -109,7 +109,7 @@ class DnsOverUdp extends PacketBasedDns {
 
       // Complete the future.
       responseWaiter.completer.completeError(
-        TimeoutException("DNS query '$host' timeout"),
+        TimeoutException("DNS query '$name' timeout"),
       );
     });
 
@@ -146,11 +146,11 @@ class DnsOverUdp extends PacketBasedDns {
     dnsPacket.decodeSelf(RawReader.withBytes(datagram.data));
 
     // Read answers.
-    for (var answer in dnsPacket.answers) {
+    for (final answer in dnsPacket.answers) {
       final host = answer.name;
       final removedResponseWaiters = <_DnsResponseWaiter>[];
 
-      for (var query in _responseWaiters) {
+      for (final query in _responseWaiters) {
         if (query.completer.isCompleted == false && query.host == host) {
           removedResponseWaiters.add(query);
           query.timer.cancel();
@@ -159,7 +159,7 @@ class DnsOverUdp extends PacketBasedDns {
         }
       }
 
-      for (var removed in removedResponseWaiters) {
+      for (final removed in removedResponseWaiters) {
         removed.unlink();
       }
     }

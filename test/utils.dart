@@ -4,11 +4,11 @@ import 'package:restio/src/response.dart';
 
 Future<Response> requestResponse(Restio client, Request request) async {
   final call = client.newCall(request);
-  return await call.execute();
+  return call.execute();
 }
 
 Future<String> obtainResponseBodyAsString(Response response) async {
-  return await response.body.string();
+  return response.body.string();
 }
 
 Future<String> requestString(Restio client, Request request) async {

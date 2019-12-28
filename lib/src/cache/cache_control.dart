@@ -129,7 +129,9 @@ class CacheControl extends Equatable {
       scanner.scan(_whitespace);
 
       // Empty elements are allowed, but excluded from the results.
-      if (scanner.matches(',') || scanner.isDone) continue;
+      if (scanner.matches(',') || scanner.isDone) {
+        continue;
+      }
 
       parseElement();
       scanner.scan(_whitespace);
@@ -164,8 +166,13 @@ class CacheControl extends Equatable {
   String toString() {
     final sb = StringBuffer();
 
-    if (noCache) sb.write('no-cache, ');
-    if (noStore) sb.write('no-store, ');
+    if (noCache) {
+      sb.write('no-cache, ');
+    }
+
+    if (noStore) {
+      sb.write('no-store, ');
+    }
 
     if (maxAge != null) {
       sb..write('max-age=')..write(maxAge.inSeconds)..write(', ');
@@ -179,12 +186,29 @@ class CacheControl extends Equatable {
       sb..write('min-fresh=')..write(minFresh.inSeconds)..write(', ');
     }
 
-    if (isPrivate) sb.write('private, ');
-    if (isPublic) sb.write('public, ');
-    if (noTransform) sb.write('no-transform, ');
-    if (immutable) sb.write('immutable, ');
-    if (mustRevalidate) sb.write('must-revalidate, ');
-    if (onlyIfCached) sb.write('only-if-cached, ');
+    if (isPrivate) {
+      sb.write('private, ');
+    }
+
+    if (isPublic) {
+      sb.write('public, ');
+    }
+
+    if (noTransform) {
+      sb.write('no-transform, ');
+    }
+
+    if (immutable) {
+      sb.write('immutable, ');
+    }
+
+    if (mustRevalidate) {
+      sb.write('must-revalidate, ');
+    }
+
+    if (onlyIfCached) {
+      sb.write('only-if-cached, ');
+    }
 
     return sb.toString();
   }

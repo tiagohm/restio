@@ -86,23 +86,23 @@ class DnsOverHttps extends PacketBasedDns {
   Future<Response> _execute(Uri uri) async {
     final request = Request(uri: uri, method: 'GET');
     final call = _client.newCall(request);
-    return await call.execute();
+    return call.execute();
   }
 
   @override
   Future<DnsPacket> lookupPacket(
-    String host, {
+    String name, {
     InternetAddressType type = InternetAddressType.any,
   }) async {
     //  Are we are resolving host of the DNS-over-HTTPS service?
-    if (host == uri.host) {
+    if (name == uri.host) {
       final dns = this.dns ?? DnsOverUdp.google();
-      return dns.lookupPacket(host, type: type);
+      return dns.lookupPacket(name, type: type);
     }
 
     // Build URL.
     final queries = <String, dynamic>{};
-    queries['name'] = Uri.encodeQueryComponent(host);
+    queries['name'] = Uri.encodeQueryComponent(name);
 
     // Add: IPv4 or IPv6?
     if (type == null) {
@@ -139,36 +139,37 @@ class DnsOverHttps extends PacketBasedDns {
   DnsPacket _decodeDnsPacket(Object json) {
     if (json is Map) {
       final result = DnsPacket.withResponse();
-      for (var key in json.keys) {
+      for (final key in json.keys) {
         final value = json[key];
 
         switch (key) {
           case 'Status':
-            result.responseCode = (value as num).toInt();
+            result.responseCode = value.toInt();
             break;
           case 'AA':
-            result.isAuthorativeAnswer = value as bool;
+            result.isAuthorativeAnswer = value;
             break;
           case 'ID':
-            result.id = (value as num).toInt();
+            result.id = value.toInt();
             break;
           case 'QR':
-            result.isResponse = value as bool;
+            result.isResponse = value;
             break;
           case 'RA':
-            result.isRecursionAvailable = value as bool;
+            result.isRecursionAvailable = value;
             break;
           case 'RD':
-            result.isRecursionDesired = value as bool;
+            result.isRecursionDesired = value;
             break;
           case 'TC':
-            result.isTruncated = value as bool;
+            result.isTruncated = value;
             break;
           case 'Question':
             final questions = <DnsQuestion>[];
             result.questions = questions;
+
             if (value is List) {
-              for (var item in value) {
+              for (final item in value) {
                 questions.add(_decodeDnsQuestion(item));
               }
             }
@@ -176,8 +177,9 @@ class DnsOverHttps extends PacketBasedDns {
           case 'Answer':
             final answers = <DnsResourceRecord>[];
             result.answers = answers;
+
             if (value is List) {
-              for (var item in value) {
+              for (final item in value) {
                 answers.add(_decodeDnsResourceRecord(item));
               }
             }
@@ -185,8 +187,9 @@ class DnsOverHttps extends PacketBasedDns {
           case 'Additional':
             final additionalRecords = <DnsResourceRecord>[];
             result.additionalRecords = additionalRecords;
+
             if (value is List) {
-              for (var item in value) {
+              for (final item in value) {
                 additionalRecords.add(_decodeDnsResourceRecord(item));
               }
             }
@@ -204,11 +207,11 @@ class DnsOverHttps extends PacketBasedDns {
     if (json is Map) {
       final result = DnsQuestion();
 
-      for (var key in json.keys) {
+      for (final key in json.keys) {
         final value = json[key];
         switch (key) {
           case 'name':
-            result.name = _trimDotSuffix(value as String);
+            result.name = _trimDotSuffix(value);
             break;
         }
       }
@@ -222,17 +225,17 @@ class DnsOverHttps extends PacketBasedDns {
     if (json is Map) {
       final result = DnsResourceRecord();
 
-      for (var key in json.keys) {
+      for (final key in json.keys) {
         final value = json[key];
         switch (key) {
           case 'name':
-            result.name = _trimDotSuffix(value as String);
+            result.name = _trimDotSuffix(value);
             break;
           case 'type':
-            result.type = (value as num).toInt();
+            result.type = value.toInt();
             break;
           case 'TTL':
-            result.ttl = (value as num).toInt();
+            result.ttl = value.toInt();
             break;
           case 'data':
             result.data = IpAddress.parse(value).toImmutableBytes();

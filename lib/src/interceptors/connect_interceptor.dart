@@ -45,8 +45,7 @@ class ConnectInterceptor implements Interceptor {
       throw cancellable.exception;
     }
 
-    cancellable?.whenCancel
-        ?.catchError((dynamic e, StackTrace stackTrace) async {
+    cancellable?.whenCancel?.catchError((e, stackTrace) async {
       try {
         await transport.cancel();
       } catch (e) {

@@ -29,7 +29,9 @@ class Queries extends Equatable {
     }
 
     for (var i = 0; i < _items.length; i += 2) {
-      if (_items[i] == name) return true;
+      if (_items[i] == name) {
+        return true;
+      }
     }
 
     return false;
@@ -38,33 +40,45 @@ class Queries extends Equatable {
   String value(String name) => first(name);
 
   String first(String name) {
-    if (name == null || name.isEmpty) return null;
+    if (name == null || name.isEmpty) {
+      return null;
+    }
 
     for (var i = 0; i < _items.length; i += 2) {
-      if (_items[i] == name) return _items[i + 1];
+      if (_items[i] == name) {
+        return _items[i + 1];
+      }
     }
 
     return null;
   }
 
   String last(String name) {
-    if (name == null || name.isEmpty) return null;
+    if (name == null || name.isEmpty) {
+      return null;
+    }
 
     for (var i = _items.length - 2; i >= 0; i -= 2) {
-      if (_items[i] == name) return _items[i + 1];
+      if (_items[i] == name) {
+        return _items[i + 1];
+      }
     }
 
     return null;
   }
 
   List<String> all(String name) {
-    if (name == null || name.isEmpty) return null;
+    if (name == null || name.isEmpty) {
+      return null;
+    }
 
     name = name;
     final res = <String>[];
 
     for (var i = 0; i < _items.length; i += 2) {
-      if (_items[i] == name) res.add(_items[i + 1]);
+      if (_items[i] == name) {
+        res.add(_items[i + 1]);
+      }
     }
 
     return res;
@@ -86,7 +100,7 @@ class Queries extends Equatable {
     final res = <String, List<String>>{};
 
     for (var i = 0; i < _items.length; i += 2) {
-      res.putIfAbsent(_items[i], () => [])..add(_items[i + 1]);
+      res.putIfAbsent(_items[i], () => []).add(_items[i + 1]);
     }
 
     return res;
@@ -115,7 +129,10 @@ class Queries extends Equatable {
     sb.write('Queries {');
 
     for (var i = 0; i < _items.length; i += 2) {
-      if (i > 0) sb.write(', ');
+      if (i > 0) {
+        sb.write(', ');
+      }
+
       sb..write(_items[i])..write(': ')..write(_items[i + 1]);
     }
 
@@ -137,7 +154,7 @@ class QueriesBuilder {
     _items.addAll(queries._items);
   }
 
-  QueriesBuilder add(String name, dynamic value) {
+  QueriesBuilder add(String name, value) {
     if (name == null || name.isEmpty) {
       throw ArgumentError('name is null or empty');
     }
@@ -157,7 +174,7 @@ class QueriesBuilder {
     return this;
   }
 
-  QueriesBuilder set(String name, dynamic value) {
+  QueriesBuilder set(String name, value) {
     remove(name);
     add(name, value);
     return this;

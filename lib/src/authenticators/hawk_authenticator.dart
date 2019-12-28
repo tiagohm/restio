@@ -11,7 +11,7 @@ import 'package:utf/utf.dart';
 
 enum HawkAlgorithm { sha1, sha256 }
 
-class HawkAuthenticator implements Authenticator {
+class HawkAuthenticator extends Authenticator {
   final String id;
   final String key;
   final HawkAlgorithm algorithm;
@@ -119,7 +119,7 @@ class HawkAuthenticator implements Authenticator {
     String ext = '',
     bool isSha256,
   }) {
-    var normalizedReqStr =
+    final normalizedReqStr =
         'hawk.1.header\n$timestamp\n$nonce\n$method\n$resource\n$host\n$port\n$hash\n$ext\n';
     final hmac = Hmac(isSha256 ? sha256 : sha1, utf8.encode(key));
     final bytes = hmac.convert(encodeUtf8(normalizedReqStr)).bytes;

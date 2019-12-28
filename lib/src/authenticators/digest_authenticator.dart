@@ -6,7 +6,7 @@ import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
 import 'package:restio/src/utils.dart';
 
-class DigestAuthenticator implements Authenticator {
+class DigestAuthenticator extends Authenticator {
   final String username;
   final String password;
 
@@ -42,7 +42,7 @@ class DigestAuthenticator implements Authenticator {
         final algorithm = challenge.parameters['algorithm'] ?? 'MD5';
         final qop = challenge.parameters['qop'];
         final cnonce = generateNonce(8);
-        final nonceCount = '00000001';
+        const nonceCount = '00000001';
 
         final headerValue = _buildHeader(
           username: username,
@@ -145,7 +145,7 @@ class DigestAuthenticator implements Authenticator {
           .toString();
     }
 
-    var ha2 = hashAlgorithm.convert('$method:$uri'.codeUnits).toString();
+    final ha2 = hashAlgorithm.convert('$method:$uri'.codeUnits).toString();
 
     if (qop == 'auth' || qop == 'auth-int') {
       return hashAlgorithm

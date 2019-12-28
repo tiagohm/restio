@@ -63,7 +63,7 @@ List<String> _readDnsName(
   RawReader reader,
   int startIndex,
 ) {
-  var name = <String>[];
+  final name = <String>[];
 
   while (reader.availableLengthInBytes > 0) {
     // Read length.
@@ -257,7 +257,7 @@ class DnsResourceRecord extends SelfCodec {
   int encodeSelfCapacity() {
     var n = 64;
 
-    for (var part in nameParts) {
+    for (final part in nameParts) {
       n += 1 + part.length;
     }
 
@@ -361,19 +361,19 @@ class DnsPacket extends Packet {
     // Name -> pointer.
     final pointers = <String, int>{};
 
-    for (var item in questions) {
+    for (final item in questions) {
       item.encodeSelf(writer, startIndex: startIndex, pointers: pointers);
     }
 
-    for (var item in answers) {
+    for (final item in answers) {
       item.encodeSelf(writer, startIndex: startIndex, pointers: pointers);
     }
 
-    for (var item in authorities) {
+    for (final item in authorities) {
       item.encodeSelf(writer, startIndex: startIndex, pointers: pointers);
     }
 
-    for (var item in additionalRecords) {
+    for (final item in additionalRecords) {
       item.encodeSelf(writer, startIndex: startIndex, pointers: pointers);
     }
   }
@@ -427,16 +427,16 @@ class DnsPacket extends Packet {
   int encodeSelfCapacity() {
     var n = 64;
 
-    for (var item in questions) {
+    for (final item in questions) {
       n += item.encodeSelfCapacity();
     }
-    for (var item in answers) {
+    for (final item in answers) {
       n += item.encodeSelfCapacity();
     }
-    for (var item in authorities) {
+    for (final item in authorities) {
       n += item.encodeSelfCapacity();
     }
-    for (var item in additionalRecords) {
+    for (final item in additionalRecords) {
       n += item.encodeSelfCapacity();
     }
 
@@ -534,7 +534,7 @@ class DnsQuestion extends SelfCodec {
   int encodeSelfCapacity() {
     var n = 16;
 
-    for (var part in nameParts) {
+    for (final part in nameParts) {
       n += 1 + part.length;
     }
 

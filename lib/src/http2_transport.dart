@@ -34,17 +34,23 @@ class Http2Transport implements Transport {
 
   @override
   Future<Response> send(final Request request) async {
+    SecureSocket socket;
+
     try {
-      final socket = await _createSocket(request);
+      socket = await _createSocket(request);
       _transport = ClientTransportConnection.viaSocket(socket);
 
       final uri = request.uriWithQueries;
 
       var path = uri.path;
 
-      if (uri.query.trim().isNotEmpty) path += '?${uri.query}';
+      if (uri.query.trim().isNotEmpty) {
+        path += '?${uri.query}';
+      }
 
-      if (!path.startsWith('/')) path = '/$path';
+      if (!path.startsWith('/')) {
+        path = '/$path';
+      }
 
       final headers = [
         Header.ascii(':method', request.method),
@@ -106,24 +112,25 @@ class Http2Transport implements Transport {
     }
 
     // Monta a resposta.
-    final res = await _makeResponse(client, request, _stream);
-    return res;
+    return _makeResponse(client, request, _stream);
   }
 
   Future<SecureSocket> _createSocket(Request request) async {
-    return await SecureSocket.connect(
+    return SecureSocket.connect(
       request.uri.host,
       request.uri.port,
       timeout: client.connectTimeout,
       context: SecurityContext(withTrustedRoots: client.withTrustedRoots),
       supportedProtocols: ['h2'],
       onBadCertificate: (cert) {
-        return client?.onBadCertificate?.call(
-          client,
-          cert,
-          request.uri.host,
-          request.uri.port,
-        );
+        return !client.verifySSLCertificate ||
+            (client?.onBadCertificate?.call(
+                  client,
+                  cert,
+                  request.uri.host,
+                  request.uri.port,
+                ) ??
+                false);
       },
     );
   }
@@ -141,7 +148,7 @@ class Http2Transport implements Transport {
 
     if (request.body != null) {
       request.body.write().listen(
-        (List<int> chunk) {
+        (chunk) {
           sink.add(chunk);
 
           progressBytes += chunk.length;
@@ -156,15 +163,18 @@ class Http2Transport implements Transport {
               ?.call(request, progressBytes, sink.length, true);
 
           headers.add(
-              Header.ascii(HttpHeaders.contentLengthHeader, '${sink.length}'));
+            Header.ascii(HttpHeaders.contentLengthHeader, '${sink.length}'),
+          );
 
           final stream = transport.makeRequest(
             headers,
             endStream: false,
           );
 
-          print('Sending ${sink.length} bytes...');
-          stream.outgoingMessages.add(DataStreamMessage(sink.bytes));
+          stream.outgoingMessages.add(DataStreamMessage(
+            sink.bytes,
+            endStream: true,
+          ));
 
           completer.complete(stream);
         },
@@ -237,7 +247,7 @@ class Http2Transport implements Transport {
 
         completer.complete(res);
       },
-      onError: (dynamic e) {
+      onError: (e) {
         if (!completer.isCompleted) {
           completer.completeError(e, StackTrace.current);
         } else {
@@ -265,7 +275,7 @@ class Http2Transport implements Transport {
 
     try {
       return int.parse(contentLength[0]);
-    } catch (e) {
+    } on FormatException {
       return -1;
     }
   }

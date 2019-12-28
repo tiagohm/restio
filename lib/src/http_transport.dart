@@ -62,13 +62,11 @@ class HttpTransport implements Transport {
 
     httpClient = await onCreate(client, httpClient) ?? httpClient;
 
-    httpClient.badCertificateCallback =
-        ((X509Certificate cert, String host, int port) {
+    httpClient.badCertificateCallback = (cert, host, port) {
       // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
-      return client.verifySSLCertificate
-          ? (client.onBadCertificate?.call(client, cert, host, port) ?? false)
-          : true;
-    });
+      return !client.verifySSLCertificate ||
+          (client.onBadCertificate?.call(client, cert, host, port) ?? false);
+    };
 
     return httpClient;
   }
@@ -254,7 +252,7 @@ class HttpTransport implements Transport {
     var progressBytes = 0;
 
     request.body.write().listen(
-      (List<int> chunk) {
+      (chunk) {
         sink.add(chunk);
 
         progressBytes += chunk.length;

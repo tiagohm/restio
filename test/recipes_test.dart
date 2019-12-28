@@ -539,7 +539,7 @@ void main() {
 
     final dnsClient = client.copyWith(
       dns: dns,
-      auth: BasicAuthenticator(
+      auth: const BasicAuthenticator(
         username: 'postman',
         password: 'password',
       ),
@@ -562,7 +562,7 @@ void main() {
 
     final dnsClient = client.copyWith(
       dns: dns,
-      auth: BasicAuthenticator(
+      auth: const BasicAuthenticator(
         username: 'postman',
         password: 'password',
       ),

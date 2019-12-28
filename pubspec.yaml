@@ -22,4 +22,3 @@ dependencies:
 
 dev_dependencies:
   test: ^1.6.5
-  effective_dart: ^1.1.2

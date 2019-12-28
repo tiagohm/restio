@@ -82,7 +82,7 @@ abstract class Dns {
     result.answers = <DnsResourceRecord>[];
 
     final futures = <Future>[];
-    for (var question in packet.questions) {
+    for (final question in packet.questions) {
       var type = InternetAddressType.any;
 
       switch (question.type) {
@@ -124,20 +124,20 @@ class _SystemDns extends Dns {
 abstract class PacketBasedDns extends Dns {
   @override
   Future<DnsPacket> lookupPacket(
-    String host, {
+    String name, {
     InternetAddressType type = InternetAddressType.any,
   });
 
   @override
   Future<List<IpAddress>> lookup(
-    String host, {
+    String name, {
     InternetAddressType type = InternetAddressType.any,
   }) async {
-    final packet = await lookupPacket(host, type: type);
+    final packet = await lookupPacket(name, type: type);
     final result = <IpAddress>[];
 
-    for (var answer in packet.answers) {
-      if (answer.name == host) {
+    for (final answer in packet.answers) {
+      if (answer.name == name) {
         final ipAddress = IpAddress.fromBytes(answer.data);
         result.add(ipAddress);
       }

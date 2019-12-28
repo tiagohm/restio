@@ -13,6 +13,7 @@ class WebSocketClient {
   Future<WebSocketConnection> connect(WebSocketRequest request) async {
     assert(request != null);
 
+    // ignore: close_sinks
     final ws = await WebSocket.connect(
       request.uri.toString(),
       protocols: request.protocols,

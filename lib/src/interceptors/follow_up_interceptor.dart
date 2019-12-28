@@ -26,7 +26,7 @@ class FollowUpInterceptor implements Interceptor {
     timer.start();
 
     while (true) {
-      var response = await chain.proceed(request);
+      final response = await chain.proceed(request);
 
       final elapsedMilliseconds = timer.elapsedMilliseconds;
 
@@ -66,9 +66,9 @@ class FollowUpInterceptor implements Interceptor {
 
     switch (response.code) {
       case HttpStatus.proxyAuthenticationRequired:
-        return await client.proxy?.auth?.authenticate(response);
+        return client.proxy?.auth?.authenticate(response);
       case HttpStatus.unauthorized:
-        return await client.auth?.authenticate(response);
+        return client.auth?.authenticate(response);
       case HttpStatus.permanentRedirect:
       case HttpStatus.temporaryRedirect:
         return method != 'GET' && method != 'HEAD'
@@ -86,14 +86,18 @@ class FollowUpInterceptor implements Interceptor {
 
   Future<Request> _buildRedirectRequest(Response response) async {
     // Does the client allow redirects?
-    if (!client.followRedirects) return null;
+    if (!client.followRedirects) {
+      return null;
+    }
 
     final location = response.headers.first(HttpHeaders.locationHeader);
 
     if (location != null && location.isNotEmpty) {
       final uri = response.request.uri.resolve(location);
 
-      if (uri == null) return null;
+      if (uri == null) {
+        return null;
+      }
 
       return _retryAfter(response, response.request.copyWith(uri: uri));
     } else {
@@ -101,7 +105,10 @@ class FollowUpInterceptor implements Interceptor {
     }
   }
 
-  Future<Request> _retryAfter(Response response, Request request) {
+  Future<Request> _retryAfter(
+    Response response,
+    Request request,
+  ) {
     try {
       final retryAfter = response.headers.first(HttpHeaders.retryAfterHeader);
       final seconds = Duration(seconds: int.parse(retryAfter)) ??

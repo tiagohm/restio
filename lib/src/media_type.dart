@@ -124,8 +124,9 @@ class MediaType extends Equatable {
       );
 
   static Encoding _obtainDefaultEncoding(String charset) {
-    if (charset == 'application/json' || charset == 'text/plain') return utf8;
-    return latin1;
+    return charset == 'application/json' || charset == 'text/plain'
+        ? utf8
+        : latin1;
   }
 
   @override

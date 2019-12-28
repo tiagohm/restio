@@ -7,12 +7,6 @@ import 'package:restio/src/dns/dns_over_udp.dart';
 import 'package:test/test.dart';
 
 void main() {
-  final client = Restio(
-    interceptors: [
-      LogInterceptor(),
-    ],
-  );
-
   group('System Dns', () {
     test('Lookup packet', () async {
       final dns = Dns.system;
