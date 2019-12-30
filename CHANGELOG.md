@@ -1,3 +1,7 @@
+## 0.3.4
+
+- Fix DNS-over-HTTPS issue.
+
 ## 0.3.3
 
 - Fix DNS bugs.
