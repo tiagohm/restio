@@ -120,6 +120,7 @@ class DnsOverHttps extends PacketBasedDns {
     }
 
     // Additional queries.
+    uri.queryParametersAll.forEach((key, name) => queries[key] = name);
     this.queries?.forEach((key, name) => queries[key] = name);
 
     final response = await _execute(uri.replace(queryParameters: queries));
