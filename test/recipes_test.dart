@@ -607,6 +607,16 @@ void main() {
 
     expect(response.code, 200);
   });
+
+  test('Cookies', () async {
+    final request = Request.get('https://swapi.co/api/planets');
+    final call = client.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+    expect(response.cookies.length, 1);
+    expect(response.cookies[0].name, '__cfduid');
+  });
 }
 
 class _RetryAfterInterceptor implements Interceptor {

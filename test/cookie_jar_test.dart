@@ -43,7 +43,9 @@ class _CookieJar extends CookieJar {
     List<Cookie> cookies,
   ) async {
     for (final cookie in cookies) {
+      // Busca o cookie por nome.
       final index = _bucket.indexWhere((item) => item.name == cookie.name);
+      // Se já existe, substitui.
       if (index >= 0) {
         _bucket[index] = cookie;
       } else {
