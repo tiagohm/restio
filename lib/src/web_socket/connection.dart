@@ -1,13 +1,10 @@
 import 'dart:io';
 
-import 'package:restio/src/web_socket/client.dart';
-
 class WebSocketConnection {
-  final WebSocketClient client;
   final WebSocket _ws;
   Stream _stream;
 
-  WebSocketConnection(this.client, WebSocket ws) : _ws = ws;
+  WebSocketConnection(WebSocket ws) : _ws = ws;
 
   void addString(String text) => _ws.add(text);
 

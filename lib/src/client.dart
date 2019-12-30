@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:io' as io;
 
 import 'package:restio/restio.dart';
 import 'package:restio/src/authenticator.dart';
@@ -17,6 +17,8 @@ import 'package:restio/src/proxy.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
 import 'package:meta/meta.dart';
+import 'package:restio/src/web_socket/connection.dart';
+import 'package:restio/src/web_socket/web_socket.dart';
 
 class Restio {
   final Duration connectTimeout;
@@ -72,6 +74,13 @@ class Restio {
     return _Call(client: this, request: request);
   }
 
+  WebSocket newWebSocket(
+    Request request, {
+    List<String> protocols,
+  }) {
+    return _WebSocket(request);
+  }
+
   Restio copyWith({
     Duration connectTimeout,
     Duration writeTimeout,
@@ -87,7 +96,7 @@ class Restio {
     String userAgent,
     Proxy proxy,
     Uri baseUri,
-    SecurityContext securityContext,
+    io.SecurityContext securityContext,
     bool withTrustedRoots,
     RequestProgressListener onUploadProgress,
     ResponseProgressListener onDownloadProgress,
@@ -122,7 +131,7 @@ class Restio {
   }
 }
 
-class _Call extends Call {
+class _Call implements Call {
   final Restio client;
   @override
   final Request request;
@@ -162,6 +171,27 @@ class _Call extends Call {
 
   @override
   bool get isCancelled => _cancellable.isCancelled;
+}
+
+class _WebSocket implements WebSocket {
+  @override
+  final Request request;
+
+  _WebSocket(this.request);
+
+  @override
+  Future<WebSocketConnection> open() async {
+    // ignore: close_sinks
+    final ws = await io.WebSocket.connect(
+      request.uri.toString(),
+      // protocols: request.protocols,
+      headers: request.headers?.toMap(),
+    );
+
+    // ws.pingInterval = pingInterval;
+
+    return WebSocketConnection(ws);
+  }
 }
 
 class DefaultClientAdapter extends ClientAdapter {

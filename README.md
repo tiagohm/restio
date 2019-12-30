@@ -294,9 +294,10 @@ final response = await call.execute();
 
 #### WebSocket
 ```dart
-final client = WebSocketClient();
-final request = WebSocketRequest.url('wss://echo.websocket.org');
-final conn = await client.connect(request);
+final client = Restio();
+final request = Request(uri: Uri.parse('wss://echo.websocket.org'));
+final ws = client.newWebSocket(request);
+final conn = await ws.open();
 
 // Receive.
 conn.stream.listen((dynamic data) {

@@ -1,7 +1,8 @@
-import 'package:restio/src/web_socket/client.dart';
+import 'package:restio/restio.dart';
 import 'package:restio/src/web_socket/connection.dart';
-import 'package:restio/src/web_socket/request.dart';
 import 'package:test/test.dart';
+
+final client = Restio();
 
 void main() {
   test('Open connection', () async {
@@ -76,8 +77,8 @@ void main() {
 }
 
 Future<WebSocketConnection> openConnection() async {
-  final client = WebSocketClient();
-  final request = WebSocketRequest.url('wss://echo.websocket.org');
-  final conn = await client.connect(request);
+  final request = Request(uri: Uri.parse('wss://echo.websocket.org'));
+  final ws = client.newWebSocket(request);
+  final conn = await ws.open();
   return conn;
 }
