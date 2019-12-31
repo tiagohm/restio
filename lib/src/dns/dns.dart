@@ -137,9 +137,13 @@ abstract class PacketBasedDns extends Dns {
     final result = <IpAddress>[];
 
     for (final answer in packet.answers) {
-      if (answer.name == name) {
-        final ipAddress = IpAddress.fromBytes(answer.data);
-        result.add(ipAddress);
+      try {
+        if (name.endsWith(answer.name)) {
+          final ipAddress = IpAddress.fromBytes(answer.data);
+          result.add(ipAddress);
+        }
+      } catch (e) {
+        print(e);
       }
     }
 
