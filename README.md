@@ -57,7 +57,7 @@ final response = await call.execute();
 ```dart
 final request = Request.post(
   'https://postman-echo.com/post',
-  body: RequestBody.fromString(
+  body: RequestBody.string(
     'This is expected to be sent back as part of response body.',
     contentType: MediaType.text,
   ),
@@ -97,7 +97,7 @@ final json = response.body.json();
 ```dart
 final request = Request.post(
   'https://postman-echo.com/post',
-  body: body: FormBody.fromMap({
+  body: body: FormBody.of({
     'foo1': 'bar1',
     'foo2': 'bar2',
   }),
@@ -115,7 +115,7 @@ final request = Request.post(
       Part.file(
         'file1',
         'upload.txt',
-        RequestBody.fromFile(
+        RequestBody.file(
           File('./upload.txt'),
           contentType: MediaType.text,
         ),
@@ -133,7 +133,7 @@ final response = await call.execute();
 final postData = <int>[...];
 final request = Request.post(
   'https://postman-echo.com/post',
-  body: RequestBody.fromBytes(postData, contentType: MediaType.octetStream),
+  body: RequestBody.bytes(postData, contentType: MediaType.octetStream),
 );
 final call = client.newCall(request);
 final response = await call.execute();
@@ -167,7 +167,7 @@ final progressClient = client.copyWith(
 );
 
 final request = Request.post('https://postman-echo.com/post',
-  body: RequestBody.fromFile(File('./large_file.txt'));
+  body: RequestBody.file(File('./large_file.txt'));
 );
 
 final call = client.newCall(request);
@@ -231,12 +231,12 @@ final client = Restio(
 class MyCookieJar extends CookieJar {
 
   @override
-  Future<List<Cookie>> loadForRequest(Request request) async {
+  Future<List<Cookie>> load(Request request) async {
     // TODO:
   }
 
   @override
-  Future<void> saveFromResponse(
+  Future<void> save(
     Response response,
     List<Cookie> cookies,
   ) async {

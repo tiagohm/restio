@@ -18,7 +18,7 @@ class CookieInterceptor implements Interceptor {
 
     // TODO: O usuário pode ter seu próprio header de cookie. Devemos apenas concatená-lo?
     if (cookieJar != null) {
-      final cookies = await cookieJar.loadForRequest(request);
+      final cookies = await cookieJar.load(request);
 
       final cookieHeader = _cookieHeader(cookies);
 
@@ -52,7 +52,7 @@ class CookieInterceptor implements Interceptor {
         cookies: cookies,
       );
 
-      await cookieJar?.saveFromResponse(response, cookies);
+      await cookieJar?.save(response, cookies);
     }
 
     return response;

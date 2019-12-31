@@ -10,13 +10,13 @@ class FormBody implements RequestBody {
     String charset,
   }) : contentType = MediaType.formUrlEncoded.copyWith(charset: charset);
 
-  factory FormBody.fromMap(
-    Map<String, dynamic> formItems, [
+  factory FormBody.of(
+    Map<String, dynamic> items, [
     String charset,
   ]) {
     final body = FormBody(charset: charset ?? 'utf-8');
-    for (final name in formItems.keys) {
-      final dynamic value = formItems[name];
+    for (final name in items.keys) {
+      final dynamic value = items[name];
 
       if (value is String) {
         body.add(name, value);

@@ -33,12 +33,12 @@ class _CookieJar extends CookieJar {
   }
 
   @override
-  Future<List<Cookie>> loadForRequest(Request request) async {
+  Future<List<Cookie>> load(Request request) async {
     return _bucket;
   }
 
   @override
-  Future<void> saveFromResponse(
+  Future<void> save(
     Response response,
     List<Cookie> cookies,
   ) async {

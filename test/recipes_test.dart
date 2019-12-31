@@ -1,3 +1,5 @@
+@Timeout(Duration(days: 1))
+
 import 'dart:io';
 
 import 'package:restio/restio.dart';
@@ -80,7 +82,7 @@ void main() {
   test('Posting Form Parameters', () async {
     final request = Request.post(
       'https://postman-echo.com/post',
-      body: FormBody.fromMap(<String, dynamic>{
+      body: FormBody.of({
         'a': 'b',
         'c': 'd',
       }),
