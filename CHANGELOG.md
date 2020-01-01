@@ -1,3 +1,8 @@
+## 0.3.5
+
+- Fix DNS bug.
+- Fix Brotli decompression bug.
+
 ## 0.3.4
 
 - Fix DNS-over-HTTPS issue.
