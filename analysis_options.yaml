@@ -1,23 +1,23 @@
 linter:
   rules:
     always_declare_return_types: true
-    always_put_control_body_on_new_line: true
-    always_put_required_named_parameters_first: true
+    always_put_control_body_on_new_line: false
+    always_put_required_named_parameters_first: false
     always_require_non_null_named_parameters: true
     always_specify_types: false
     annotate_overrides: true
     avoid_annotating_with_dynamic: true
-    avoid_as: true
+    avoid_as: false
     avoid_bool_literals_in_conditional_expressions: true
     avoid_catches_without_on_clauses: false
-    avoid_catching_errors: true
+    avoid_catching_errors: false
     avoid_classes_with_only_static_members: true
     avoid_double_and_int_checks: true
     avoid_empty_else: true
     avoid_equals_and_hash_code_on_mutable_classes: true
     avoid_field_initializers_in_const_classes: true
     avoid_function_literals_in_foreach_calls: true
-    avoid_implementing_value_types: true
+    avoid_implementing_value_types: false
     avoid_init_to_null: true
     avoid_js_rounded_ints: true
     avoid_null_checks_in_equality_operators: true
@@ -28,8 +28,8 @@ linter:
     avoid_relative_lib_imports: true
     avoid_renaming_method_parameters: true
     avoid_return_types_on_setters: true
-    avoid_returning_null: true
-    avoid_returning_null_for_future: true
+    avoid_returning_null: false
+    avoid_returning_null_for_future: false
     avoid_returning_null_for_void: true
     avoid_returning_this: true
     avoid_setters_without_getters: true
@@ -40,7 +40,7 @@ linter:
     avoid_types_on_closure_parameters: true
     avoid_unnecessary_containers: true
     avoid_unused_constructor_parameters: true
-    avoid_void_async: true
+    avoid_void_async: false
     avoid_web_libraries_in_flutter: true
     await_only_futures: true
     camel_case_extensions: true
@@ -52,7 +52,7 @@ linter:
     constant_identifier_names: true
     control_flow_in_finally: true
     curly_braces_in_flow_control_structures: true
-    diagnostic_describe_all_properties: true
+    diagnostic_describe_all_properties: false
     directives_ordering: true
     empty_catches: true
     empty_constructor_bodies: true
@@ -132,7 +132,7 @@ linter:
     throw_in_finally: true
     type_annotate_public_apis: false
     type_init_formals: true
-    unawaited_futures: true
+    unawaited_futures: false
     unnecessary_await_in_return: true
     unnecessary_brace_in_string_interps: true
     unnecessary_const: true
@@ -152,7 +152,7 @@ linter:
     use_function_type_syntax_for_parameters: true
     use_rethrow_when_possible: true
     use_setters_to_change_properties: true
-    use_string_buffers: true
+    use_string_buffers: false
     use_to_and_as_if_applicable: true
     valid_regexps: true
     void_checks: true
