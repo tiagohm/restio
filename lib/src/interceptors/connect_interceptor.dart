@@ -5,14 +5,13 @@ import 'package:meta/meta.dart';
 import 'package:restio/src/cancellable.dart';
 import 'package:restio/src/chain.dart';
 import 'package:restio/src/client.dart';
-import 'package:restio/src/helpers.dart';
+import 'package:restio/src/extensions.dart';
 import 'package:restio/src/http2_transport.dart';
 import 'package:restio/src/http_transport.dart';
 import 'package:restio/src/interceptor.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
 import 'package:restio/src/transport.dart';
-import 'package:path/path.dart';
 
 class ConnectInterceptor implements Interceptor {
   final Restio client;
@@ -53,65 +52,29 @@ class ConnectInterceptor implements Interceptor {
       }
     });
 
-    var connectRequest = request;
+    Request connectRequest;
 
     try {
-      final requestUri = request.uri;
-      final baseUri = client.baseUri;
-
-      // Troca pela BaseUri.
-      if (baseUri != null && requestUri.scheme.isEmpty) {
-        final scheme = baseUri.scheme;
-        final userinfo = requestUri.userInfo.isEmpty
-            ? baseUri.userInfo
-            : requestUri.userInfo;
-        final host = requestUri.host.isEmpty ? baseUri.host : requestUri.host;
-        final port = requestUri.port == 0 ? baseUri.port : requestUri.port;
-        final queryParameters = {
-          ...baseUri.queryParametersAll,
-          ...requestUri.queryParametersAll,
-        };
-
-        connectRequest = request.copyWith(
-          uri: Uri(
-            scheme: scheme,
-            host: host,
-            path: normalize('${baseUri.path}/${requestUri.path}'),
-            port: port,
-            queryParameters: queryParameters,
-            userInfo: userinfo,
-          ).normalizePath(),
-        );
-      }
-
       IpAddress dnsIp;
 
       // Verificar se não é um IP.
       // Busca o real endereço (IP) do host através de um DNS.
-      if (client.dns != null && !isIp(connectRequest.uri.host)) {
-        final addresses = await client.dns.lookup(connectRequest.uri.host);
+      if (client.dns != null && !request.uri.host.isIp()) {
+        final addresses = await client.dns.lookup(request.uri.host);
 
         if (addresses != null && addresses.isNotEmpty) {
           dnsIp = addresses[0];
 
-          connectRequest = connectRequest.copyWith(
-            uri: Uri(
-              pathSegments: connectRequest.uri.pathSegments,
-              port: connectRequest.uri.port,
-              queryParameters: connectRequest.uri.queryParameters,
-              scheme: connectRequest.uri.scheme,
-              userInfo: connectRequest.uri.userInfo,
-              host: dnsIp.toString(),
-            ),
+          connectRequest = request.copyWith(
+            uri: request.uri.replace(host: dnsIp.toString()),
           );
         }
       }
 
-      final response = await transport.send(connectRequest);
+      final response = await transport.send(connectRequest ?? request);
 
       return response.copyWith(
         request: request,
-        connectRequest: connectRequest,
         dnsIp: dnsIp,
       );
     } on Exception {

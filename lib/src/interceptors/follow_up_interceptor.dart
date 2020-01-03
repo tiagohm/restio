@@ -22,23 +22,26 @@ class FollowUpInterceptor implements Interceptor {
     var count = 0;
     final redirects = <Redirect>[];
 
-    final timer = Stopwatch();
-    timer.start();
+    final startTime = DateTime.now();
 
     while (true) {
+      final sentAt = DateTime.now();
       final response = await chain.proceed(request);
 
-      final elapsedMilliseconds = timer.elapsedMilliseconds;
+      final elapsedMilliseconds = response.receivedAt.millisecondsSinceEpoch -
+          startTime.millisecondsSinceEpoch;
+      final spentMilliseconds = response.receivedAt.millisecondsSinceEpoch -
+          sentAt.millisecondsSinceEpoch;
 
       final followUp = await _followUpRequest(response);
 
       if (followUp == null) {
-        timer.stop();
-
         return response.copyWith(
           redirects: redirects,
           originalRequest: originalRequest,
-          elapsedMilliseconds: elapsedMilliseconds,
+          spentMilliseconds: spentMilliseconds,
+          totalMilliseconds: elapsedMilliseconds,
+          sentAt: sentAt,
         );
       }
 
@@ -53,15 +56,18 @@ class FollowUpInterceptor implements Interceptor {
 
       redirects.add(Redirect(
         request: request,
+        elapsedMilliseconds: elapsedMilliseconds,
         response: response.copyWith(
           originalRequest: originalRequest,
-          elapsedMilliseconds: elapsedMilliseconds,
+          spentMilliseconds: spentMilliseconds,
+          totalMilliseconds: spentMilliseconds,
+          sentAt: sentAt,
         ),
       ));
     }
   }
 
-  Future<Request> _followUpRequest(Response response) async {
+  Future<Request> _followUpRequest(Response response) {
     final method = response.request.method;
 
     switch (response.code) {
@@ -84,7 +90,7 @@ class FollowUpInterceptor implements Interceptor {
     }
   }
 
-  Future<Request> _buildRedirectRequest(Response response) async {
+  Future<Request> _buildRedirectRequest(Response response) {
     // Does the client allow redirects?
     if (!client.followRedirects) {
       return null;

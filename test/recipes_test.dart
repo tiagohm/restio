@@ -384,6 +384,44 @@ void main() {
     });
   });
 
+  group('Redirects with DNS', () {
+    final redirectClient = client.copyWith(
+      maxRedirects: 9,
+      dns: DnsOverUdp.google(),
+    );
+
+    test('Absolute redirects n times', () async {
+      final request = Request.get('https://httpbin.org/absolute-redirect/7');
+      final call = redirectClient.newCall(request);
+      final response = await call.execute();
+
+      expect(response.code, 200);
+      expect(response.redirects.length, 7);
+    });
+
+    test('Relative redirects n times', () async {
+      final request = Request.get('https://httpbin.org/relative-redirect/7');
+      final call = redirectClient.newCall(request);
+      final response = await call.execute();
+
+      expect(response.code, 200);
+      expect(response.redirects.length, 7);
+      expect(response.redirects[6].request.uri.path, '/get');
+    });
+
+    test('Too many redirects exception', () async {
+      final request = Request.get('https://httpbin.org/absolute-redirect/10');
+      final call = redirectClient.newCall(request);
+
+      try {
+        await call.execute();
+      } on TooManyRedirectsException catch (e) {
+        expect(e.message, 'Too many redirects: 10');
+        expect(e.uri, Uri.parse('https://httpbin.org/absolute-redirect/10'));
+      }
+    });
+  });
+
   test('Chunked', () async {
     var isDone = false;
 
@@ -406,36 +444,6 @@ void main() {
     expect(isDone, true);
   });
 
-  test('Base Uri', () async {
-    final clientWithBaseUri = client.copyWith(
-      baseUri: Uri.parse('https://api.github.com?sort=stars'),
-    );
-
-    var request = Request.get(
-      '/search/repositories?q=flutter',
-      queries: Queries.of(<String, dynamic>{
-        'order': 'desc',
-        'per_page': '2',
-      }),
-    );
-
-    var response = await requestResponse(clientWithBaseUri, request);
-
-    expect(response.connectRequest.uri.toString(),
-        'https://api.github.com/search/repositories');
-    expect(response.connectRequest.queries.first('q'), 'flutter');
-    expect(response.connectRequest.queries.first('sort'), 'stars');
-    expect(response.connectRequest.queries.first('order'), 'desc');
-    expect(response.connectRequest.queries.first('per_page'), '2');
-
-    request = Request.get('https://api.github.com/repos/tiagohm/restio');
-
-    response = await requestResponse(clientWithBaseUri, request);
-
-    expect(response.connectRequest.uri.toString(),
-        'https://api.github.com/repos/tiagohm/restio');
-  });
-
   test('Pause & Resume', () async {
     //  TODO:
   });
@@ -448,7 +456,7 @@ void main() {
     final request = Request.get('https://httpbin.org/absolute-redirect/1');
     final call = retryAfterClient.newCall(request);
     final response = await call.execute();
-    expect(response.elapsedMilliseconds > 15000, true);
+    expect(response.totalMilliseconds > 15000, true);
   });
 
   test('HTTP2', () async {

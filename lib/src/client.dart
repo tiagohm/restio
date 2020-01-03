@@ -34,7 +34,6 @@ class Restio {
   final bool verifySSLCertificate;
   final String userAgent;
   final Proxy proxy;
-  final Uri baseUri;
   final bool withTrustedRoots;
   final RequestProgressListener onUploadProgress;
   final ResponseProgressListener onDownloadProgress;
@@ -57,7 +56,6 @@ class Restio {
     this.verifySSLCertificate = false,
     this.userAgent,
     this.proxy,
-    this.baseUri,
     this.withTrustedRoots = true,
     this.onUploadProgress,
     this.onDownloadProgress,
@@ -78,7 +76,7 @@ class Restio {
     Request request, {
     List<String> protocols,
   }) {
-    return _WebSocket(request);
+    return _WebSocket(request, protocols);
   }
 
   Restio copyWith({
@@ -95,7 +93,6 @@ class Restio {
     bool verifySSLCertificate,
     String userAgent,
     Proxy proxy,
-    Uri baseUri,
     io.SecurityContext securityContext,
     bool withTrustedRoots,
     RequestProgressListener onUploadProgress,
@@ -119,7 +116,6 @@ class Restio {
       verifySSLCertificate: verifySSLCertificate ?? this.verifySSLCertificate,
       userAgent: userAgent ?? this.userAgent,
       proxy: proxy ?? this.proxy,
-      baseUri: baseUri ?? this.baseUri,
       withTrustedRoots: withTrustedRoots ?? this.withTrustedRoots,
       onUploadProgress: onUploadProgress ?? this.onUploadProgress,
       onDownloadProgress: onDownloadProgress ?? this.onDownloadProgress,
@@ -176,15 +172,16 @@ class _Call implements Call {
 class _WebSocket implements WebSocket {
   @override
   final Request request;
+  final List<String> protocols;
 
-  _WebSocket(this.request);
+  _WebSocket(this.request, this.protocols);
 
   @override
   Future<WebSocketConnection> open() async {
     // ignore: close_sinks
     final ws = await io.WebSocket.connect(
       request.uri.toString(),
-      // protocols: request.protocols,
+      protocols: protocols,
       headers: request.headers?.toMap(),
     );
 

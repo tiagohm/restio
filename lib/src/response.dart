@@ -15,7 +15,6 @@ class Response {
   final Headers headers;
   final List<Cookie> cookies;
   final ResponseBody body;
-  final int elapsedMilliseconds;
   final List<Challenge> challenges;
   final HttpConnectionInfo connectionInfo;
   final List<Redirect> redirects;
@@ -23,14 +22,16 @@ class Response {
   /// É o Request criado pelo usuário (não sofreu nenhuma transformação).
   final Request originalRequest;
 
-  /// É o Request que iniciou a chamada (transformado pelos interceptors: Cookies, Auth headers).
+  /// É o Request que iniciou a chamada (transformado pelos interceptors).
   final Request request;
 
-  /// É o Request que realizou a chamada (transformado pelo ConnectInterceptor: BaseUri, DNS).
-  final Request connectRequest;
   final CacheControl cacheControl;
 
+  final DateTime sentAt;
   final DateTime receivedAt;
+  final int spentMilliseconds;
+  final int totalMilliseconds;
+
   final X509Certificate certificate;
 
   final IpAddress dnsIp;
@@ -42,11 +43,12 @@ class Response {
     this.headers,
     this.cookies,
     this.body,
-    this.elapsedMilliseconds,
+    this.spentMilliseconds,
+    this.totalMilliseconds,
     this.connectionInfo,
     this.redirects,
     this.originalRequest,
-    this.connectRequest,
+    this.sentAt,
     this.receivedAt,
     this.certificate,
     this.dnsIp,
@@ -131,11 +133,12 @@ class Response {
     Headers headers,
     List<Cookie> cookies,
     ResponseBody body,
-    int elapsedMilliseconds,
+    int spentMilliseconds,
+    int totalMilliseconds,
     HttpConnectionInfo connectionInfo,
     List<Redirect> redirects,
     Request originalRequest,
-    Request connectRequest,
+    DateTime sentAt,
     DateTime receivedAt,
     X509Certificate certificate,
     IpAddress dnsIp,
@@ -147,11 +150,12 @@ class Response {
       headers: headers ?? this.headers,
       cookies: cookies ?? this.cookies,
       body: body ?? this.body,
-      elapsedMilliseconds: elapsedMilliseconds ?? this.elapsedMilliseconds,
+      spentMilliseconds: spentMilliseconds ?? this.spentMilliseconds,
+      totalMilliseconds: totalMilliseconds ?? this.totalMilliseconds,
       connectionInfo: connectionInfo ?? this.connectionInfo,
       redirects: redirects ?? this.redirects,
       originalRequest: originalRequest ?? this.originalRequest,
-      connectRequest: connectRequest ?? this.connectRequest,
+      sentAt: sentAt ?? this.sentAt,
       receivedAt: receivedAt ?? this.receivedAt,
       certificate: certificate ?? this.certificate,
       dnsIp: dnsIp ?? this.dnsIp,
@@ -160,9 +164,9 @@ class Response {
 
   @override
   String toString() {
-    return 'Response { body: $body, code: $code, elapsedMilliseconds: $elapsedMilliseconds, receivedAt: $receivedAt,'
+    return 'Response { body: $body, code: $code, totalMilliseconds: $totalMilliseconds, spentMilliseconds: $spentMilliseconds, sentAt: $sentAt, receivedAt: $receivedAt,'
         ' headers: $headers, cookies: $cookies, message: $message, request: $request,'
         ' connectionInfo: $connectionInfo, redirects: $redirects, originalRequest: $originalRequest,'
-        ' connectRequest: $connectRequest, dns: $dnsIp }';
+        ' dnsIp: $dnsIp }';
   }
 }
