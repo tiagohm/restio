@@ -11,9 +11,7 @@ import 'package:restio/src/response.dart';
 class FollowUpInterceptor implements Interceptor {
   final Restio client;
 
-  FollowUpInterceptor({
-    this.client,
-  });
+  FollowUpInterceptor(this.client);
 
   @override
   Future<Response> intercept(Chain chain) async {

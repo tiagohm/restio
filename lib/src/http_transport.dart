@@ -65,7 +65,7 @@ class HttpTransport implements Transport {
     httpClient.badCertificateCallback = (cert, host, port) {
       // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
       return !client.verifySSLCertificate ||
-          (client.onBadCertificate?.call(client, cert, host, port) ?? false);
+          (client.onBadCertificate?.call(cert, host, port) ?? false);
     };
 
     return httpClient;
@@ -205,9 +205,7 @@ class HttpTransport implements Transport {
           contentType: MediaType.fromContentType(response.headers.contentType),
           contentLength: response.headers.contentLength,
           compressionType: _obtainCompressType(response),
-          onProgress: (sent, total, done) {
-            client.onDownloadProgress?.call(res, sent, total, done);
-          },
+          onProgress: client.onDownloadProgress,
         ),
       );
     } on TimeoutException {
@@ -217,20 +215,9 @@ class HttpTransport implements Transport {
 
   static CompressionType _obtainCompressType(HttpClientResponse response) {
     final contentEncoding = response.headers[HttpHeaders.contentEncodingHeader];
-
-    if (contentEncoding != null && contentEncoding.isNotEmpty) {
-      switch (contentEncoding[0]) {
-        case 'gzip':
-          return CompressionType.gzip;
-        case 'deflate':
-          return CompressionType.deflate;
-        case 'brotli':
-        case 'br':
-          return CompressionType.brotli;
-      }
-    }
-
-    return CompressionType.notCompressed;
+    return contentEncoding != null && contentEncoding.isNotEmpty
+        ? parseContentEncoding(contentEncoding[0])
+        : CompressionType.notCompressed;
   }
 
   static Headers _obtainHeadersfromHttpHeaders(
@@ -257,14 +244,12 @@ class HttpTransport implements Transport {
 
         progressBytes += chunk.length;
 
-        client.onUploadProgress
-            ?.call(request, progressBytes, totalBytes, false);
+        client.onUploadProgress?.call(progressBytes, totalBytes, false);
       },
       onDone: () {
         sink.close();
 
-        client.onUploadProgress
-            ?.call(request, progressBytes, sink.length, true);
+        client.onUploadProgress?.call(progressBytes, sink.length, true);
 
         clientRequest.contentLength = sink.length;
         clientRequest.add(sink.bytes);

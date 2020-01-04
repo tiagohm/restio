@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 
 // ignore_for_file: avoid_returning_this
@@ -128,6 +130,21 @@ class Headers extends Equatable {
     return headers.build();
   }
 
+  List<String> vary() {
+    final value = first(HttpHeaders.varyHeader);
+
+    if (value != null) {
+      final fields = value.split(',');
+      return [
+        for (final field in fields) field.trim(),
+      ];
+    }
+
+    return const [];
+  }
+
+  bool get hasVaryAll => vary().contains('*');
+
   @override
   String toString() {
     final sb = StringBuffer();
@@ -180,6 +197,23 @@ class HeadersBuilder {
     return this;
   }
 
+  HeadersBuilder addLine(String line) {
+    final index = line.indexOf(':', 1);
+
+    if (index != -1) {
+      return add(
+        line.substring(0, index).trim(),
+        line.substring(index + 1).trim(),
+      );
+    } else if (line.startsWith(':')) {
+      // Work around empty header names and header names that start with a
+      // colon (created by old broken SPDY versions of the response cache).
+      return add('', line.substring(1).trim()); // Empty header name.
+    } else {
+      return add('', line); // No header name.
+    }
+  }
+
   HeadersBuilder set(String name, value) {
     remove(name);
     add(name, value);
@@ -187,6 +221,8 @@ class HeadersBuilder {
   }
 
   HeadersBuilder remove(String name) {
+    name = name.toLowerCase();
+
     for (var i = 0; i < _items.length; i += 2) {
       if (_items[i] == name) {
         _items.removeAt(i);

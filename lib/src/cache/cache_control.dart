@@ -28,6 +28,11 @@ class CacheControl extends Equatable {
     this.minFresh,
   });
 
+  static const disabled = CacheControl(noCache: true, noStore: true);
+  static const forceNetwork = CacheControl(noCache: true);
+  static const forceCache =
+      CacheControl(onlyIfCached: true, maxStale: Duration(seconds: 0xFFFFFFFF));
+
   factory CacheControl.parse(String text) {
     text = text?.trim();
 
@@ -56,6 +61,18 @@ class CacheControl extends Equatable {
           ? Duration(seconds: int.parse(params['min-fresh']))
           : null,
     );
+  }
+
+  bool get hasMaxAge {
+    return maxAge != null && !maxAge.isNegative;
+  }
+
+  bool get hasMaxState {
+    return maxStale != null && !maxStale.isNegative;
+  }
+
+  bool get hasMinFresh {
+    return minFresh != null && !minFresh.isNegative;
   }
 
   static final _whitespace = RegExp(r'[ \t]*');

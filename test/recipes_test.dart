@@ -34,7 +34,7 @@ void main() {
     final call = client.newCall(request);
     final response = await call.execute();
     expect(response.code, 200);
-    final dynamic json = await response.body.json();
+    final json = await response.body.data.json();
     expect(json['headers']['content-length'], '58');
     expect(json['json'], null);
   });
@@ -72,7 +72,7 @@ void main() {
       headers: HeadersBuilder().add('content-type', 'application/json').build(),
     );
 
-    final dynamic data = await requestJson(client, request);
+    final data = await requestJson(client, request);
 
     expect(data['data'], 'Olá!');
     expect(data['headers']['content-length'], '5');
@@ -88,7 +88,7 @@ void main() {
       }),
     );
 
-    final dynamic data = await requestJson(client, request);
+    final data = await requestJson(client, request);
 
     expect(data['form']['a'], 'b');
     expect(data['form']['c'], 'd');
@@ -112,7 +112,7 @@ void main() {
       ),
     );
 
-    final dynamic data = await requestJson(client, request);
+    final data = await requestJson(client, request);
 
     expect(data['form']['a'], 'b');
     expect(data['form']['c'], 'd');
@@ -123,7 +123,7 @@ void main() {
   test('Posting Binary File', () async {
     var isDone = false;
 
-    void onProgress(request, sent, total, done) {
+    void onProgress(sent, total, done) {
       print('sent: $sent, total: $total, done: $done');
       isDone = done;
     }
@@ -147,7 +147,7 @@ void main() {
       ),
     );
 
-    final dynamic data = await requestJson(progressClient, request);
+    final data = await requestJson(progressClient, request);
 
     expect(isDone, true);
     expect(data['files']['binary.dat'],
@@ -158,7 +158,7 @@ void main() {
     final userAgentClient = client.copyWith(userAgent: 'Restio/0.1.0 (Dart)');
 
     var request = Request.get('https://postman-echo.com/get');
-    dynamic data = await requestJson(userAgentClient, request);
+    var data = await requestJson(userAgentClient, request);
 
     expect(data['headers']['user-agent'], 'Restio/0.1.0 (Dart)');
 
@@ -185,7 +185,7 @@ void main() {
       ),
     );
 
-    final dynamic data = await requestString(client, request);
+    final data = await requestString(client, request);
     expect(data,
         '<h1>\n<a id="user-content-restio" class="anchor" href="#restio" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Restio</h1>\n');
   });
@@ -203,7 +203,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final dynamic data = await response.body.json();
+    final data = await response.body.data.json();
     expect(data['authenticated'], true);
   });
 
@@ -220,7 +220,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final dynamic data = await response.body.json();
+    final data = await response.body.data.json();
     expect(data['authenticated'], true);
   });
 
@@ -236,7 +236,7 @@ void main() {
     final response = await requestResponse(authClient, request);
     expect(response.code, 200);
 
-    final dynamic data = await response.body.json();
+    final data = await response.body.data.json();
     expect(data['authenticated'], true);
     expect(data['token'], '123');
   });
@@ -254,7 +254,7 @@ void main() {
     final response = await requestResponse(authClient, request);
     expect(response.code, 200);
 
-    final dynamic data = await response.body.json();
+    final data = await response.body.data.json();
     expect(data['authenticated'], true);
   });
 
@@ -271,7 +271,7 @@ void main() {
     final response = await requestResponse(authClient, request);
     expect(response.code, 200);
 
-    final dynamic data = await response.body.json();
+    final data = await response.body.data.json();
     expect(data['message'], 'Hawk Authentication Successful');
   });
 
@@ -310,7 +310,7 @@ void main() {
     final response = await requestResponse(client, request);
     expect(response.code, 200);
 
-    final dynamic data = await response.body.json();
+    final data = await response.body.data.json();
     expect(data['items'].length, 2);
     expect(data['items'][0]['full_name'], 'flutter/flutter');
   });
@@ -320,7 +320,7 @@ void main() {
 
     final call = client.newCall(request);
     final response = await call.execute();
-    final dynamic data = await response.body.compressed();
+    final data = await response.body.data.compressed();
 
     expect(data.length, 50);
   });
@@ -328,7 +328,7 @@ void main() {
   test('Gzip', () async {
     final request = Request.get('https://httpbin.org/gzip');
 
-    final dynamic data = await requestJson(client, request);
+    final data = await requestJson(client, request);
 
     expect(data['gzipped'], true);
   });
@@ -336,7 +336,7 @@ void main() {
   test('Deflate', () async {
     final request = Request.get('https://httpbin.org/deflate');
 
-    final dynamic data = await requestJson(client, request);
+    final data = await requestJson(client, request);
 
     expect(data['deflated'], true);
   });
@@ -344,7 +344,7 @@ void main() {
   test('Brotli', () async {
     final request = Request.get('https://httpbin.org/brotli');
 
-    final dynamic data = await requestJson(client, request);
+    final data = await requestJson(client, request);
 
     expect(data['brotli'], true);
   });
@@ -425,7 +425,7 @@ void main() {
   test('Chunked', () async {
     var isDone = false;
 
-    void onProgress(response, sent, total, done) {
+    void onProgress(sent, total, done) {
       print('sent: $sent, total: $total, done: $done');
       isDone = done;
     }
@@ -438,7 +438,7 @@ void main() {
 
     final call = progressClient.newCall(request);
     final response = await call.execute();
-    final dynamic data = await response.body.compressed();
+    final data = await response.body.data.compressed();
 
     expect(data.length, 36001);
     expect(isDone, true);
@@ -468,7 +468,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final dynamic json = await response.body.json();
+    final json = await response.body.data.json();
 
     expect(json['http2'], 1);
     expect(json['protocol'], 'HTTP/2.0');
@@ -487,7 +487,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final dynamic json = await response.body.json();
+    final json = await response.body.data.json();
 
     expect(json, 'HI!');
   });
@@ -510,7 +510,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final dynamic json = await response.body.json();
+    final json = await response.body.data.json();
 
     expect(json['authenticated'], true);
     expect(response.headers.first('x-http-proxy'), 'true');
@@ -538,7 +538,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final dynamic json = await response.body.json();
+    final json = await response.body.data.json();
 
     expect(json['authenticated'], true);
     expect(response.headers.first('x-http-proxy'), 'true');
@@ -561,7 +561,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final dynamic json = await response.body.json();
+    final json = await response.body.data.json();
 
     expect(json['authenticated'], true);
     expect(response.dnsIp, isNotNull);
@@ -584,7 +584,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final dynamic json = await response.body.json();
+    final json = await response.body.data.json();
 
     expect(json['authenticated'], true);
     expect(response.dnsIp, isNotNull);

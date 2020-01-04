@@ -4,18 +4,18 @@ import 'dart:convert' as convert;
 import 'package:restio/src/compression_type.dart';
 import 'package:restio/src/decompressor.dart';
 import 'package:restio/src/media_type.dart';
+import 'package:restio/src/response_body_data.dart';
 
 class ResponseBody {
+  final Stream<List<int>> _data;
   final MediaType contentType;
-  final Stream<List<int>> data;
   final int contentLength;
   final CompressionType compressionType;
-  Decompressor _decompressor;
   final void Function(int sent, int total, bool done) onProgress;
 
-  ResponseBody({
+  ResponseBody(
+    this._data, {
     this.contentType,
-    this.data,
     this.contentLength,
     this.compressionType,
     this.onProgress,
@@ -29,8 +29,8 @@ class ResponseBody {
     void Function(int sent, int total, bool done) onProgress,
   }) {
     return ResponseBody(
+      Stream.fromIterable([data]),
       contentType: contentType,
-      data: Stream.fromIterable([data]),
       contentLength: contentLength == -1 ? data.length : contentLength,
       compressionType: compressionType,
       onProgress: onProgress,
@@ -45,8 +45,8 @@ class ResponseBody {
   }) {
     final encoding = contentType?.encoding ?? convert.utf8;
     return ResponseBody(
+      Stream.fromFuture(Future(() => encoding.encode(text))),
       contentType: contentType,
-      data: Stream.fromFuture(Future(() => encoding.encode(text))),
       contentLength: contentLength,
       compressionType: CompressionType.notCompressed,
       onProgress: onProgress,
@@ -61,62 +61,91 @@ class ResponseBody {
     void Function(int sent, int total, bool done) onProgress,
   }) {
     return ResponseBody(
+      data,
       contentType: contentType,
-      data: data,
       contentLength: contentLength,
       compressionType: compressionType,
       onProgress: onProgress,
     );
   }
 
-  Future<List<int>> raw({
-    bool decompress = true,
-  }) {
-    var sent = 0;
-    _decompressor = Decompressor(
-      compressionType:
-          decompress ? compressionType : CompressionType.notCompressed,
-      data: data,
-      onChunkReceived: (chunk) {
-        sent += chunk.length;
-        onProgress?.call(sent, contentLength, false);
-      },
-      onDone: () {
-        onProgress?.call(sent, contentLength, true);
-        _decompressor = null;
-      },
-    );
-
-    return _decompressor.decompress();
+  ResponseBodyData get data {
+    return _ResponseBodyData(this);
   }
 
-  Future<List<int>> compressed() => raw(decompress: false);
-
-  Future<List<int>> decompressed() => raw(decompress: true);
-
-  Future<String> string() async {
-    final encoded = await decompressed();
-    return contentType?.encoding != null
-        ? contentType.encoding.decode(encoded)
-        : convert.utf8.decode(encoded);
+  Future close() {
+    // TODO: Por causa do cache!
   }
-
-  Future<dynamic> json() async {
-    return convert.json.decode(await string());
-  }
-
-  void pause() {
-    _decompressor?.pause();
-  }
-
-  void resume() {
-    _decompressor?.resume();
-  }
-
-  bool get isPaused => _decompressor != null && _decompressor.isPaused;
 
   @override
   String toString() {
     return 'ResponseBody { contentType: $contentType, contentLength: $contentLength, compressionType: $compressionType }';
+  }
+}
+
+class _ResponseBodyData extends ResponseBodyData {
+  final ResponseBody body;
+  Decompressor _decompressor;
+
+  _ResponseBodyData(this.body);
+
+  @override
+  bool get isPaused => _decompressor != null || _decompressor.isPaused;
+
+  @override
+  bool get isStopped => _decompressor == null;
+
+  @override
+  Stream<List<int>> get stream => body._data;
+
+  @override
+  void pause() {
+    _decompressor?.pause();
+  }
+
+  @override
+  void resume() {
+    _decompressor?.resume();
+  }
+
+  Future<List<int>> _raw({
+    bool decompress = true,
+  }) {
+    var sent = 0;
+
+    _decompressor = Decompressor(
+      compressionType:
+          decompress ? body.compressionType : CompressionType.notCompressed,
+      data: body._data,
+      onChunkReceived: (chunk) {
+        sent += chunk.length;
+        body.onProgress?.call(sent, body.contentLength, false);
+      },
+      onDone: () {
+        body.onProgress?.call(sent, body.contentLength, true);
+        _decompressor = null;
+      },
+    );
+
+    return _decompressor.decompress().whenComplete(() => _decompressor = null);
+  }
+
+  @override
+  Future<List<int>> compressed() => _raw(decompress: false);
+
+  @override
+  Future<List<int>> decompressed() => _raw(decompress: true);
+
+  @override
+  Future<String> string() async {
+    final encoded = await decompressed();
+    return body.contentType?.encoding != null
+        ? body.contentType.encoding.decode(encoded)
+        : convert.utf8.decode(encoded);
+  }
+
+  @override
+  Future<dynamic> json() async {
+    return convert.json.decode(await string());
   }
 }

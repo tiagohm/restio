@@ -53,8 +53,9 @@ class Response {
     this.certificate,
     this.dnsIp,
   })  : challenges = _challenges(code, headers),
-        cacheControl =
-            CacheControl.parse(headers?.first(HttpHeaders.cacheControlHeader));
+        cacheControl = CacheControl.parse(
+                headers?.first(HttpHeaders.cacheControlHeader)) ??
+            const CacheControl();
 
   bool get isSuccess => code != null && code >= 200 && code <= 299;
 
@@ -91,7 +92,9 @@ class Response {
     return res;
   }
 
-  bool get isCacheable {
+  bool isCacheable([Request request]) {
+    request ??= originalRequest;
+
     switch (code) {
       // These codes can be cached unless headers forbid it.
       case HttpStatus.ok:
@@ -111,8 +114,8 @@ class Response {
       // s-maxage is not checked because OkHttp is a private cache that should ignore s-maxage.
       case HttpStatus.movedTemporarily:
       case HttpStatus.temporaryRedirect:
-        if (headers?.has(HttpHeaders.expiresHeader) == true ||
-            cacheControl.maxAge.inSeconds != -1 ||
+        if (headers.has(HttpHeaders.expiresHeader) ||
+            cacheControl.hasMaxAge ||
             cacheControl.isPublic ||
             cacheControl.isPrivate) {
           break;
@@ -123,7 +126,29 @@ class Response {
         return false;
     }
 
-    return !cacheControl.noStore;
+    return !cacheControl.noStore && !request.cacheControl.noStore;
+  }
+
+  bool get hasBody {
+    // HEAD requests never yield a body regardless of the response headers.
+    if (originalRequest.method == HttpMethod.head) {
+      return false;
+    }
+
+    if ((code < HttpStatus.continue_ || code >= HttpStatus.ok) &&
+        code != HttpStatus.noContent &&
+        code != HttpStatus.notModified) {
+      return true;
+    }
+
+    // If the Content-Length or Transfer-Encoding headers disagree with the response code, the
+    // response is malformed. For best compatibility, we honor the headers.
+    if (body.contentLength != -1 ||
+        headers.first(HttpHeaders.transferEncodingHeader) == 'chunked') {
+      return true;
+    }
+
+    return false;
   }
 
   Response copyWith({

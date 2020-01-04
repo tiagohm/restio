@@ -3,7 +3,7 @@ import 'dart:io';
 
 import 'package:equatable/equatable.dart';
 import 'package:mime/mime.dart';
-import 'package:restio/src/utils.dart';
+import 'package:restio/src/helpers.dart';
 
 class MediaType extends Equatable {
   final String type;

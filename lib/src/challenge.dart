@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:equatable/equatable.dart';
 import 'package:http_parser/http_parser.dart';
-import 'package:restio/src/utils.dart';
+import 'package:restio/src/helpers.dart';
 
 class Challenge extends Equatable {
   final String scheme;

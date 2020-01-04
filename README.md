@@ -141,7 +141,7 @@ final response = await call.execute();
 
 #### Listening for download progress:
 ```dart
-final ResponseProgressListener onProgress = (response, sent, total, done) {
+final ProgressCallback onProgress = (response, sent, total, done) {
   print('sent: $sent, total: $total, done: $done');
 };
 
@@ -158,7 +158,7 @@ final data = await response.body.raw(false);
 
 #### Listening for upload progress:
 ```dart
-final RequestProgressListener onProgress = (request, sent, total, done) {
+final ProgressCallback onProgress = (request, sent, total, done) {
   print('sent: $sent, total: $total, done: $done');
 };
 
