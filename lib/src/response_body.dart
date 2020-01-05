@@ -131,7 +131,7 @@ class _ResponseBodyData extends ResponseBodyData {
   }
 
   @override
-  Future<List<int>> compressed() => _raw(decompress: false);
+  Future<List<int>> raw() => _raw(decompress: false);
 
   @override
   Future<List<int>> decompressed() => _raw(decompress: true);

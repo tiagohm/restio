@@ -209,7 +209,7 @@ class HttpTransport implements Transport {
   static CompressionType _obtainCompressType(HttpClientResponse response) {
     final contentEncoding = response.headers[HttpHeaders.contentEncodingHeader];
     return contentEncoding != null && contentEncoding.isNotEmpty
-        ? parseContentEncoding(contentEncoding[0])
+        ? obtainCompressionType(contentEncoding[0])
         : CompressionType.notCompressed;
   }
 

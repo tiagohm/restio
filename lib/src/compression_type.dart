@@ -1,6 +1,6 @@
 enum CompressionType { notCompressed, gzip, deflate, brotli }
 
-CompressionType parseContentEncoding(String contentEncoding) {
+CompressionType obtainCompressionType(String contentEncoding) {
   if (contentEncoding != null && contentEncoding.isNotEmpty) {
     switch (contentEncoding) {
       case 'gzip':

@@ -276,6 +276,6 @@ class Http2Transport implements Transport {
 
   static CompressionType _obtainCompressType(Headers headers) {
     final contentEncoding = headers.first(HttpHeaders.contentEncodingHeader);
-    return parseContentEncoding(contentEncoding);
+    return obtainCompressionType(contentEncoding);
   }
 }

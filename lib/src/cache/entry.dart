@@ -74,8 +74,9 @@ class Entry {
         ? (int.tryParse(contentLengthString) ?? -1)
         : -1;
 
-    final compressionType = parseContentEncoding(
-        responseHeaders.first(HttpHeaders.contentEncodingHeader));
+    final compressionType = obtainCompressionType(
+      responseHeaders.first(HttpHeaders.contentEncodingHeader),
+    );
 
     final cacheRequest = Request(
       uri: Uri.parse(url),

@@ -320,7 +320,7 @@ void main() {
 
     final call = client.newCall(request);
     final response = await call.execute();
-    final data = await response.body.data.compressed();
+    final data = await response.body.data.raw();
 
     expect(data.length, 50);
   });
@@ -438,7 +438,7 @@ void main() {
 
     final call = progressClient.newCall(request);
     final response = await call.execute();
-    final data = await response.body.data.compressed();
+    final data = await response.body.data.raw();
 
     expect(data.length, 36001);
     expect(isDone, true);

@@ -9,7 +9,7 @@ abstract class ResponseBodyData {
 
   Stream<List<int>> get stream;
 
-  Future<List<int>> compressed();
+  Future<List<int>> raw();
 
   Future<List<int>> decompressed();
 

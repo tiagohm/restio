@@ -145,7 +145,7 @@ class Cache {
     } catch (e, stackTrace) {
       print(e);
       print(stackTrace);
-      await _abortQuietly(editor);
+      _abortQuietly(editor);
       return null;
     }
   }
@@ -172,7 +172,7 @@ class Cache {
     } catch (e, stackTrace) {
       print(e);
       print(stackTrace);
-      await _abortQuietly(editor);
+      _abortQuietly(editor);
     } finally {
       sink.close();
     }
@@ -182,7 +182,7 @@ class Cache {
     return store.remove(_getKey(request));
   }
 
-  Future<void> _abortQuietly(Editor editor) async {
+  void _abortQuietly(Editor editor) {
     try {
       editor?.abort();
     } catch (e) {
