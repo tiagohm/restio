@@ -109,7 +109,7 @@ class CacheStrategyFactory {
     }
 
     var maxStaleMillis = 0;
-    if (!responseCaching.mustRevalidate && requestCaching.hasMaxState) {
+    if (!responseCaching.mustRevalidate && requestCaching.hasMaxStale) {
       maxStaleMillis = requestCaching.maxStale.inMilliseconds;
     }
 

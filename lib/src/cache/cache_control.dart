@@ -37,7 +37,7 @@ class CacheControl extends Equatable {
 
   static const forceCache = CacheControl(
     onlyIfCached: true,
-    maxStale: Duration(seconds: 0xFFFFFFFF),
+    maxStale: Duration(seconds: 9223372036854),
   );
 
   factory CacheControl.of(Map<String, String> params) {
@@ -57,9 +57,9 @@ class CacheControl extends Equatable {
       isPublic: params.containsKey('public'),
       mustRevalidate: params.containsKey('must-revalidate'),
       onlyIfCached: params.containsKey('only-if-cached'),
-      maxStale: params['max-stale'] != null
+      maxStale: params['max-stale'] != null && params['max-stale'].isNotEmpty
           ? Duration(seconds: int.parse(params['max-stale']))
-          : null,
+          : const Duration(seconds: 9223372036854),
       minFresh: params['min-fresh'] != null
           ? Duration(seconds: int.parse(params['min-fresh']))
           : null,
@@ -101,7 +101,7 @@ class CacheControl extends Equatable {
     return maxAge != null && !maxAge.isNegative;
   }
 
-  bool get hasMaxState {
+  bool get hasMaxStale {
     return maxStale != null && !maxStale.isNegative;
   }
 

@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:meta/meta.dart';
 import 'package:restio/src/cache/cache_control.dart';
 import 'package:restio/src/headers.dart';

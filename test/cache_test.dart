@@ -2,7 +2,6 @@ import 'dart:convert';
 @Timeout(Duration(hours: 1))
 import 'dart:io' as io;
 
-import 'package:meta/meta.dart';
 import 'package:restio/restio.dart';
 import 'package:restio/src/cache/cache_control.dart';
 import 'package:test/test.dart';

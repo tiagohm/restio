@@ -25,6 +25,20 @@ void main() {
     expect(cacheControl.maxAge, const Duration(seconds: 12345678));
   });
 
+  test('Parse max-stale', () {
+    var cacheControl = CacheControl.parse('max-stale=12345678');
+    expect(cacheControl.maxStale, const Duration(seconds: 12345678));
+    cacheControl = CacheControl.parse('max-stale="12345678\"');
+    expect(cacheControl.maxStale, const Duration(seconds: 12345678));
+  });
+
+  test('Parse min-fresh', () {
+    var cacheControl = CacheControl.parse('min-fresh=12345678');
+    expect(cacheControl.minFresh, const Duration(seconds: 12345678));
+    cacheControl = CacheControl.parse('min-fresh="12345678\"');
+    expect(cacheControl.minFresh, const Duration(seconds: 12345678));
+  });
+
   test('Parse public', () {
     final cacheControl = CacheControl.parse('public, max-age=60');
     expect(cacheControl.isPublic, true);
@@ -45,10 +59,12 @@ void main() {
 
   test('Parse All Parameters', () {
     final cacheControl = CacheControl.parse(
-        'private, public,max-age="12345678", must-revalidate,no-cache,no-transform, no-store, immutable, s-maxage=60');
+        'private, public,max-age="12345678", max-stale="12345678", min-fresh=12345678, must-revalidate,no-cache,no-transform, no-store, immutable, s-maxage=60');
     expect(cacheControl.isPrivate, true);
     expect(cacheControl.isPublic, true);
     expect(cacheControl.maxAge, const Duration(seconds: 12345678));
+    expect(cacheControl.maxStale, const Duration(seconds: 12345678));
+    expect(cacheControl.minFresh, const Duration(seconds: 12345678));
     expect(cacheControl.mustRevalidate, true);
     expect(cacheControl.noCache, true);
     expect(cacheControl.noStore, true);
@@ -75,5 +91,10 @@ void main() {
     expect(cacheControl.isPublic, true);
     expect(cacheControl.maxAge, const Duration(seconds: 12));
     expect(cacheControl.mustRevalidate, true);
+  });
+
+  test('Parse max-stale With No Value', () {
+    final cacheControl = CacheControl.parse('max-stale');
+    expect(cacheControl.maxStale, const Duration(seconds: 9223372036854));
   });
 }
