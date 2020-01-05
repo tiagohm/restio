@@ -127,7 +127,7 @@ class _ResponseBodyData extends ResponseBodyData {
       },
     );
 
-    return _decompressor.decompress().whenComplete(() => _decompressor = null);
+    return _decompressor.decompress();
   }
 
   @override

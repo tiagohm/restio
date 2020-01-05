@@ -36,6 +36,9 @@ class Response {
 
   final IpAddress dnsIp;
 
+  final Response networkResponse;
+  final Response cacheResponse;
+
   Response({
     this.request,
     this.message,
@@ -52,8 +55,12 @@ class Response {
     this.receivedAt,
     this.certificate,
     this.dnsIp,
+    CacheControl cacheControl,
+    this.networkResponse,
+    this.cacheResponse,
   })  : challenges = _challenges(code, headers),
-        cacheControl = CacheControl.parse(
+        cacheControl = cacheControl ??
+            CacheControl.parse(
                 headers?.first(HttpHeaders.cacheControlHeader)) ??
             const CacheControl();
 
@@ -130,6 +137,10 @@ class Response {
   }
 
   bool get hasBody {
+    if (body == null) {
+      return false;
+    }
+
     // HEAD requests never yield a body regardless of the response headers.
     if (originalRequest.method == HttpMethod.head) {
       return false;
@@ -167,6 +178,9 @@ class Response {
     DateTime receivedAt,
     X509Certificate certificate,
     IpAddress dnsIp,
+    CacheControl cacheControl,
+    Response networkResponse,
+    Response cacheResponse,
   }) {
     return Response(
       request: request ?? this.request,
@@ -184,6 +198,9 @@ class Response {
       receivedAt: receivedAt ?? this.receivedAt,
       certificate: certificate ?? this.certificate,
       dnsIp: dnsIp ?? this.dnsIp,
+      cacheControl: cacheControl ?? this.cacheControl,
+      networkResponse: networkResponse ?? this.networkResponse,
+      cacheResponse: cacheResponse ?? this.cacheResponse,
     );
   }
 
@@ -192,6 +209,6 @@ class Response {
     return 'Response { body: $body, code: $code, totalMilliseconds: $totalMilliseconds, spentMilliseconds: $spentMilliseconds, sentAt: $sentAt, receivedAt: $receivedAt,'
         ' headers: $headers, cookies: $cookies, message: $message, request: $request,'
         ' connectionInfo: $connectionInfo, redirects: $redirects, originalRequest: $originalRequest,'
-        ' dnsIp: $dnsIp }';
+        ' dnsIp: $dnsIp, cacheControl: $cacheControl, networkResponse: $networkResponse, cacheResponse: $cacheResponse }';
   }
 }

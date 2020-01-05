@@ -59,10 +59,23 @@ class CacheInterceptor implements Interceptor {
 
     // If we don't need the network, we're done.
     if (networkRequest == null) {
-      return cacheResponse.copyWith(body: _emptyBody());
+      return cacheResponse.copyWith(
+        cacheResponse: _stripBody(cacheResponse),
+      );
     }
 
-    final networkResponse = await chain.proceed(networkRequest);
+    Response networkResponse;
+
+    try {
+      networkResponse = await chain.proceed(networkRequest);
+    } catch (e) {
+      // If we're crashing on I/O or otherwise, don't leak the cache body.
+      if (networkResponse == null && cacheCandidate != null) {
+        cacheCandidate.body?.close();
+      }
+
+      rethrow;
+    }
 
     // If we have a cache response too, then we're doing a conditional get.
     if (cacheResponse != null) {
@@ -71,7 +84,11 @@ class CacheInterceptor implements Interceptor {
           headers: _combine(cacheResponse.headers, networkResponse.headers),
           sentAt: networkResponse.sentAt,
           receivedAt: networkResponse.receivedAt,
+          cacheResponse: _stripBody(cacheResponse),
+          networkResponse: _stripBody(networkResponse),
         );
+
+        networkResponse.body?.close();
 
         // Update the cache after combining headers but before stripping the
         // Content-Encoding header (as performed by initContentStream()).
@@ -80,14 +97,20 @@ class CacheInterceptor implements Interceptor {
         await cache.update(cacheResponse, response);
 
         return response;
+      } else {
+        cacheResponse.body?.close();
       }
     }
 
-    if (networkResponse.hasBody &&
-        networkResponse.isCacheable(networkRequest)) {
+    final response = networkResponse.copyWith(
+      cacheResponse: _stripBody(cacheResponse),
+      networkResponse: _stripBody(networkResponse),
+    );
+
+    if (response.hasBody && response.isCacheable(networkRequest)) {
       // Offer this request to the cache.
-      final cacheRequest = await cache.put(networkResponse);
-      return _cacheWritingResponse(cacheRequest, networkResponse);
+      final cacheRequest = await cache.put(response);
+      return _cacheWritingResponse(cacheRequest, response);
     }
 
     if (HttpMethod.invalidatesCache(networkRequest.method)) {
@@ -100,17 +123,20 @@ class CacheInterceptor implements Interceptor {
       }
     }
 
-    return networkResponse;
+    return response;
   }
 
-  ResponseBody _emptyBody() {
+  static ResponseBody _emptyBody() {
     return ResponseBody.bytes(
       const [],
       compressionType: CompressionType.notCompressed,
       contentLength: 0,
       contentType: MediaType.octetStream,
-      onProgress: client.onDownloadProgress,
     );
+  }
+
+  static Response _stripBody(Response response) {
+    return response?.copyWith(body: _emptyBody());
   }
 
   static Headers _combine(
