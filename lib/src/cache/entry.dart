@@ -182,9 +182,9 @@ class Entry {
   }
 
   factory Entry.fromResponse(Response response) {
-    final url = response.originalRequest.uriWithQueries.toString();
-    final varyHeaders = _varyHeaders(response.originalRequest, response);
-    final requestMethod = response.originalRequest.method;
+    final url = response.request.uriWithQueries.toString();
+    final varyHeaders = _varyHeaders(response.request, response);
+    final requestMethod = response.request.method;
     final code = response.code;
     final message = response.message;
     final responseHeaders = response.headers;

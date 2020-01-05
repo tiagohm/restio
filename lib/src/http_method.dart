@@ -9,6 +9,7 @@ class HttpMethod {
   static const patch = 'PATCH';
   static const options = 'OPTIONS';
   static const move = 'MOVE';
+  static const trace = 'TRACE';
 
   static bool invalidatesCache(String method) =>
       method == post ||

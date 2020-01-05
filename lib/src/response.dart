@@ -142,7 +142,7 @@ class Response {
     }
 
     // HEAD requests never yield a body regardless of the response headers.
-    if (originalRequest.method == HttpMethod.head) {
+    if (request.method == HttpMethod.head) {
       return false;
     }
 

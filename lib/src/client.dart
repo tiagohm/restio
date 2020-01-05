@@ -209,14 +209,12 @@ class DefaultClientAdapter extends ClientAdapter {
       // Interceptors.
       if (client.interceptors != null)
         ...client.interceptors,
-      // Cache.
-      CacheInterceptor(client),
       // Redirects.
       FollowUpInterceptor(client),
+      // Cache.
+      CacheInterceptor(client),
       // Cookies.
-      CookieInterceptor(
-        cookieJar: client.cookieJar,
-      ),
+      CookieInterceptor(client.cookieJar),
       // Network Interceptors.
       if (client.networkInterceptors != null)
         ...client.networkInterceptors,

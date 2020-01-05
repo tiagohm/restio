@@ -23,23 +23,18 @@ class FollowUpInterceptor implements Interceptor {
     final startTime = DateTime.now();
 
     while (true) {
-      final sentAt = DateTime.now();
       final response = await chain.proceed(request);
 
       final elapsedMilliseconds = response.receivedAt.millisecondsSinceEpoch -
           startTime.millisecondsSinceEpoch;
-      final spentMilliseconds = response.receivedAt.millisecondsSinceEpoch -
-          sentAt.millisecondsSinceEpoch;
-
+      
       final followUp = await _followUpRequest(response);
 
       if (followUp == null) {
         return response.copyWith(
           redirects: redirects,
           originalRequest: originalRequest,
-          spentMilliseconds: spentMilliseconds,
           totalMilliseconds: elapsedMilliseconds,
-          sentAt: sentAt,
         );
       }
 
@@ -57,9 +52,7 @@ class FollowUpInterceptor implements Interceptor {
         elapsedMilliseconds: elapsedMilliseconds,
         response: response.copyWith(
           originalRequest: originalRequest,
-          spentMilliseconds: spentMilliseconds,
-          totalMilliseconds: spentMilliseconds,
-          sentAt: sentAt,
+          totalMilliseconds: response.spentMilliseconds,
         ),
       ));
     }

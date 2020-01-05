@@ -226,7 +226,6 @@ class Http2Transport implements Transport {
           headers: headers.build(),
           // message: response.reasonPhrase,
           // connectionInfo: ,
-          receivedAt: DateTime.now(),
           // certificate: response.certificate,
         );
 

@@ -42,6 +42,11 @@ class CacheInterceptor implements Interceptor {
 
     cache.trackResponse(strategy);
 
+    if (cacheCandidate != null && cacheResponse == null) {
+      // The cache candidate wasn't applicable. Close it.
+      cacheCandidate.body?.close();
+    }
+
     // If we're forbidden from using the network and the cache is insufficient, fail.
     if (networkRequest == null && cacheResponse == null) {
       return Response(
@@ -84,6 +89,8 @@ class CacheInterceptor implements Interceptor {
           headers: _combine(cacheResponse.headers, networkResponse.headers),
           sentAt: networkResponse.sentAt,
           receivedAt: networkResponse.receivedAt,
+          spentMilliseconds: networkResponse.spentMilliseconds,
+          totalMilliseconds: networkResponse.totalMilliseconds,
           cacheResponse: _stripBody(cacheResponse),
           networkResponse: _stripBody(networkResponse),
         );

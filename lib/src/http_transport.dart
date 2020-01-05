@@ -175,18 +175,12 @@ class HttpTransport implements Transport {
       }
 
       // Resposta.
-      DateTime receivedAt;
       HttpClientResponse response;
 
       if (client.receiveTimeout != null && !client.receiveTimeout.isNegative) {
-        response = await clientRequest
-            .close()
-            .timeout(client.receiveTimeout)
-            .whenComplete(() => receivedAt = DateTime.now());
+        response = await clientRequest.close().timeout(client.receiveTimeout);
       } else {
-        response = await clientRequest
-            .close()
-            .whenComplete(() => receivedAt = DateTime.now());
+        response = await clientRequest.close();
       }
 
       // Monta a resposta.
@@ -195,7 +189,6 @@ class HttpTransport implements Transport {
         headers: _obtainHeadersfromHttpHeaders(response.headers),
         message: response.reasonPhrase,
         connectionInfo: response.connectionInfo,
-        receivedAt: receivedAt,
         certificate: response.certificate,
       );
 

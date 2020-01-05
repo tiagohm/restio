@@ -180,7 +180,7 @@ class CacheStrategyFactory {
 
       return delta > 0 ? delta : 0;
     } else if (_lastModified != null &&
-        !cacheResponse.originalRequest.uriWithQueries.hasQuery) {
+        !cacheResponse.request.uriWithQueries.hasQuery) {
       // As recommended by the HTTP RFC and implemented in Firefox, the
       // max age of a document should be defaulted to 10% of the
       // document's age at the time it was served. Default expiration

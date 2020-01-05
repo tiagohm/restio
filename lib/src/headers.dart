@@ -131,16 +131,20 @@ class Headers extends Equatable {
   }
 
   List<String> vary() {
-    final value = first(HttpHeaders.varyHeader);
+    final values = all(HttpHeaders.varyHeader);
+    final res = <String>[];
 
-    if (value != null) {
-      final fields = value.split(',');
-      return [
-        for (final field in fields) field.trim(),
-      ];
+    for (final value in values) {
+      if (value != null) {
+        final fields = value.split(',');
+
+        for (final field in fields) {
+          res.add(field.trim().toLowerCase());
+        }
+      }
     }
 
-    return const [];
+    return res;
   }
 
   bool get hasVaryAll => vary().contains('*');

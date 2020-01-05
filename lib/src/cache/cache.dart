@@ -49,7 +49,7 @@ class Cache {
   }
 
   void trackConditionalCacheHit() {
-    _networkCount++;
+    _hitCount++;
   }
 
   void trackResponse(CacheStrategy cacheStrategy) {
@@ -104,11 +104,11 @@ class Cache {
   }
 
   Future<CacheRequest> put(Response response) async {
-    final method = response.originalRequest.method;
+    final method = response.request.method;
 
     if (HttpMethod.invalidatesCache(method)) {
       try {
-        await remove(response.originalRequest);
+        await remove(response.request);
       } catch (e, stackTrace) {
         print(e);
         print(stackTrace);
@@ -133,7 +133,7 @@ class Cache {
     Editor editor;
 
     try {
-      editor = await store.edit(_getKey(response.originalRequest));
+      editor = await store.edit(_getKey(response.request));
 
       if (editor == null) {
         return null;

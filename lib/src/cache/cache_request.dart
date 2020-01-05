@@ -10,8 +10,11 @@ class CacheRequest {
   final List<int> metaData;
 
   EventSink<List<int>> body() {
-    final bodySink = editor.newSink(Cache.entryBody);
     final metaDataSink = editor.newSink(Cache.entryMetaData);
+    metaDataSink.add(metaData);
+    metaDataSink.close();
+
+    final bodySink = editor.newSink(Cache.entryBody);
     final streamController = StreamController<List<int>>();
 
     streamController.stream.listen(
@@ -20,13 +23,10 @@ class CacheRequest {
         bodySink.addError(error, stackTrace);
         editor.abort();
         bodySink.close();
-        metaDataSink.close();
       },
       onDone: () {
-        metaDataSink.add(metaData);
         editor.commit();
         bodySink.close();
-        metaDataSink.close();
       },
       cancelOnError: true,
     );
