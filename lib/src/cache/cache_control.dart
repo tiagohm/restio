@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
+import 'package:restio/src/headers.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 class CacheControl extends Equatable {
@@ -28,19 +31,19 @@ class CacheControl extends Equatable {
     this.minFresh,
   });
 
-  static const disabled = CacheControl(noCache: true, noStore: true);
+  static const empty = CacheControl();
+
   static const forceNetwork = CacheControl(noCache: true);
-  static const forceCache =
-      CacheControl(onlyIfCached: true, maxStale: Duration(seconds: 0xFFFFFFFF));
 
-  factory CacheControl.parse(String text) {
-    text = text?.trim();
+  static const forceCache = CacheControl(
+    onlyIfCached: true,
+    maxStale: Duration(seconds: 0xFFFFFFFF),
+  );
 
-    if (text == null || text.isEmpty) {
+  factory CacheControl.of(Map<String, String> params) {
+    if (params == null) {
       return null;
     }
-
-    final params = _parseHeader(text);
 
     return CacheControl(
       noStore: params.containsKey('no-store'),
@@ -61,6 +64,37 @@ class CacheControl extends Equatable {
           ? Duration(seconds: int.parse(params['min-fresh']))
           : null,
     );
+  }
+
+  factory CacheControl.parse(String text) {
+    text = text?.trim();
+
+    if (text == null || text.isEmpty) {
+      return null;
+    }
+
+    final params = _parseHeader(text);
+    return CacheControl.of(params);
+  }
+
+  factory CacheControl.from(Headers headers) {
+    if (headers == null) {
+      return null;
+    }
+
+    final params = <String, String>{};
+    final pragma = headers.all(HttpHeaders.pragmaHeader);
+    final cacheControl = headers.all(HttpHeaders.cacheControlHeader);
+
+    for (final item in pragma) {
+      params.addAll(_parseHeader(item));
+    }
+
+    for (final item in cacheControl) {
+      params.addAll(_parseHeader(item));
+    }
+
+    return CacheControl.of(params);
   }
 
   bool get hasMaxAge {
@@ -87,7 +121,10 @@ class CacheControl extends Equatable {
     return params;
   }
 
-  static void _scanParam(StringScanner scanner, Map<String, String> params) {
+  static void _scanParam(
+    StringScanner scanner,
+    Map<String, String> params,
+  ) {
     String name, value;
 
     // ex.: no-cache

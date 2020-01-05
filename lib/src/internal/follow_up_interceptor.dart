@@ -27,7 +27,7 @@ class FollowUpInterceptor implements Interceptor {
 
       final elapsedMilliseconds = response.receivedAt.millisecondsSinceEpoch -
           startTime.millisecondsSinceEpoch;
-      
+
       final followUp = await _followUpRequest(response);
 
       if (followUp == null) {

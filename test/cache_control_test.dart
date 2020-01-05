@@ -1,4 +1,5 @@
 import 'package:restio/src/cache/cache_control.dart';
+import 'package:restio/src/headers.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -42,7 +43,7 @@ void main() {
     expect(cacheControl.noTransform, true);
   });
 
-  test('Parse all parameters', () {
+  test('Parse All Parameters', () {
     final cacheControl = CacheControl.parse(
         'private, public,max-age="12345678", must-revalidate,no-cache,no-transform, no-store, immutable, s-maxage=60');
     expect(cacheControl.isPrivate, true);
@@ -55,8 +56,24 @@ void main() {
     expect(cacheControl.noTransform, true);
   });
 
-  test('Parse empty', () {
-    final cacheControl = CacheControl.parse('');
-    expect(cacheControl, null);
+  test('Parse Empty as Null', () {
+    expect(CacheControl.parse(''), null);
+    expect(CacheControl.of(null), null);
+    expect(CacheControl.from(null), null);
+  });
+
+  test('Parse Headers', () {
+    final cacheControl = CacheControl.from(
+      HeadersBuilder()
+          .add('cache-control', 'max-age=12')
+          .add('pragma', 'must-revalidate')
+          .add('pragma', 'public')
+          .build(),
+    );
+
+    expect(cacheControl.isPrivate, false);
+    expect(cacheControl.isPublic, true);
+    expect(cacheControl.maxAge, const Duration(seconds: 12));
+    expect(cacheControl.mustRevalidate, true);
   });
 }

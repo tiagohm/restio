@@ -169,7 +169,7 @@ class CacheStrategyFactory {
 
   int _computeFreshnessLifetime() {
     final responseCaching = cacheResponse.cacheControl;
-    
+
     if (responseCaching.hasMaxAge) {
       return responseCaching.maxAge.inMilliseconds;
     } else if (_expires != null) {
