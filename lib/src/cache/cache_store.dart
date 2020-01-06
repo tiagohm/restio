@@ -12,4 +12,8 @@ abstract class CacheStore {
   ]);
 
   Future<bool> remove(String key);
+
+  Future<bool> clear();
+
+  Future<int> size();
 }

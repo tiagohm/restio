@@ -23,4 +23,16 @@ class DiskCacheStore implements CacheStore {
     // TODO:
     throw UnimplementedError();
   }
+
+  @override
+  Future<bool> clear() {
+    // TODO:
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<int> size() {
+    // TODO:
+    throw UnimplementedError();
+  }
 }

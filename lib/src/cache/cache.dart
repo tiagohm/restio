@@ -182,6 +182,14 @@ class Cache {
     return store.remove(_getKey(request));
   }
 
+  Future<bool> clear() {
+    return store.clear();
+  }
+
+  Future<int> size() {
+    return store.size();
+  }
+
   void _abortQuietly(Editor editor) {
     try {
       editor?.abort();

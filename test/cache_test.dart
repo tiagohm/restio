@@ -1922,8 +1922,6 @@ void main() {
     ));
   });
 
-  // TODO: Continuar daaqui em diante: conditionalHitUpdatesCache.
-
   test('Conditional Hit Updates Cache', () async {
     final cache = Cache(store: MemoryCacheStore());
     final cacheClient = client.copyWith(
@@ -1977,8 +1975,200 @@ void main() {
     expect(await response.body.data.string(), 'A');
     expect(response.headers.first('allow'), 'GET, HEAD');
     expect(response.receivedAt.millisecondsSinceEpoch, updatedTimestamp);
+  });
 
-    expect(cache.requestCount, 2);
+  test('Response Source Header Cached', () async {
+    final cache = Cache(store: MemoryCacheStore());
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockResponseInterceptor([
+          MockResponse(
+            body: 'A',
+            headers: {
+              'date': obtainDate(const Duration(minutes: 0)),
+              'cache-control': 'max-age=30',
+            },
+          ),
+        ]),
+      ],
+    );
+
+    var request = Request.get(url);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(await response.body.data.string(), 'A');
+
+    request =
+        Request.get(url, cacheControl: const CacheControl(onlyIfCached: true));
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(await response.body.data.string(), 'A');
+  });
+
+  test('Response Source Header Conditional Cache Fetched', () async {
+    final cache = Cache(store: MemoryCacheStore());
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockResponseInterceptor([
+          MockResponse(
+            body: 'A',
+            headers: {
+              'date': obtainDate(const Duration(minutes: -31)),
+              'cache-control': 'max-age=30',
+            },
+          ),
+          MockResponse(
+            body: 'B',
+            headers: {
+              'date': obtainDate(const Duration(minutes: 0)),
+              'cache-control': 'max-age=30',
+            },
+          ),
+        ]),
+      ],
+    );
+
+    final request = Request.get(url);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(await response.body.data.string(), 'A');
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(await response.body.data.string(), 'B');
+  });
+
+  test('Response Source Header Conditional Cache Not Fetched', () async {
+    final cache = Cache(store: MemoryCacheStore());
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockResponseInterceptor([
+          MockResponse(
+            body: 'A',
+            headers: {
+              'date': obtainDate(const Duration(minutes: 0)),
+              'cache-control': 'max-age=0',
+            },
+          ),
+          MockResponse(code: 304),
+        ]),
+      ],
+    );
+
+    final request = Request.get(url);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(await response.body.data.string(), 'A');
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(await response.body.data.string(), 'A');
+  });
+
+  test('Response Source Header Fetched', () async {
+    final cache = Cache(store: MemoryCacheStore());
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockResponseInterceptor([
+          MockResponse(body: 'A'),
+        ]),
+      ],
+    );
+
+    final request = Request.get(url);
+    final call = cacheClient.newCall(request);
+    final response = await call.execute();
+
+    expect(await response.body.data.string(), 'A');
+  });
+
+  test('Clear', () async {
+    final cache = Cache(store: MemoryCacheStore());
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockResponseInterceptor([
+          MockResponse(
+            body: 'A',
+            headers: {
+              'cache-control': 'max-age=60',
+            },
+          ),
+          MockResponse(body: 'B'),
+        ]),
+      ],
+    );
+
+    final request = Request.get(url);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(await cache.size(), isNonZero);
+    expect(await response.body.data.string(), 'A');
+
+    cache.clear();
+    expect(await cache.size(), 0);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(await cache.size(), isNonZero);
+    expect(await response.body.data.string(), 'B');
+  });
+
+  test('Combined Cache Headers Can Be Non Ascii', () async {
+    final cache = Cache(store: MemoryCacheStore());
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockResponseInterceptor([
+          MockResponse(
+            body: 'abcd',
+            headers: {
+              'last-modified': obtainDate(const Duration(hours: -1)),
+              'cache-control': 'max-age=0',
+              'Alpha': 'α',
+              'β': 'Beta',
+            },
+          ),
+          MockResponse(
+            code: io.HttpStatus.notModified,
+            headers: {
+              'Transfer-Encoding': 'none',
+              'Gamma': 'Γ',
+              'Δ': 'Delta',
+            },
+          ),
+        ]),
+      ],
+    );
+
+    final request = Request.get(url);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(response.headers.first('Alpha'), 'α');
+    expect(response.headers.first('β'), 'Beta');
+    expect(await response.body.data.string(), 'abcd');
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(response.headers.first('Alpha'), 'α');
+    expect(response.headers.first('β'), 'Beta');
+    expect(response.headers.first('Gamma'), 'Γ');
+    expect(response.headers.first('Δ'), 'Delta');
+    expect(await response.body.data.string(), 'abcd');
   });
 
   test('Immutable is Cached', () async {

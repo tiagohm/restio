@@ -55,6 +55,25 @@ class MemoryCacheStore implements CacheStore {
   Future<bool> remove(String key) async {
     return _cache.remove(key) != null;
   }
+
+  @override
+  Future<bool> clear() async {
+    _cache.clear();
+    return true;
+  }
+
+  @override
+  Future<int> size() async {
+    var total = 0;
+
+    _cache.forEach((key, source) {
+      source.forEach((index, data) {
+        total += data.length;
+      });
+    });
+
+    return total;
+  }
 }
 
 class _Editor implements Editor {
