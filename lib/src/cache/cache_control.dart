@@ -57,9 +57,13 @@ class CacheControl extends Equatable {
       isPublic: params.containsKey('public'),
       mustRevalidate: params.containsKey('must-revalidate'),
       onlyIfCached: params.containsKey('only-if-cached'),
-      maxStale: params['max-stale'] != null && params['max-stale'].isNotEmpty
+      maxStale: params.containsKey('max-stale') &&
+              params['max-stale'] != null &&
+              params['max-stale'].isNotEmpty
           ? Duration(seconds: int.parse(params['max-stale']))
-          : const Duration(seconds: 9223372036854),
+          : params.containsKey('max-stale')
+              ? const Duration(seconds: 9223372036854)
+              : null,
       minFresh: params['min-fresh'] != null
           ? Duration(seconds: int.parse(params['min-fresh']))
           : null,
