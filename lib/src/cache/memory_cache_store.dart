@@ -88,9 +88,7 @@ class _Editor implements Editor {
       throw StateError('Editor is closed');
     }
 
-    if (!cache.containsKey(index)) {
-      cache[index] = [];
-    }
+    cache[index] = [];
 
     return _SourceSink(cache[index]);
   }
