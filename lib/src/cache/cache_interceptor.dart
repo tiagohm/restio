@@ -19,7 +19,6 @@ class CacheInterceptor implements Interceptor {
     return await _execute(chain) ?? chain.proceed(chain.request);
   }
 
-  // https://medium.com/@I_Love_Coding/how-does-okhttp-cache-works-851d37dd29cd
   Future<Response> _execute(Chain chain) async {
     final cache = client.cache;
 
@@ -44,7 +43,7 @@ class CacheInterceptor implements Interceptor {
 
     if (cacheCandidate != null && cacheResponse == null) {
       // The cache candidate wasn't applicable. Close it.
-      cacheCandidate.body?.close();
+      await cacheCandidate.body?.close();
     }
 
     // If we're forbidden from using the network and the cache is insufficient, fail.
@@ -76,7 +75,7 @@ class CacheInterceptor implements Interceptor {
     } catch (e) {
       // If we're crashing on I/O or otherwise, don't leak the cache body.
       if (networkResponse == null && cacheCandidate != null) {
-        cacheCandidate.body?.close();
+        await cacheCandidate.body?.close();
       }
 
       rethrow;
@@ -95,7 +94,7 @@ class CacheInterceptor implements Interceptor {
           networkResponse: _stripBody(networkResponse),
         );
 
-        networkResponse.body?.close();
+        await networkResponse.body?.close();
 
         // Update the cache after combining headers but before stripping the
         // Content-Encoding header (as performed by initContentStream()).
@@ -105,7 +104,7 @@ class CacheInterceptor implements Interceptor {
 
         return response;
       } else {
-        cacheResponse.body?.close();
+        await cacheResponse.body?.close();
       }
     }
 

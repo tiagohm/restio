@@ -23,12 +23,12 @@ class Cache {
   final CacheStore store;
   final KeyExtractor _keyExtractor;
 
-  int _networkCount = 0;
-  int _hitCount = 0;
-  int _requestCount = 0;
+  var _networkCount = 0;
+  var _hitCount = 0;
+  var _requestCount = 0;
 
-  static const int entryMetaData = 0;
-  static const int entryBody = 1;
+  static const entryMetaData = 0;
+  static const entryBody = 1;
 
   Cache({
     @required this.store,

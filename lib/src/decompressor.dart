@@ -70,4 +70,8 @@ class Decompressor {
   void resume() {
     _subscription?.resume();
   }
+
+  void stop() {
+    _subscription?.cancel();
+  }
 }

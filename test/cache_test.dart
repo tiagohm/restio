@@ -2123,7 +2123,7 @@ Future<void> assertFullyCached(MockResponse response) async {
 }
 
 Future<void> testRequestMethod(
-  String requestMethod,
+  String method,
   bool expectCached,
 ) async {
   // 1. Seed the cache (potentially).
@@ -2149,8 +2149,8 @@ Future<void> testRequestMethod(
 
   final request = Request(
     uri: Uri.parse(url),
-    method: requestMethod,
-    body: requestBodyOrNull(requestMethod),
+    method: method,
+    body: requestBodyOrNull(method),
   );
 
   var call = cacheClient.newCall(request);
@@ -2171,7 +2171,7 @@ Future<void> testRequestMethod(
 }
 
 Future<void> testMethodInvalidates(
-  String requestMethod,
+  String method,
 ) async {
   // 1. Seed the cache.
   // 2. Invalidate it.
@@ -2203,8 +2203,8 @@ Future<void> testMethodInvalidates(
 
   request = Request(
     uri: Uri.parse(url),
-    method: requestMethod,
-    body: requestBodyOrNull(requestMethod),
+    method: method,
+    body: requestBodyOrNull(method),
   );
   call = cacheClient.newCall(request);
   response = await call.execute();
@@ -2267,8 +2267,8 @@ String obtainDate(Duration duration) {
   return io.HttpDate.format(DateTime.now().toUtc().add(duration));
 }
 
-RequestBody requestBodyOrNull(String requestMethod) {
-  return (requestMethod == 'POST' || requestMethod == 'PUT')
+RequestBody requestBodyOrNull(String method) {
+  return (method == 'POST' || method == 'PUT')
       ? RequestBody.string('foo', contentType: MediaType.text)
       : null;
 }

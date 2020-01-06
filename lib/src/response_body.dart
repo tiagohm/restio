@@ -73,8 +73,8 @@ class ResponseBody {
     return _ResponseBodyData(this);
   }
 
-  Future close() {
-    // TODO: Por causa do cache!
+  Future close() async {
+    // nada.
   }
 
   @override

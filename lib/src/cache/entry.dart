@@ -12,7 +12,7 @@ import 'package:restio/src/response.dart';
 
 class Entry {
   final String url;
-  final String requestMethod;
+  final String method;
   final Headers varyHeaders;
   final int code;
   final String message;
@@ -22,7 +22,7 @@ class Entry {
 
   Entry(
     this.url,
-    this.requestMethod,
+    this.method,
     this.varyHeaders,
     this.code,
     this.message,
@@ -38,7 +38,7 @@ class Entry {
     final builder = StringBuffer();
 
     builder.writeln(url);
-    builder.writeln(requestMethod);
+    builder.writeln(method);
     builder.writeln(varyHeaders.length);
 
     for (var i = 0; i < varyHeaders.length; i++) {
@@ -80,7 +80,7 @@ class Entry {
 
     final cacheRequest = Request(
       uri: Uri.parse(url),
-      method: requestMethod,
+      method: method,
       headers: varyHeaders,
     );
 
@@ -110,7 +110,7 @@ class Entry {
     Response response,
   ) {
     return url == request.uriWithQueries.toString() &&
-        requestMethod == request.method &&
+        method == request.method &&
         varyMatches(response, varyHeaders, request);
   }
 
@@ -131,7 +131,7 @@ class Entry {
 
     var cursor = 0;
     final url = lines[cursor++];
-    final requestMethod = lines[cursor++];
+    final method = lines[cursor++];
     final varyHeadersBuilder = HeadersBuilder();
     final varyRequestHeaderLineCount = int.tryParse(lines[cursor++]);
 
@@ -172,7 +172,7 @@ class Entry {
 
     return Entry(
       url,
-      requestMethod,
+      method,
       varyHeaders,
       code,
       message,
@@ -185,7 +185,7 @@ class Entry {
   factory Entry.fromResponse(Response response) {
     final url = response.request.uriWithQueries.toString();
     final varyHeaders = _varyHeaders(response.request, response);
-    final requestMethod = response.request.method;
+    final method = response.request.method;
     final code = response.code;
     final message = response.message;
     final responseHeaders = response.headers;
@@ -194,7 +194,7 @@ class Entry {
 
     return Entry(
       url,
-      requestMethod,
+      method,
       varyHeaders,
       code,
       message,
