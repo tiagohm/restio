@@ -132,7 +132,7 @@ class HttpTransport implements Transport {
         clientRequest.headers
             .set(HttpHeaders.userAgentHeader, client.userAgent);
       } else {
-        clientRequest.headers.set(HttpHeaders.userAgentHeader, 'Restio/0.1.0');
+        clientRequest.headers.set(HttpHeaders.userAgentHeader, 'Restio/0.3.5');
       }
 
       // Content-Type.

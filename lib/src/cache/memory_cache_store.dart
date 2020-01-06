@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:typed_data';
 
 import 'package:restio/src/cache/cache_store.dart';
 import 'package:restio/src/cache/editor.dart';

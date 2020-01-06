@@ -69,7 +69,7 @@ class Http2Transport implements Transport {
         headers
             .add(Header.ascii(HttpHeaders.userAgentHeader, client.userAgent));
       } else {
-        headers.add(Header.ascii(HttpHeaders.userAgentHeader, 'Restio/0.1.0'));
+        headers.add(Header.ascii(HttpHeaders.userAgentHeader, 'Restio/0.3.5'));
       }
 
       // Content-Type.

@@ -3,7 +3,7 @@ import 'package:test/test.dart';
 
 void main() {
   test('NameAt And ValueAt', () {
-    final builder = HeadersBuilder();
+    final builder = QueriesBuilder();
     builder.add('string', 'foo');
     builder.add('string', 'bar');
     builder.add('int', 5);
@@ -25,7 +25,7 @@ void main() {
   });
 
   test('Remove', () {
-    final builder = HeadersBuilder();
+    final builder = QueriesBuilder();
     builder.add('foo', 'bar');
     builder.add('foo', 'baz');
     builder.add('bar', 'foo');
@@ -42,7 +42,7 @@ void main() {
   });
 
   test('Remove At', () {
-    final builder = HeadersBuilder()
+    final builder = QueriesBuilder()
       ..add('foo', 'bar')
       ..add('foo', 'baz')
       ..add('bar', 'foo')
@@ -55,7 +55,7 @@ void main() {
   });
 
   test('Remove First', () {
-    final builder = HeadersBuilder()
+    final builder = QueriesBuilder()
       ..add('foo', 'bar')
       ..add('foo', 'baz')
       ..add('bar', 'foo')
@@ -68,7 +68,7 @@ void main() {
   });
 
   test('Remove Last', () {
-    final builder = HeadersBuilder()
+    final builder = QueriesBuilder()
       ..add('foo', 'bar')
       ..add('foo', 'baz')
       ..add('bar', 'foo')
@@ -80,16 +80,19 @@ void main() {
     expect(headers.value('foo'), 'bar');
   });
 
-  test('Headers is Not Case Sensitive', () {
-    final builder = HeadersBuilder();
+  test('Queries is Case Sensitive', () {
+    final builder = QueriesBuilder();
     builder.add('STRING', 'foo');
     builder.add('bool', true);
     builder.add('iNt', 5);
 
     final headers = builder.build();
 
-    expect(headers.first('string'), 'foo');
-    expect(headers.first('BOOL'), 'true');
-    expect(headers.first('InT'), '5');
+    expect(headers.first('string'), isNull);
+    expect(headers.first('BOOL'), isNull);
+    expect(headers.first('InT'), isNull);
+    expect(headers.first('STRING'), 'foo');
+    expect(headers.first('bool'), 'true');
+    expect(headers.first('iNt'), '5');
   });
 }

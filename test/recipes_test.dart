@@ -82,10 +82,7 @@ void main() {
   test('Posting Form Parameters', () async {
     final request = Request.post(
       'https://postman-echo.com/post',
-      body: FormBody.of({
-        'a': 'b',
-        'c': 'd',
-      }),
+      body: FormBodyBuilder().add('a', 'b').add('c', 'd').build(),
     );
 
     final data = await requestJson(client, request);
@@ -155,17 +152,16 @@ void main() {
   });
 
   test('User-Agent', () async {
-    final userAgentClient = client.copyWith(userAgent: 'Restio/0.1.0 (Dart)');
+    final userAgentClient = client.copyWith(userAgent: 'Restio (Dart)');
 
     var request = Request.get('https://postman-echo.com/get');
     var data = await requestJson(userAgentClient, request);
 
-    expect(data['headers']['user-agent'], 'Restio/0.1.0 (Dart)');
+    expect(data['headers']['user-agent'], 'Restio (Dart)');
 
     request = Request.get(
       'https://postman-echo.com/get',
-      headers: Headers.of(
-          <String, dynamic>{HttpHeaders.userAgentHeader: 'jrit549ytyh549'}),
+      headers: Headers.of({HttpHeaders.userAgentHeader: 'jrit549ytyh549'}),
     );
 
     data = await requestJson(client, request);
@@ -296,10 +292,8 @@ void main() {
   test('Queries', () async {
     final request = Request.get(
       'https://api.github.com/search/repositories?q=flutter&sort=stars',
-      queries: Queries.of(<String, dynamic>{
-        'order': 'desc',
-        'per_page': '2',
-      }),
+      queries:
+          QueriesBuilder().add('order', 'desc').add('per_page', '2').build(),
     );
 
     expect(request.queries.first('q'), 'flutter');
@@ -595,9 +589,7 @@ void main() {
 
     final request = Request.get(
       'https://http2.pro/api/v1',
-      headers: Headers.of({
-        HttpHeaders.acceptEncodingHeader: 'gzip',
-      }),
+      headers: Headers.of({HttpHeaders.acceptEncodingHeader: 'gzip'}),
     );
     final call = http2Client.newCall(request);
     final response = await call.execute();

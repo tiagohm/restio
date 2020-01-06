@@ -1924,6 +1924,63 @@ void main() {
 
   // TODO: Continuar daaqui em diante: conditionalHitUpdatesCache.
 
+  test('Conditional Hit Updates Cache', () async {
+    final cache = Cache(store: MemoryCacheStore());
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockResponseInterceptor([
+          MockResponse(
+            body: 'A',
+            headers: {
+              'last-modified': obtainDate(const Duration(seconds: 0)),
+              'cache-control': 'max-age=0',
+            },
+          ),
+          MockResponse(
+            code: io.HttpStatus.notModified,
+            headers: {
+              'allow': 'GET, HEAD',
+              'cache-control': 'max-age=30',
+            },
+          ),
+          MockResponse(body: 'B'),
+        ]),
+      ],
+    );
+
+    // A cache miss writes the cache.
+    final request = Request.get(url);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(await response.body.data.string(), 'A');
+    expect(response.headers.first('allow'), isNull);
+
+    // A conditional cache hit updates the cache.
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(response.code, 200);
+    expect(await response.body.data.string(), 'A');
+    expect(response.headers.first('allow'), 'GET, HEAD');
+    final updatedTimestamp = response.receivedAt.millisecondsSinceEpoch;
+
+    // A full cache hit reads the cache.
+    await Future.delayed(const Duration(milliseconds: 10));
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(await response.body.data.string(), 'A');
+    expect(response.headers.first('allow'), 'GET, HEAD');
+    expect(response.receivedAt.millisecondsSinceEpoch, updatedTimestamp);
+
+    expect(cache.requestCount, 2);
+  });
+
   test('Immutable is Cached', () async {
     final cache = Cache(store: MemoryCacheStore());
     final cacheClient = client.copyWith(

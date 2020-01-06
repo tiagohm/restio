@@ -47,5 +47,7 @@ export 'package:restio/src/response.dart';
 export 'package:restio/src/response_body.dart';
 export 'package:restio/src/response_body_data.dart';
 export 'package:restio/src/transport.dart';
+export 'package:restio/src/utils/string_pair_list.dart';
+export 'package:restio/src/utils/output_buffer.dart';
 
 // https://github.com/square/okhttp/tree/master/okhttp/src/main/java/okhttp3
