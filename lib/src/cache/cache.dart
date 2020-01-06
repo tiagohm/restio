@@ -29,6 +29,7 @@ class Cache {
 
   static const entryMetaData = 0;
   static const entryBody = 1;
+  static const entryCount = 2;
 
   Cache({
     @required this.store,

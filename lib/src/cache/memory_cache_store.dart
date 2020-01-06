@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:restio/src/cache/cache_store.dart';
 import 'package:restio/src/cache/editor.dart';
 import 'package:restio/src/cache/snapshot.dart';
+import 'package:restio/src/cache/source_sink.dart';
 
 class MemoryCacheStore implements CacheStore {
   final _cache = <String, Map<int, List<int>>>{};
@@ -88,6 +89,7 @@ class _Editor implements Editor {
       throw StateError('Editor is closed');
     }
 
+    cache.clear();
     _done = true;
   }
 
@@ -108,7 +110,7 @@ class _Editor implements Editor {
 
     cache[index] = [];
 
-    return _SourceSink(cache[index]);
+    return SourceSink(cache[index]);
   }
 
   @override
@@ -123,57 +125,4 @@ class _Editor implements Editor {
 
     return Stream.value(cache[index]);
   }
-}
-
-class _SourceSink extends StreamSink<List<int>> {
-  final List<int> data;
-  final _completer = Completer<List<int>>();
-  var _closed = false;
-
-  _SourceSink(this.data);
-
-  @override
-  void add(List<int> event) {
-    if (_closed) {
-      throw StateError('Sink is closed');
-    }
-
-    data.addAll(event);
-  }
-
-  @override
-  void addError(
-    Object error, [
-    StackTrace stackTrace,
-  ]) {
-    if (_closed) {
-      throw StateError('Sink is closed');
-    }
-
-    _closed = true;
-    _completer.completeError(error, stackTrace);
-  }
-
-  @override
-  Future addStream(Stream<List<int>> stream) {
-    if (_closed) {
-      throw StateError('Sink is closed');
-    }
-
-    return stream.listen(data.addAll).asFuture();
-  }
-
-  @override
-  Future close() async {
-    if (_closed) {
-      throw StateError('Sink is closed');
-    }
-
-    _closed = true;
-
-    _completer.complete(data);
-  }
-
-  @override
-  Future get done => _completer.future;
 }

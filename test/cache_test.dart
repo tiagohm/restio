@@ -2238,6 +2238,44 @@ void main() {
 
     expect(await response.body.data.string(), 'B');
   });
+
+  test('Response Caching With DiskCacheStore', () async {
+    final cache = Cache(store: DiskCacheStore.create(io.Directory('./.cache')));
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockResponseInterceptor(
+          [
+            MockResponse(
+              body: 'ABCDE',
+              headers: {
+                'last-modified': obtainDate(const Duration(hours: -1)),
+                'expires': obtainDate(const Duration(hours: 1)),
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final request = Request.get(url);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(await response.body.data.string(), 'ABCDE');
+    expect(cache.requestCount, 1);
+    expect(cache.networkCount, 1);
+    expect(cache.hitCount, 0);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+    expect(await response.body.data.string(), 'ABCDE');
+
+    expect(cache.requestCount, 2);
+    expect(cache.networkCount, 1);
+    expect(cache.hitCount, 1);
+    expect(response.cacheResponse, isNotNull);
+  });
 }
 
 Future<void> temporaryRedirectCachedWithCachingHeader(
