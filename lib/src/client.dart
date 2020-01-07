@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io' as io;
 
 import 'package:restio/restio.dart';
@@ -16,11 +17,13 @@ import 'package:restio/src/internal/cookie_interceptor.dart';
 import 'package:restio/src/internal/follow_up_interceptor.dart';
 import 'package:restio/src/listeners.dart';
 import 'package:restio/src/proxy.dart';
+import 'package:restio/src/push/sse/event.dart';
+import 'package:restio/src/push/sse/transformer.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
 import 'package:meta/meta.dart';
-import 'package:restio/src/web_socket/connection.dart';
-import 'package:restio/src/web_socket/web_socket.dart';
+import 'package:restio/src/push/sse/sse.dart';
+import 'package:restio/src/push/web_socket/web_socket.dart';
 
 class Restio {
   final Duration connectTimeout;
@@ -79,8 +82,17 @@ class Restio {
   WebSocket newWebSocket(
     Request request, {
     List<String> protocols,
+    Duration pingInterval,
   }) {
-    return _WebSocket(request, protocols);
+    return _WebSocket(
+      request,
+      protocols: protocols,
+      pingInterval: pingInterval,
+    );
+  }
+
+  Sse newSse(Request request) {
+    return _Sse(this, request);
   }
 
   Restio copyWith({
@@ -164,7 +176,7 @@ class _Call implements Call {
         _executed = true;
       }
     } else {
-      throw Exception('Call has already been executed');
+      throw const RestioException('Call has already been executed');
     }
   }
 
@@ -179,8 +191,13 @@ class _WebSocket implements WebSocket {
   @override
   final Request request;
   final List<String> protocols;
+  final Duration pingInterval;
 
-  _WebSocket(this.request, this.protocols);
+  _WebSocket(
+    this.request, {
+    this.protocols,
+    this.pingInterval,
+  });
 
   @override
   Future<WebSocketConnection> open() async {
@@ -191,10 +208,133 @@ class _WebSocket implements WebSocket {
       headers: request.headers?.toMap(),
     );
 
-    // ws.pingInterval = pingInterval;
+    ws.pingInterval = pingInterval;
 
-    return WebSocketConnection(ws);
+    return _WebSocketConnection(ws);
   }
+}
+
+class _WebSocketConnection implements WebSocketConnection {
+  final io.WebSocket _ws;
+  Stream _stream;
+
+  _WebSocketConnection(io.WebSocket ws) : _ws = ws;
+
+  @override
+  void addString(String text) => _ws.add(text);
+
+  @override
+  void addBytes(List<int> bytes) => _ws.add(bytes);
+
+  @override
+  Future addStream(Stream stream) => _ws.addStream(stream);
+
+  @override
+  void addUtf8Text(List<int> bytes) => _ws.addUtf8Text(bytes);
+
+  @override
+  Future close([
+    int code,
+    String reason,
+  ]) {
+    return _ws.close(code, reason);
+  }
+
+  @override
+  int get closeCode => _ws.closeCode;
+
+  @override
+  String get closeReason => _ws.closeReason;
+
+  @override
+  String get extensions => _ws.extensions;
+
+  @override
+  String get protocol => _ws.protocol;
+
+  @override
+  int get readyState => _ws.readyState;
+
+  @override
+  Future get done => _ws.done;
+
+  @override
+  Stream<dynamic> get stream => _stream ??= _ws.asBroadcastStream();
+}
+
+class _Sse implements Sse {
+  final Restio _client;
+  @override
+  final Request request;
+
+  final SseTransformer _transformer;
+
+  _Sse(
+    this._client,
+    this.request, [
+    Retry retry,
+  ]) : _transformer = SseTransformer(retry: retry);
+
+  @override
+  Future<SseConnection> open() async {
+    // ignore: close_sinks
+    StreamController<Event> incomingController;
+
+    incomingController = StreamController<Event>.broadcast(
+      onListen: () async {
+        final realRequest = request.copyWith(
+          method: 'GET', // ?
+          headers: request.headers
+              .toBuilder()
+              .set('accept', 'text/event-stream')
+              .build(),
+        );
+
+        final call = _client.newCall(realRequest);
+
+        try {
+          final response = await call.execute();
+
+          if (response.code == 200) {
+            response.body.data.stream.transform(_transformer).listen((event) {
+              if (incomingController.hasListener &&
+                  !incomingController.isClosed &&
+                  !incomingController.isPaused) {
+                print(event);
+                incomingController.add(event);
+              }
+            });
+
+            return;
+          }
+        } catch (e) {
+          // nada.
+        }
+
+        incomingController
+            .addError(RestioException('Failed to connect to ${request.uri}'));
+      },
+    );
+
+    return _SseConnection(incomingController);
+  }
+}
+
+class _SseConnection implements SseConnection {
+  final StreamController<Event> controller;
+
+  _SseConnection(this.controller);
+
+  @override
+  Stream<Event> get stream => controller.stream;
+
+  @override
+  Future close() {
+    return controller.close();
+  }
+
+  @override
+  bool get isClosed => controller.isClosed;
 }
 
 class DefaultClientAdapter extends ClientAdapter {
