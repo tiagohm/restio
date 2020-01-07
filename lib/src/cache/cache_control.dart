@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
+import 'package:restio/src/headers.dart';
 import 'package:string_scanner/string_scanner.dart';
 
 class CacheControl extends Equatable {
@@ -28,14 +31,19 @@ class CacheControl extends Equatable {
     this.minFresh,
   });
 
-  factory CacheControl.parse(String text) {
-    text = text?.trim();
+  static const empty = CacheControl();
 
-    if (text == null || text.isEmpty) {
+  static const forceNetwork = CacheControl(noCache: true);
+
+  static const forceCache = CacheControl(
+    onlyIfCached: true,
+    maxStale: Duration(seconds: 9223372036854),
+  );
+
+  factory CacheControl.of(Map<String, String> params) {
+    if (params == null) {
       return null;
     }
-
-    final params = _parseHeader(text);
 
     return CacheControl(
       noStore: params.containsKey('no-store'),
@@ -49,13 +57,60 @@ class CacheControl extends Equatable {
       isPublic: params.containsKey('public'),
       mustRevalidate: params.containsKey('must-revalidate'),
       onlyIfCached: params.containsKey('only-if-cached'),
-      maxStale: params['max-stale'] != null
+      maxStale: params.containsKey('max-stale') &&
+              params['max-stale'] != null &&
+              params['max-stale'].isNotEmpty
           ? Duration(seconds: int.parse(params['max-stale']))
-          : null,
+          : params.containsKey('max-stale')
+              ? const Duration(seconds: 9223372036854)
+              : null,
       minFresh: params['min-fresh'] != null
           ? Duration(seconds: int.parse(params['min-fresh']))
           : null,
     );
+  }
+
+  factory CacheControl.parse(String text) {
+    text = text?.trim();
+
+    if (text == null || text.isEmpty) {
+      return null;
+    }
+
+    final params = _parseHeader(text);
+    return CacheControl.of(params);
+  }
+
+  factory CacheControl.from(Headers headers) {
+    if (headers == null) {
+      return null;
+    }
+
+    final params = <String, String>{};
+    final pragma = headers.all(HttpHeaders.pragmaHeader);
+    final cacheControl = headers.all(HttpHeaders.cacheControlHeader);
+
+    for (final item in pragma) {
+      params.addAll(_parseHeader(item));
+    }
+
+    for (final item in cacheControl) {
+      params.addAll(_parseHeader(item));
+    }
+
+    return CacheControl.of(params);
+  }
+
+  bool get hasMaxAge {
+    return maxAge != null && !maxAge.isNegative;
+  }
+
+  bool get hasMaxStale {
+    return maxStale != null && !maxStale.isNegative;
+  }
+
+  bool get hasMinFresh {
+    return minFresh != null && !minFresh.isNegative;
   }
 
   static final _whitespace = RegExp(r'[ \t]*');
@@ -70,7 +125,10 @@ class CacheControl extends Equatable {
     return params;
   }
 
-  static void _scanParam(StringScanner scanner, Map<String, String> params) {
+  static void _scanParam(
+    StringScanner scanner,
+    Map<String, String> params,
+  ) {
     String name, value;
 
     // ex.: no-cache

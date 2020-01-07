@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
@@ -43,4 +44,19 @@ String generateNonce(int length) {
   }
 
   return nonce.toString();
+}
+
+Future<List<int>> readAsBytes(Stream<List<int>> source) {
+  final completer = Completer<List<int>>();
+
+  final sink = ByteConversionSink.withCallback(completer.complete);
+
+  source.listen(
+    sink.add,
+    onError: completer.completeError,
+    onDone: sink.close,
+    cancelOnError: true,
+  );
+
+  return completer.future;
 }

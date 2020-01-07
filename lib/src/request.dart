@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:restio/src/cache/cache_control.dart';
 import 'package:restio/src/headers.dart';
 import 'package:restio/src/queries.dart';
 import 'package:restio/src/request_body.dart';
@@ -11,6 +12,7 @@ class Request {
   final Queries queries;
   final RequestBody body;
   final Map<String, dynamic> extra;
+  final CacheControl cacheControl;
 
   Request({
     @required Uri uri,
@@ -19,22 +21,27 @@ class Request {
     Queries queries,
     this.body,
     this.extra,
+    CacheControl cacheControl,
   })  : assert(uri != null),
         uri = _obtainUriWithoutQueries(uri),
         uriWithQueries = _obtainUriWithQueries(uri, queries),
         headers = headers ?? HeadersBuilder().build(),
-        queries = _obtainQueries(uri, queries);
+        queries = _obtainQueries(uri, queries),
+        cacheControl =
+            cacheControl ?? CacheControl.from(headers) ?? const CacheControl();
 
   Request.get(
     String uri, {
     Headers headers,
     Queries queries,
     Map<String, dynamic> extra,
+    CacheControl cacheControl,
   }) : this(
           uri: Uri.parse(uri),
           headers: headers,
           queries: queries,
           extra: extra,
+          cacheControl: cacheControl,
         );
 
   Request.post(
@@ -72,12 +79,14 @@ class Request {
     Headers headers,
     Queries queries,
     Map<String, dynamic> extra,
+    CacheControl cacheControl,
   }) : this(
           method: 'HEAD',
           uri: Uri.parse(uri),
           headers: headers,
           queries: queries,
           extra: extra,
+          cacheControl: cacheControl,
         );
 
   Request.delete(
@@ -159,6 +168,7 @@ class Request {
     Queries queries,
     RequestBody body,
     Map<String, dynamic> extra,
+    CacheControl cacheControl,
   }) {
     return Request(
       uri: uri ?? this.uri,
@@ -167,11 +177,12 @@ class Request {
       queries: queries ?? this.queries,
       body: body ?? this.body,
       extra: extra ?? this.extra,
+      cacheControl: cacheControl ?? this.cacheControl,
     );
   }
 
   @override
   String toString() {
-    return 'Request { uri: $uri, method: $method, headers: $headers, queries: $queries, body: $body, extra: $extra }';
+    return 'Request { uri: $uri, method: $method, headers: $headers, queries: $queries, body: $body, extra: $extra, cacheControl: $cacheControl }';
   }
 }

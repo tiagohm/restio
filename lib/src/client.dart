@@ -2,6 +2,8 @@ import 'dart:io' as io;
 
 import 'package:restio/restio.dart';
 import 'package:restio/src/authenticator.dart';
+import 'package:restio/src/cache/cache.dart';
+import 'package:restio/src/cache/cache_interceptor.dart';
 import 'package:restio/src/call.dart';
 import 'package:restio/src/cancellable.dart';
 import 'package:restio/src/client_adapter.dart';
@@ -9,9 +11,9 @@ import 'package:restio/src/client_certificate_jar.dart';
 import 'package:restio/src/cookie_jar.dart';
 import 'package:restio/src/interceptor.dart';
 import 'package:restio/src/interceptor_chain.dart';
-import 'package:restio/src/interceptors/connect_interceptor.dart';
-import 'package:restio/src/interceptors/cookie_interceptor.dart';
-import 'package:restio/src/interceptors/follow_up_interceptor.dart';
+import 'package:restio/src/internal/connect_interceptor.dart';
+import 'package:restio/src/internal/cookie_interceptor.dart';
+import 'package:restio/src/internal/follow_up_interceptor.dart';
 import 'package:restio/src/listeners.dart';
 import 'package:restio/src/proxy.dart';
 import 'package:restio/src/request.dart';
@@ -35,12 +37,13 @@ class Restio {
   final String userAgent;
   final Proxy proxy;
   final bool withTrustedRoots;
-  final RequestProgressListener onUploadProgress;
-  final ResponseProgressListener onDownloadProgress;
-  final BadCertificateListener onBadCertificate;
+  final ProgressCallback onUploadProgress;
+  final ProgressCallback onDownloadProgress;
+  final BadCertificateCallback onBadCertificate;
   final bool isHttp2;
   final ClientCertificateJar clientCertificateJar;
   final Dns dns;
+  final Cache cache;
 
   Restio({
     this.connectTimeout,
@@ -63,6 +66,7 @@ class Restio {
     this.isHttp2 = false,
     this.clientCertificateJar,
     this.dns,
+    this.cache,
   })  : assert(interceptors != null),
         assert(maxRedirects != null),
         assert(followRedirects != null),
@@ -95,12 +99,13 @@ class Restio {
     Proxy proxy,
     io.SecurityContext securityContext,
     bool withTrustedRoots,
-    RequestProgressListener onUploadProgress,
-    ResponseProgressListener onDownloadProgress,
-    BadCertificateListener onBadCertificate,
+    ProgressCallback onUploadProgress,
+    ProgressCallback onDownloadProgress,
+    BadCertificateCallback onBadCertificate,
     bool isHttp2,
     ClientCertificateJar clientCertificateJar,
     Dns dns,
+    Cache cache,
   }) {
     return Restio(
       connectTimeout: connectTimeout ?? this.connectTimeout,
@@ -123,6 +128,7 @@ class Restio {
       isHttp2: isHttp2 ?? this.isHttp2,
       clientCertificateJar: clientCertificateJar ?? this.clientCertificateJar,
       dns: dns ?? this.dns,
+      cache: cache ?? this.cache,
     );
   }
 }
@@ -204,13 +210,11 @@ class DefaultClientAdapter extends ClientAdapter {
       if (client.interceptors != null)
         ...client.interceptors,
       // Redirects.
-      FollowUpInterceptor(
-        client: client,
-      ),
+      FollowUpInterceptor(client),
+      // Cache.
+      CacheInterceptor(client),
       // Cookies.
-      CookieInterceptor(
-        cookieJar: client.cookieJar,
-      ),
+      CookieInterceptor(client.cookieJar),
       // Network Interceptors.
       if (client.networkInterceptors != null)
         ...client.networkInterceptors,

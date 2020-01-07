@@ -6,19 +6,17 @@ import 'package:restio/src/interceptor.dart';
 import 'package:restio/src/response.dart';
 
 class CookieInterceptor implements Interceptor {
-  final CookieJar cookieJar;
+  final CookieJar jar;
 
-  CookieInterceptor({
-    this.cookieJar,
-  });
+  CookieInterceptor(this.jar);
 
   @override
   Future<Response> intercept(Chain chain) async {
     var request = chain.request;
 
     // TODO: O usuário pode ter seu próprio header de cookie. Devemos apenas concatená-lo?
-    if (cookieJar != null) {
-      final cookies = await cookieJar.load(request);
+    if (jar != null) {
+      final cookies = await jar.load(request);
 
       final cookieHeader = _cookieHeader(cookies);
 
@@ -52,7 +50,7 @@ class CookieInterceptor implements Interceptor {
         cookies: cookies,
       );
 
-      await cookieJar?.save(response, cookies);
+      await jar?.save(response, cookies);
     }
 
     return response;
