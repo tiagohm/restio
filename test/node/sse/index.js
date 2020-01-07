@@ -4,14 +4,14 @@ const SSE = require('express-sse')
 const sse = new SSE()
 const app = express()
 
-app.get('/sse', sse.init)
+app.get('/', sse.init)
 
-let counter = 0
+let data = 0
 
 const interval = setInterval(() => {
-    console.log(`Sending ${counter}...`)
+    console.log(`Sending data: ${data}...`)
 
-    sse.send(counter++, 'counter')
+    sse.send(data++, 'counter')
 }, 1000)
 
 app.listen(3000, () => console.log('SSE running at port 3000!'))

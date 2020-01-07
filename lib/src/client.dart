@@ -300,7 +300,6 @@ class _Sse implements Sse {
               if (incomingController.hasListener &&
                   !incomingController.isClosed &&
                   !incomingController.isPaused) {
-                print(event);
                 incomingController.add(event);
               }
             });

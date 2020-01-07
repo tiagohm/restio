@@ -18,7 +18,7 @@ void main() {
   });
 
   test('Stream', () async {
-    final request = Request.get('http://localhost:3000/sse');
+    final request = Request.get('http://localhost:3000');
     final sse = client.newSse(request);
     final conn = await sse.open();
 
@@ -40,8 +40,6 @@ void main() {
       } else {
         expect(int.parse(event.data), counter);
       }
-
-      print(event.data);
 
       counter++;
 
@@ -69,8 +67,6 @@ void main() {
       } else {
         expect(int.parse(event.data), counter);
       }
-
-      print(event.data);
 
       counter++;
 

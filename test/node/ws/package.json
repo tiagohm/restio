@@ -1,7 +1,7 @@
 {
-  "name": "sse",
+  "name": "ws",
   "version": "1.0.0",
-  "description": "SSE Server for Restio.",
+  "description": "WS Server for Restio.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
@@ -9,7 +9,6 @@
   "author": "tiagohm <tiago.henrique.cco@gmail.com>",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.17.1",
-    "express-sse": "^0.5.1"
+    "ws": "^7.2.1"
   }
 }

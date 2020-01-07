@@ -31,8 +31,6 @@ class SseTransformer implements StreamTransformer<List<int>, Event> {
             .transform(const Utf8Decoder())
             .transform(const LineSplitter())
             .listen((line) {
-          print(line);
-
           if (line.isEmpty) {
             String data;
 

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:restio/restio.dart';
 import 'package:restio/web_socket.dart';
 import 'package:test/test.dart';
@@ -5,6 +7,17 @@ import 'package:test/test.dart';
 final client = Restio();
 
 void main() {
+  Process process;
+
+  setUpAll(() async {
+    process = await Process.start('node', ['./test/node/ws/index.js']);
+    return Future.delayed(const Duration(seconds: 2));
+  });
+
+  tearDownAll(() {
+    process?.kill();
+  });
+
   test('Open connection', () async {
     final conn = await openConnection();
 
@@ -17,22 +30,29 @@ void main() {
   test('Close connection from client side', () async {
     final conn = await openConnection();
 
-    expect(conn.readyState, 1);
-
     await expectLater(conn.stream, emitsInOrder(<dynamic>[]));
 
-    await conn.close(3001, 'Reason 3001');
+    await conn.close(3000, 'Closed by client');
 
     await expectLater(conn.stream, emitsDone);
 
-    expect(conn.closeCode, 3001);
-    expect(conn.closeReason, 'Reason 3001');
+    expect(conn.closeCode, 3000);
+    expect(conn.closeReason, 'Closed by client');
 
     await conn.done;
   });
 
   test('Close connection from server side', () async {
-    // TODO:
+    final conn = await openConnection();
+
+    conn.addString('close');
+
+    await expectLater(conn.stream, emitsDone);
+
+    expect(conn.closeCode, 4000);
+    expect(conn.closeReason, 'Closed by server');
+
+    await conn.done;
   });
 
   test('String ASCII', () async {
@@ -47,9 +67,9 @@ void main() {
 
   test('String Unicode/Emoji', () async {
     final conn = await openConnection();
-    conn.addString('String 🎾');
+    conn.addString('Unicode 🎾');
 
-    await expectLater(conn.stream, emits('String 🎾'));
+    await expectLater(conn.stream, emits('Unicode 🎾'));
 
     await conn.close();
     await conn.done;
@@ -77,7 +97,7 @@ void main() {
 }
 
 Future<WebSocketConnection> openConnection() async {
-  final request = Request(uri: Uri.parse('wss://echo.websocket.org'));
+  final request = Request(uri: Uri.parse('ws://localhost:3001'));
   final ws = client.newWebSocket(request);
   final conn = await ws.open();
   return conn;
