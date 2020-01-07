@@ -143,7 +143,7 @@ class Entry {
 
     final statusLine = lines[cursor++];
     if (statusLine == null || statusLine.length < 3) {
-      throw Exception('Unexpected status line: $statusLine');
+      throw StateError('Unexpected status line: $statusLine');
     }
 
     final code = int.tryParse(statusLine.substring(0, 3));

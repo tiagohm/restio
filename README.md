@@ -308,6 +308,23 @@ conn.addString('🎾');
 await conn.close();
 ```
 
+#### SSE
+```dart
+final client = Restio();
+final request = Request(uri: Uri.parse('https://my.sse.com'));
+final sse = client.newSse(request);
+final conn = await sse.open();
+
+// Listen.
+conn.stream.listen((Event event) {
+  print(event.id);
+  print(event.event);
+  print(event.data);
+});
+
+await conn.close();
+```
+
 #### DNS
 
 Thanks to [dart-protocol](https://github.com/dart-protocol) for this great [dns](https://github.com/dart-protocol/dns) library!
