@@ -22,4 +22,8 @@ class Snapshot {
   int size() {
     return _lengths.isEmpty ? 0 : _lengths.reduce((a, b) => a + b);
   }
+
+  void close() {
+    // nada.
+  }
 }

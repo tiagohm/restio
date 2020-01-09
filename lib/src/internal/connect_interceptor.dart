@@ -46,6 +46,7 @@ class ConnectInterceptor implements Interceptor {
       throw cancellable.exception;
     }
 
+    // ignore: unawaited_futures
     cancellable?.whenCancel?.catchError((e, stackTrace) async {
       try {
         await transport.cancel();

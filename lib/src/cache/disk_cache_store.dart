@@ -1,51 +1,17 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:path/path.dart' as path;
-import 'package:restio/src/cache/cache.dart';
+import 'package:path/path.dart';
 import 'package:restio/src/cache/cache_store.dart';
 import 'package:restio/src/cache/editor.dart';
 import 'package:restio/src/cache/snapshot.dart';
-import 'package:restio/src/cache/source_sink.dart';
 
 class DiskCacheStore implements CacheStore {
   final Directory directory;
-  final int valueCount;
-  final _cache = <String, Map<int, List<int>>>{};
+  final _cache = <String, Map<int, File>>{};
+  var _initialized = false;
 
-  DiskCacheStore._(
-    this.directory,
-    this.valueCount,
-  ) : assert(directory != null) {
-    _populateCache();
-  }
-
-  factory DiskCacheStore.create(Directory directory) {
-    return DiskCacheStore._(directory, Cache.entryCount);
-  }
-
-  void _populateCache() {
-    for (final item in directory.listSync()) {
-      if (item is File) {
-        final filename = path.basename(item.path);
-        final nameAndExtension = filename.split('.');
-
-        if (nameAndExtension?.length == 2) {
-          final key = nameAndExtension[0];
-          final index = int.tryParse(nameAndExtension[1]);
-
-          if (index != null) {
-            try {
-              final bytes = item.readAsBytesSync();
-              _cache.putIfAbsent(key, () => <int, List<int>>{})[index] = bytes;
-            } catch (e) {
-              // nada.
-            }
-          }
-        }
-      }
-    }
-  }
+  DiskCacheStore(this.directory);
 
   @override
   Future<Editor> edit(
@@ -53,14 +19,42 @@ class DiskCacheStore implements CacheStore {
     int expectedSequenceNumber,
   ]) async {
     if (!_cache.containsKey(key)) {
-      _cache[key] = <int, List<int>>{};
+      _cache[key] = <int, File>{};
     }
 
-    return _Editor(_cache[key], key, directory, valueCount);
+    return _Editor(this, key, _cache[key]);
+  }
+
+  void _initialize(String key) {
+    if (_initialized) {
+      return;
+    }
+
+    final f0 = File(join(directory.path, '$key.0'));
+    final f1 = File(join(directory.path, '$key.1'));
+
+    // Remove ambos, se um dos arquivos não existir.
+    if (!f0.existsSync() || !f1.existsSync()) {
+      if (f0.existsSync()) {
+        f0.deleteSync();
+      }
+
+      if (f1.existsSync()) {
+        f1.deleteSync();
+      }
+    } else {
+      _cache[key] = <int, File>{};
+      _cache[key][0] = f0;
+      _cache[key][1] = f1;
+    }
+
+    _initialized = true;
   }
 
   @override
   Future<Snapshot> get(String key) async {
+    _initialize(key);
+
     if (!_cache.containsKey(key)) {
       return null;
     }
@@ -74,40 +68,46 @@ class DiskCacheStore implements CacheStore {
   }
 
   List<Stream<List<int>>> _sources(String key) {
+    _initialize(key);
+
     final data = _cache[key];
 
     return [
-      Stream.value(data[0] ?? const []),
-      Stream.value(data[1] ?? const []),
+      data[0].openRead(),
+      data[1].openRead(),
     ];
   }
 
   List<int> _lengths(String key) {
+    _initialize(key);
+
     final data = _cache[key];
 
     return [
-      data[0]?.length ?? 0,
-      data[1]?.length ?? 1,
+      data[0].lengthSync(),
+      data[1].lengthSync(),
     ];
   }
 
   @override
   Future<bool> remove(String key) async {
-    return _cache.remove(key) != null;
+    if (_cache[key][0].existsSync()) {
+      _cache[key][0].deleteSync();
+    }
+
+    if (_cache[key][1].existsSync()) {
+      _cache[key][1].deleteSync();
+    }
+
+    _cache.remove(key);
+
+    return true;
   }
 
   @override
   Future<bool> clear() async {
+    directory.listSync().forEach((item) => item.deleteSync());
     _cache.clear();
-
-    for (final item in directory.listSync()) {
-      try {
-        item.deleteSync();
-      } catch (e) {
-        return false;
-      }
-    }
-
     return true;
   }
 
@@ -116,8 +116,8 @@ class DiskCacheStore implements CacheStore {
     var total = 0;
 
     _cache.forEach((key, source) {
-      source.forEach((index, data) {
-        total += data.length;
+      source.forEach((index, file) {
+        total += file.lengthSync();
       });
     });
 
@@ -126,41 +126,28 @@ class DiskCacheStore implements CacheStore {
 }
 
 class _Editor implements Editor {
-  String key;
-  final List<File> files;
-  final Map<int, List<int>> cache;
+  final DiskCacheStore store;
+  final String key;
+  final Map<int, File> cache;
   var _done = false;
 
-  _Editor(
-    this.cache,
-    this.key,
-    Directory directory,
-    int valueCount,
-  ) : files = List<File>.generate(valueCount, (index) {
-          return File(path.join(directory.path, '$key.$index'));
-        });
+  _Editor(this.store, this.key, this.cache);
 
   @override
-  void abort() {
+  Future<void> abort() async {
     if (_done) {
       throw StateError('Editor is closed');
     }
 
     cache.clear();
-    files[0].writeAsBytes(cache[0]);
-    files[1].writeAsBytes(cache[1]);
-
     _done = true;
   }
 
   @override
-  void commit() {
+  Future<void> commit() async {
     if (_done) {
       throw StateError('Editor is closed');
     }
-
-    files[0].writeAsBytes(cache[0]);
-    files[1].writeAsBytes(cache[1]);
 
     _done = true;
   }
@@ -171,9 +158,15 @@ class _Editor implements Editor {
       throw StateError('Editor is closed');
     }
 
-    cache[index] = [];
+    if (!cache.containsKey(index)) {
+      cache[index] = File(join(store.directory.path, '$key.$index'));
+    }
 
-    return SourceSink(cache[index]);
+    if (!cache[index].existsSync()) {
+      cache[index].createSync();
+    }
+
+    return cache[index].openWrite(mode: FileMode.write);
   }
 
   @override
@@ -183,9 +176,13 @@ class _Editor implements Editor {
     }
 
     if (!cache.containsKey(index)) {
-      cache[index] = [];
+      cache[index] = File(join(store.directory.path, '$key.$index'));
     }
 
-    return Stream.value(cache[index]);
+    if (!cache[index].existsSync()) {
+      cache[index].createSync();
+    }
+
+    return cache[index].openRead();
   }
 }

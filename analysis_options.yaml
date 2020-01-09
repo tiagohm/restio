@@ -132,7 +132,7 @@ linter:
     throw_in_finally: true
     type_annotate_public_apis: false
     type_init_formals: true
-    unawaited_futures: false
+    unawaited_futures: true
     unnecessary_await_in_return: true
     unnecessary_brace_in_string_interps: true
     unnecessary_const: true

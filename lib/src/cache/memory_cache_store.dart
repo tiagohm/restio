@@ -48,7 +48,7 @@ class MemoryCacheStore implements CacheStore {
 
     return [
       data[0]?.length ?? 0,
-      data[1]?.length ?? 1,
+      data[1]?.length ?? 0,
     ];
   }
 
@@ -84,7 +84,7 @@ class _Editor implements Editor {
   _Editor(this.cache);
 
   @override
-  void abort() {
+  Future<void> abort() async {
     if (_done) {
       throw StateError('Editor is closed');
     }
@@ -94,7 +94,7 @@ class _Editor implements Editor {
   }
 
   @override
-  void commit() {
+  Future<void> commit() async {
     if (_done) {
       throw StateError('Editor is closed');
     }
