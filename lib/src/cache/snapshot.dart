@@ -18,4 +18,12 @@ class Snapshot {
   int length(int index) {
     return _lengths[index];
   }
+
+  int size() {
+    return _lengths.isEmpty ? 0 : _lengths.reduce((a, b) => a + b);
+  }
+
+  void close() {
+    // nada.
+  }
 }

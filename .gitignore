@@ -11,3 +11,5 @@ build/
 doc/api/
 
 **/node_modules/
+
+.cache/

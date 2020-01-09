@@ -13,6 +13,13 @@ import 'package:restio/src/http_method.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
 
+export 'cache_control.dart';
+export 'cache_store.dart';
+export 'disk_cache_store.dart';
+export 'editor.dart';
+export 'memory_cache_store.dart';
+export 'snapshot.dart';
+
 typedef KeyExtractor = String Function(Uri uri);
 
 String _defaultKeyExtractor(Uri uri) {
@@ -29,6 +36,7 @@ class Cache {
 
   static const entryMetaData = 0;
   static const entryBody = 1;
+  static const entryCount = 2;
 
   Cache({
     @required this.store,
@@ -145,7 +153,7 @@ class Cache {
     } catch (e, stackTrace) {
       print(e);
       print(stackTrace);
-      _abortQuietly(editor);
+      await _abortQuietly(editor);
       return null;
     }
   }
@@ -167,12 +175,12 @@ class Cache {
         final metaData = entry.metaData();
         sink = editor.newSink(Cache.entryMetaData);
         sink.add(metaData);
-        editor.commit();
+        await editor.commit();
       }
     } catch (e, stackTrace) {
       print(e);
       print(stackTrace);
-      _abortQuietly(editor);
+      await _abortQuietly(editor);
     } finally {
       sink.close();
     }
@@ -190,9 +198,9 @@ class Cache {
     return store.size();
   }
 
-  void _abortQuietly(Editor editor) {
+  Future<void> _abortQuietly(Editor editor) async {
     try {
-      editor?.abort();
+      await editor?.abort();
     } catch (e) {
       // nada.
     }

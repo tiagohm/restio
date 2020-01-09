@@ -5,7 +5,7 @@ abstract class Editor {
 
   Stream<List<int>> newSource(int index);
 
-  void commit();
+  Future<void> commit();
 
-  void abort();
+  Future<void> abort();
 }

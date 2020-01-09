@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:restio/src/utils/string_pair_list.dart';
 
 // ignore_for_file: avoid_returning_this

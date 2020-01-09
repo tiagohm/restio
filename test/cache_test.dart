@@ -1,9 +1,10 @@
-import 'dart:convert';
 @Timeout(Duration(hours: 1))
+
+import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:restio/restio.dart';
-import 'package:restio/src/cache/cache_control.dart';
+import 'package:restio/src/cache/cache.dart';
 import 'package:test/test.dart';
 
 // https://github.com/square/okhttp/blob/master/okhttp/src/test/java/okhttp3/CacheTest.java
@@ -17,8 +18,17 @@ final client = Restio(
 );
 
 void main() {
+  setUpAll(() {
+    final cacheDir = io.Directory('./.cache');
+
+    if (cacheDir.existsSync()) {
+      cacheDir.listSync(recursive: true).forEach((i) => i.deleteSync());
+    }
+  });
+
   test('Response Caching', () async {
-    final cache = Cache(store: MemoryCacheStore());
+    final store = MemoryCacheStore();
+    final cache = Cache(store: store);
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
@@ -2116,7 +2126,7 @@ void main() {
     expect(await cache.size(), isNonZero);
     expect(await response.body.data.string(), 'A');
 
-    cache.clear();
+    await cache.clear();
     expect(await cache.size(), 0);
 
     call = cacheClient.newCall(request);
@@ -2237,6 +2247,57 @@ void main() {
     response = await call.execute();
 
     expect(await response.body.data.string(), 'B');
+  });
+
+  test('Response Caching With DiskCacheStore', () async {
+    var store = DiskCacheStore(io.Directory('./.cache'));
+    var cache = Cache(store: store);
+    var cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockResponseInterceptor(
+          [
+            MockResponse(
+              body: 'ABCDE',
+              headers: {
+                'last-modified': obtainDate(const Duration(hours: -1)),
+                'expires': obtainDate(const Duration(hours: 1)),
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+
+    final request = Request.get(url);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(await response.body.data.string(), 'ABCDE');
+    expect(cache.requestCount, 1);
+    expect(cache.networkCount, 1);
+    expect(cache.hitCount, 0);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+    expect(await response.body.data.string(), 'ABCDE');
+
+    expect(cache.requestCount, 2);
+    expect(cache.networkCount, 1);
+    expect(cache.hitCount, 1);
+    expect(response.cacheResponse, isNotNull);
+
+    store = DiskCacheStore(io.Directory('./.cache'));
+    cache = Cache(store: store);
+    cacheClient = client.copyWith(cache: cache);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(await response.body.data.string(), 'ABCDE');
+    expect(cache.requestCount, 1);
+    expect(cache.networkCount, 0);
+    expect(cache.hitCount, 1);
   });
 }
 

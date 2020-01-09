@@ -19,14 +19,14 @@ class CacheRequest {
 
     streamController.stream.listen(
       bodySink.add,
-      onError: (error, stackTrace) {
+      onError: (error, stackTrace) async {
         bodySink.addError(error, stackTrace);
-        editor.abort();
-        bodySink.close();
+        await editor.abort();
+        await bodySink.close();
       },
-      onDone: () {
-        editor.commit();
-        bodySink.close();
+      onDone: () async {
+        await editor.commit();
+        await bodySink.close();
       },
       cancelOnError: true,
     );
