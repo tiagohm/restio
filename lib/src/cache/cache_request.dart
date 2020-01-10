@@ -9,10 +9,10 @@ class CacheRequest {
   final Editor editor;
   final List<int> metaData;
 
-  EventSink<List<int>> body() {
+  Future<EventSink<List<int>>> body() async {
     final metaDataSink = editor.newSink(Cache.entryMetaData);
     metaDataSink.add(metaData);
-    metaDataSink.close();
+    await metaDataSink.close();
 
     final bodySink = editor.newSink(Cache.entryBody);
     final streamController = StreamController<List<int>>();

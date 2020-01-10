@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
+import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/src/cache/cache_request.dart';
 import 'package:restio/src/cache/cache_response_body.dart';
@@ -23,7 +24,7 @@ export 'snapshot.dart';
 typedef KeyExtractor = String Function(Uri uri);
 
 String _defaultKeyExtractor(Uri uri) {
-  return base64.encode(md5.convert(utf8.encode(uri.toString())).bytes);
+  return HEX.encode(md5.convert(utf8.encode(uri.toString())).bytes);
 }
 
 class Cache {
