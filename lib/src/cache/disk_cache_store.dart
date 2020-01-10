@@ -16,7 +16,7 @@ class DiskCacheStore implements CacheStore {
   @override
   Future<Editor> edit(
     String key, [
-    int expectedSequenceNumber,
+    int expectedSequenceNumber = -1,
   ]) async {
     if (!_cache.containsKey(key)) {
       _cache[key] = <int, File>{};
@@ -166,7 +166,7 @@ class _Editor implements Editor {
       cache[index].createSync();
     }
 
-    return cache[index].openWrite(mode: FileMode.write);
+    return _FileSink(cache[index].openWrite(mode: FileMode.write));
   }
 
   @override
@@ -185,4 +185,34 @@ class _Editor implements Editor {
 
     return cache[index].openRead();
   }
+}
+
+class _FileSink implements StreamSink<List<int>> {
+  final IOSink sink;
+
+  _FileSink(this.sink);
+
+  @override
+  void add(List<int> event) {
+    sink.add(event);
+  }
+
+  @override
+  void addError(Object error, [StackTrace stackTrace]) {
+    sink.addError(error, stackTrace);
+  }
+
+  @override
+  Future addStream(Stream<List<int>> stream) {
+    return sink.addStream(stream);
+  }
+
+  @override
+  Future close() async {
+    await sink.flush();
+    return sink.close();
+  }
+
+  @override
+  Future get done => sink.done;
 }

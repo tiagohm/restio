@@ -201,7 +201,7 @@ class CacheInterceptor implements Interceptor {
       return response;
     }
 
-    final cacheSink = cacheRequest.body();
+    final cacheSink = await cacheRequest.body();
 
     if (cacheSink == null) {
       return response;
