@@ -344,6 +344,7 @@ void main() {
       expect(cache.networkCount, 1);
       expect(cache.hitCount, 1);
       expect(response is Cacheable, true);
+      expect((response as Cacheable).cacheResponse, isNotNull);
     });
 
     test('Caching and Redirects', () async {
@@ -388,6 +389,7 @@ void main() {
       expect(await response.body.data.string(), 'ABC');
       await response.body.close();
       expect(response is Cacheable, true);
+      expect((response as Cacheable).cacheResponse, isNotNull);
 
       // 2 requests + 2 redirect.
       expect(cache.requestCount, 4);
@@ -449,6 +451,7 @@ void main() {
       expect(cache.networkCount, 2);
       expect(cache.hitCount, 1);
       expect(response is Cacheable, true);
+      expect((response as Cacheable).cacheResponse, isNotNull);
 
       request = Request.get('$url/baz');
       call = cacheClient.newCall(request);
@@ -460,6 +463,7 @@ void main() {
       expect(cache.networkCount, 3);
       expect(cache.hitCount, 1);
       expect(response is Cacheable, true);
+      expect((response as Cacheable).cacheResponse, isNull);
     });
 
     test('Found Cache with Expires Header', () async {

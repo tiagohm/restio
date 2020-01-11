@@ -235,19 +235,15 @@ class CacheInterceptor implements Interceptor {
       },
     ).bind(response.body.data.stream);
 
-    return _CacheableResponse.fromResponse(
-      response.copyWith(
-        body: _CacheResponseBody(
-          cacheStream,
-          () async => cacheSink.close(),
-          compressionType: response.body.compressionType,
-          contentLength: response.body.contentLength,
-          contentType: response.body.contentType,
-          onProgress: response.body.onProgress,
-        ),
+    return response.copyWith(
+      body: _CacheResponseBody(
+        cacheStream,
+        () async => cacheSink.close(),
+        compressionType: response.body.compressionType,
+        contentLength: response.body.contentLength,
+        contentType: response.body.contentType,
+        onProgress: response.body.onProgress,
       ),
-      null,
-      null,
     );
   }
 }

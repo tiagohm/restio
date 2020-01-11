@@ -1,3 +1,8 @@
+## 0.4.0
+
+- Added support to Cache (RFC 7234).
+- Added support to SSE (Server-Sent Event).
+
 ## 0.3.5
 
 - Fix DNS bug.

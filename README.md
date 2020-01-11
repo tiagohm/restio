@@ -351,6 +351,19 @@ print(response.dns); // Prints the resolved IP.
 
 > Supports DnsOverHttps too.
 
+#### Caching
+
+```dart
+final cache = Cache(store: DiskCacheStore(Directory('./cache')));
+final client = Restio(cache: cache);
+
+final request = Request.get('https://postman-echo.com/get');
+final call = client.newCall(request);
+final response = await call.execute();
+
+final bool cached = response is Cacheable;
+```
+
 ### Projects using this library
 
 * [Restler](https://play.google.com/store/apps/details?id=br.tiagohm.restler): Restler is an Android app built with simplicity and ease of use in mind. It allows you send custom HTTP/HTTPS requests and test your REST API anywhere and anytime.
