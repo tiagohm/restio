@@ -76,6 +76,8 @@ class SseTransformer implements StreamTransformer<List<int>, Event> {
               }
               break;
           }
+        }, onError: (e, stackTrace) {
+          controller.addError(e, stackTrace);
         });
       },
       onCancel: () {

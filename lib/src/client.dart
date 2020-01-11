@@ -285,7 +285,7 @@ class _Sse implements Sse {
     incomingController = StreamController<Event>.broadcast(
       onListen: () async {
         final realRequest = request.copyWith(
-          method: 'GET', // ?
+          method: 'GET',
           headers: request.headers
               .toBuilder()
               .set('accept', 'text/event-stream')
@@ -304,12 +304,19 @@ class _Sse implements Sse {
                   !incomingController.isPaused) {
                 incomingController.add(event);
               }
+            }, onError: (e, stackTrace) {
+              if (incomingController.hasListener &&
+                  !incomingController.isClosed &&
+                  !incomingController.isPaused) {
+                incomingController.addError(e, stackTrace);
+              }
             });
 
             return;
           }
-        } catch (e) {
-          // nada.
+        } catch (e, stackTrace) {
+          print(e);
+          print(stackTrace);
         }
 
         incomingController
