@@ -11,9 +11,7 @@ import 'package:restio/src/response.dart';
 class FollowUpInterceptor implements Interceptor {
   final Restio client;
 
-  FollowUpInterceptor({
-    this.client,
-  });
+  FollowUpInterceptor(this.client);
 
   @override
   Future<Response> intercept(Chain chain) async {
@@ -25,13 +23,10 @@ class FollowUpInterceptor implements Interceptor {
     final startTime = DateTime.now();
 
     while (true) {
-      final sentAt = DateTime.now();
       final response = await chain.proceed(request);
 
       final elapsedMilliseconds = response.receivedAt.millisecondsSinceEpoch -
           startTime.millisecondsSinceEpoch;
-      final spentMilliseconds = response.receivedAt.millisecondsSinceEpoch -
-          sentAt.millisecondsSinceEpoch;
 
       final followUp = await _followUpRequest(response);
 
@@ -39,9 +34,7 @@ class FollowUpInterceptor implements Interceptor {
         return response.copyWith(
           redirects: redirects,
           originalRequest: originalRequest,
-          spentMilliseconds: spentMilliseconds,
           totalMilliseconds: elapsedMilliseconds,
-          sentAt: sentAt,
         );
       }
 
@@ -59,9 +52,7 @@ class FollowUpInterceptor implements Interceptor {
         elapsedMilliseconds: elapsedMilliseconds,
         response: response.copyWith(
           originalRequest: originalRequest,
-          spentMilliseconds: spentMilliseconds,
-          totalMilliseconds: spentMilliseconds,
-          sentAt: sentAt,
+          totalMilliseconds: response.spentMilliseconds,
         ),
       ));
     }

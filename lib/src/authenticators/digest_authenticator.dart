@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:restio/src/authenticator.dart';
+import 'package:restio/src/helpers.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
-import 'package:restio/src/utils.dart';
 
 class DigestAuthenticator extends Authenticator {
   final String username;

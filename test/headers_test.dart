@@ -2,7 +2,7 @@ import 'package:restio/restio.dart';
 import 'package:test/test.dart';
 
 void main() {
-  test('NameAt & ValueAt', () {
+  test('NameAt And ValueAt', () {
     final builder = HeadersBuilder();
     builder.add('string', 'foo');
     builder.add('string', 'bar');
@@ -41,7 +41,7 @@ void main() {
     expect(headers.length, 1);
   });
 
-  test('RemoveAt', () {
+  test('Remove At', () {
     final builder = HeadersBuilder()
       ..add('foo', 'bar')
       ..add('foo', 'baz')
@@ -54,7 +54,7 @@ void main() {
     expect(headers.has('bar'), false);
   });
 
-  test('RemoveFirst', () {
+  test('Remove First', () {
     final builder = HeadersBuilder()
       ..add('foo', 'bar')
       ..add('foo', 'baz')
@@ -67,7 +67,7 @@ void main() {
     expect(headers.value('foo'), 'baz');
   });
 
-  test('RemoveLast', () {
+  test('Remove Last', () {
     final builder = HeadersBuilder()
       ..add('foo', 'bar')
       ..add('foo', 'baz')
@@ -78,5 +78,18 @@ void main() {
 
     expect(headers.length, 2);
     expect(headers.value('foo'), 'bar');
+  });
+
+  test('Headers is Not Case Sensitive', () {
+    final builder = HeadersBuilder();
+    builder.add('STRING', 'foo');
+    builder.add('bool', true);
+    builder.add('iNt', 5);
+
+    final headers = builder.build();
+
+    expect(headers.first('string'), 'foo');
+    expect(headers.first('BOOL'), 'true');
+    expect(headers.first('InT'), '5');
   });
 }

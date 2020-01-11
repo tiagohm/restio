@@ -19,6 +19,7 @@ dependencies:
   raw: ^0.2.0
   ip: ^0.1.1
   brotli: ^0.2.2
+  hex: ^0.1.2
 
 dev_dependencies:
   test: ^1.6.5

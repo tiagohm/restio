@@ -69,7 +69,7 @@ class Http2Transport implements Transport {
         headers
             .add(Header.ascii(HttpHeaders.userAgentHeader, client.userAgent));
       } else {
-        headers.add(Header.ascii(HttpHeaders.userAgentHeader, 'Restio/0.1.0'));
+        headers.add(Header.ascii(HttpHeaders.userAgentHeader, 'Restio/0.3.5'));
       }
 
       // Content-Type.
@@ -125,7 +125,6 @@ class Http2Transport implements Transport {
       onBadCertificate: (cert) {
         return !client.verifySSLCertificate ||
             (client?.onBadCertificate?.call(
-                  client,
                   cert,
                   request.uri.host,
                   request.uri.port,
@@ -153,14 +152,12 @@ class Http2Transport implements Transport {
 
           progressBytes += chunk.length;
 
-          client.onUploadProgress
-              ?.call(request, progressBytes, totalBytes, false);
+          client.onUploadProgress?.call(progressBytes, totalBytes, false);
         },
         onDone: () {
           sink.close();
 
-          client.onUploadProgress
-              ?.call(request, progressBytes, sink.length, true);
+          client.onUploadProgress?.call(progressBytes, sink.length, true);
 
           headers.add(
             Header.ascii(HttpHeaders.contentLengthHeader, '${sink.length}'),
@@ -229,7 +226,6 @@ class Http2Transport implements Transport {
           headers: headers.build(),
           // message: response.reasonPhrase,
           // connectionInfo: ,
-          receivedAt: DateTime.now(),
           // certificate: response.certificate,
         );
 
@@ -239,9 +235,7 @@ class Http2Transport implements Transport {
             contentType: _obtainMediaType(res.headers),
             contentLength: _obtainContentLength(res.headers),
             compressionType: _obtainCompressType(res.headers),
-            onProgress: (sent, total, done) {
-              client.onDownloadProgress?.call(res, sent, total, done);
-            },
+            onProgress: client.onDownloadProgress,
           ),
         );
 
@@ -282,19 +276,6 @@ class Http2Transport implements Transport {
 
   static CompressionType _obtainCompressType(Headers headers) {
     final contentEncoding = headers.first(HttpHeaders.contentEncodingHeader);
-
-    if (contentEncoding != null && contentEncoding.isNotEmpty) {
-      switch (contentEncoding) {
-        case 'gzip':
-          return CompressionType.gzip;
-        case 'deflate':
-          return CompressionType.deflate;
-        case 'brotli':
-        case 'br':
-          return CompressionType.brotli;
-      }
-    }
-
-    return CompressionType.notCompressed;
+    return obtainCompressionType(contentEncoding);
   }
 }

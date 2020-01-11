@@ -22,7 +22,7 @@ final client = Restio();
 ```dart
 final request = Request(
     uri: Uri.parse('https://httpbin.org/json'),
-    method: 'GET',
+    method: HttpMethod.get,
 );
 ```
 
@@ -68,29 +68,32 @@ final response = await call.execute();
 
 #### Get response stream:
 ```dart
-final stream = response.body.data;
+final stream = response.body.data.stream;
+await response.body.close();
 ```
 
 #### Get raw response bytes:
 ```dart
-final bytes = response.body.raw(decompress: false);
-final bytes = response.body.compressed();
+final bytes = await response.body.data.raw();
+await response.body.close();
 ```
 
 #### Get decompressed response bytes (gzip, deflate or brotli):
 ```dart
-final bytes = response.body.raw(decompress: true);
-final bytes = response.body.decompressed();
+final bytes = await response.body.data.decompressed();
+await response.body.close();
 ```
 
 #### Get response string:
 ```dart
-final string = response.body.string();
+final string = await response.body.data.string();
+await response.body.close();
 ```
 
 #### Get response JSON:
 ```dart
-final json = response.body.json();
+final json = await response.body.data.json();
+await response.body.close();
 ```
 
 #### Sending form data:
@@ -141,7 +144,7 @@ final response = await call.execute();
 
 #### Listening for download progress:
 ```dart
-final ResponseProgressListener onProgress = (response, sent, total, done) {
+final ProgressCallback onProgress = (response, sent, total, done) {
   print('sent: $sent, total: $total, done: $done');
 };
 
@@ -153,12 +156,13 @@ final request = Request.get('https://httpbin.org/stream-bytes/36001');
 
 final call = client.newCall(request);
 final response = await call.execute();
-final data = await response.body.raw(false);
+final data = await response.body.raw();
+await response.body.close();
 ```
 
 #### Listening for upload progress:
 ```dart
-final RequestProgressListener onProgress = (request, sent, total, done) {
+final ProgressCallback onProgress = (request, sent, total, done) {
   print('sent: $sent, total: $total, done: $done');
 };
 
@@ -180,6 +184,7 @@ final response = await call.execute();
 final response = await call.execute();
 final responseBody = response.body;
 final data = await responseBody.raw();
+await response.body.close();
 
 // Called from any callback.
 responseBody.pause();
@@ -306,6 +311,23 @@ conn.stream.listen((dynamic data) {
 
 // Send.
 conn.addString('🎾');
+
+await conn.close();
+```
+
+#### SSE
+```dart
+final client = Restio();
+final request = Request(uri: Uri.parse('https://my.sse.com'));
+final sse = client.newSse(request);
+final conn = await sse.open();
+
+// Listen.
+conn.stream.listen((Event event) {
+  print(event.id);
+  print(event.event);
+  print(event.data);
+});
 
 await conn.close();
 ```

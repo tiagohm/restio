@@ -36,6 +36,8 @@ class ConnectInterceptor implements Interceptor {
   }
 
   Future<Response> _execute(final Request request) async {
+    final sentAt = DateTime.now();
+
     final transport = client.isHttp2 == true
         ? _createHttp2Transport(client)
         : _createHttpTransport(client);
@@ -44,6 +46,7 @@ class ConnectInterceptor implements Interceptor {
       throw cancellable.exception;
     }
 
+    // ignore: unawaited_futures
     cancellable?.whenCancel?.catchError((e, stackTrace) async {
       try {
         await transport.cancel();
@@ -73,9 +76,17 @@ class ConnectInterceptor implements Interceptor {
 
       final response = await transport.send(connectRequest ?? request);
 
+      final receivedAt = DateTime.now();
+
+      final spentMilliseconds =
+          receivedAt.millisecondsSinceEpoch - sentAt.millisecondsSinceEpoch;
+
       return response.copyWith(
         request: request,
         dnsIp: dnsIp,
+        sentAt: sentAt,
+        receivedAt: receivedAt,
+        spentMilliseconds: spentMilliseconds,
       );
     } on Exception {
       if (cancellable != null && cancellable.isCancelled) {

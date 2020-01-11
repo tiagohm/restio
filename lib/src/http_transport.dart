@@ -65,7 +65,7 @@ class HttpTransport implements Transport {
     httpClient.badCertificateCallback = (cert, host, port) {
       // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
       return !client.verifySSLCertificate ||
-          (client.onBadCertificate?.call(client, cert, host, port) ?? false);
+          (client.onBadCertificate?.call(cert, host, port) ?? false);
     };
 
     return httpClient;
@@ -132,7 +132,7 @@ class HttpTransport implements Transport {
         clientRequest.headers
             .set(HttpHeaders.userAgentHeader, client.userAgent);
       } else {
-        clientRequest.headers.set(HttpHeaders.userAgentHeader, 'Restio/0.1.0');
+        clientRequest.headers.set(HttpHeaders.userAgentHeader, 'Restio/0.3.5');
       }
 
       // Content-Type.
@@ -175,18 +175,12 @@ class HttpTransport implements Transport {
       }
 
       // Resposta.
-      DateTime receivedAt;
       HttpClientResponse response;
 
       if (client.receiveTimeout != null && !client.receiveTimeout.isNegative) {
-        response = await clientRequest
-            .close()
-            .timeout(client.receiveTimeout)
-            .whenComplete(() => receivedAt = DateTime.now());
+        response = await clientRequest.close().timeout(client.receiveTimeout);
       } else {
-        response = await clientRequest
-            .close()
-            .whenComplete(() => receivedAt = DateTime.now());
+        response = await clientRequest.close();
       }
 
       // Monta a resposta.
@@ -195,7 +189,6 @@ class HttpTransport implements Transport {
         headers: _obtainHeadersfromHttpHeaders(response.headers),
         message: response.reasonPhrase,
         connectionInfo: response.connectionInfo,
-        receivedAt: receivedAt,
         certificate: response.certificate,
       );
 
@@ -205,9 +198,7 @@ class HttpTransport implements Transport {
           contentType: MediaType.fromContentType(response.headers.contentType),
           contentLength: response.headers.contentLength,
           compressionType: _obtainCompressType(response),
-          onProgress: (sent, total, done) {
-            client.onDownloadProgress?.call(res, sent, total, done);
-          },
+          onProgress: client.onDownloadProgress,
         ),
       );
     } on TimeoutException {
@@ -217,20 +208,9 @@ class HttpTransport implements Transport {
 
   static CompressionType _obtainCompressType(HttpClientResponse response) {
     final contentEncoding = response.headers[HttpHeaders.contentEncodingHeader];
-
-    if (contentEncoding != null && contentEncoding.isNotEmpty) {
-      switch (contentEncoding[0]) {
-        case 'gzip':
-          return CompressionType.gzip;
-        case 'deflate':
-          return CompressionType.deflate;
-        case 'brotli':
-        case 'br':
-          return CompressionType.brotli;
-      }
-    }
-
-    return CompressionType.notCompressed;
+    return contentEncoding != null && contentEncoding.isNotEmpty
+        ? obtainCompressionType(contentEncoding[0])
+        : CompressionType.notCompressed;
   }
 
   static Headers _obtainHeadersfromHttpHeaders(
@@ -257,14 +237,12 @@ class HttpTransport implements Transport {
 
         progressBytes += chunk.length;
 
-        client.onUploadProgress
-            ?.call(request, progressBytes, totalBytes, false);
+        client.onUploadProgress?.call(progressBytes, totalBytes, false);
       },
       onDone: () {
         sink.close();
 
-        client.onUploadProgress
-            ?.call(request, progressBytes, sink.length, true);
+        client.onUploadProgress?.call(progressBytes, sink.length, true);
 
         clientRequest.contentLength = sink.length;
         clientRequest.add(sink.bytes);

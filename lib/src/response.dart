@@ -36,6 +36,9 @@ class Response {
 
   final IpAddress dnsIp;
 
+  final Response networkResponse;
+  final Response cacheResponse;
+
   Response({
     this.request,
     this.message,
@@ -52,9 +55,12 @@ class Response {
     this.receivedAt,
     this.certificate,
     this.dnsIp,
+    CacheControl cacheControl,
+    this.networkResponse,
+    this.cacheResponse,
   })  : challenges = _challenges(code, headers),
         cacheControl =
-            CacheControl.parse(headers?.first(HttpHeaders.cacheControlHeader));
+            cacheControl ?? CacheControl.from(headers) ?? const CacheControl();
 
   bool get isSuccess => code != null && code >= 200 && code <= 299;
 
@@ -91,7 +97,9 @@ class Response {
     return res;
   }
 
-  bool get isCacheable {
+  bool isCacheable([Request request]) {
+    request ??= originalRequest;
+
     switch (code) {
       // These codes can be cached unless headers forbid it.
       case HttpStatus.ok:
@@ -111,8 +119,8 @@ class Response {
       // s-maxage is not checked because OkHttp is a private cache that should ignore s-maxage.
       case HttpStatus.movedTemporarily:
       case HttpStatus.temporaryRedirect:
-        if (headers?.has(HttpHeaders.expiresHeader) == true ||
-            cacheControl.maxAge.inSeconds != -1 ||
+        if (headers.has(HttpHeaders.expiresHeader) ||
+            cacheControl.hasMaxAge ||
             cacheControl.isPublic ||
             cacheControl.isPrivate) {
           break;
@@ -123,7 +131,33 @@ class Response {
         return false;
     }
 
-    return !cacheControl.noStore;
+    return !cacheControl.noStore && !request.cacheControl.noStore;
+  }
+
+  bool get hasBody {
+    if (body == null) {
+      return false;
+    }
+
+    // HEAD requests never yield a body regardless of the response headers.
+    if (request.method == HttpMethod.head) {
+      return false;
+    }
+
+    if ((code < HttpStatus.continue_ || code >= HttpStatus.ok) &&
+        code != HttpStatus.noContent &&
+        code != HttpStatus.notModified) {
+      return true;
+    }
+
+    // If the Content-Length or Transfer-Encoding headers disagree with the response code, the
+    // response is malformed. For best compatibility, we honor the headers.
+    if (body.contentLength != -1 ||
+        headers.first(HttpHeaders.transferEncodingHeader) == 'chunked') {
+      return true;
+    }
+
+    return false;
   }
 
   Response copyWith({
@@ -142,6 +176,9 @@ class Response {
     DateTime receivedAt,
     X509Certificate certificate,
     IpAddress dnsIp,
+    CacheControl cacheControl,
+    Response networkResponse,
+    Response cacheResponse,
   }) {
     return Response(
       request: request ?? this.request,
@@ -159,6 +196,9 @@ class Response {
       receivedAt: receivedAt ?? this.receivedAt,
       certificate: certificate ?? this.certificate,
       dnsIp: dnsIp ?? this.dnsIp,
+      cacheControl: cacheControl ?? this.cacheControl,
+      networkResponse: networkResponse ?? this.networkResponse,
+      cacheResponse: cacheResponse ?? this.cacheResponse,
     );
   }
 
@@ -167,6 +207,6 @@ class Response {
     return 'Response { body: $body, code: $code, totalMilliseconds: $totalMilliseconds, spentMilliseconds: $spentMilliseconds, sentAt: $sentAt, receivedAt: $receivedAt,'
         ' headers: $headers, cookies: $cookies, message: $message, request: $request,'
         ' connectionInfo: $connectionInfo, redirects: $redirects, originalRequest: $originalRequest,'
-        ' dnsIp: $dnsIp }';
+        ' dnsIp: $dnsIp, cacheControl: $cacheControl, networkResponse: $networkResponse, cacheResponse: $cacheResponse }';
   }
 }
