@@ -75,7 +75,7 @@ class Restio {
         assert(followRedirects != null),
         adapter = adapter ?? DefaultClientAdapter();
 
-  static const version = '0.4.0';
+  static const version = '0.4.1';
 
   Call newCall(Request request) {
     return _Call(client: this, request: request);

@@ -1,3 +1,7 @@
+## 0.4.1
+
+- Improvements.
+
 ## 0.4.0
 
 - Added support to Cache (RFC 7234).

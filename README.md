@@ -8,7 +8,7 @@ In `pubspec.yaml` add the following dependency:
 
 ```yaml
 dependencies:
-  restio: ^0.3.4
+  restio: ^0.4.1
 ```
 
 ### How to use
@@ -361,8 +361,11 @@ final request = Request.get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();
 
-final bool cached = response is Cacheable;
+final networkResponse = response.networkResponse; // From network validation.
+final cacheResponse = response.cacheResponse; // From cache.
 ```
+
+> Supports MemoryCacheStore too.
 
 ### Projects using this library
 
