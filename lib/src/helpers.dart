@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 
+import 'package:ip/ip.dart';
 import 'package:restio/src/encodings.dart';
 
 Encoding obtainEncodingByName(
@@ -59,4 +60,12 @@ Future<List<int>> readAsBytes(Stream<List<int>> source) {
   );
 
   return completer.future;
+}
+
+bool isIp(String ip) {
+  try {
+    return IpAddress.parse(ip) != null;
+  } catch (e) {
+    return false;
+  }
 }

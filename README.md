@@ -345,6 +345,8 @@ final client = Restio(
 final request = Request.get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();
+
+print(response.dnsIp); // Prints the resolved IP.
 ```
 
 > Supports DnsOverHttps too.

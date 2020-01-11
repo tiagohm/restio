@@ -97,7 +97,7 @@ class Response {
     return res;
   }
 
-  bool isCacheable([Request request]) {
+  bool canCache([Request request]) {
     request ??= originalRequest;
 
     switch (code) {

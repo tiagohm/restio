@@ -8,7 +8,11 @@ Future<Response> requestResponse(Restio client, Request request) async {
 }
 
 Future<String> obtainResponseBodyAsString(Response response) async {
-  return response.body.data.string();
+  try {
+    return response.body.data.string();
+  } finally {
+    await response.body.close();
+  }
 }
 
 Future<String> requestString(Restio client, Request request) async {
@@ -18,5 +22,9 @@ Future<String> requestString(Restio client, Request request) async {
 
 Future<dynamic> requestJson(Restio client, Request request) async {
   final response = await requestResponse(client, request);
-  return response.body.data.json();
+  try {
+    return response.body.data.json();
+  } finally {
+    await response.body.close();
+  }
 }

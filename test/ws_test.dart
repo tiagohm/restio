@@ -1,7 +1,7 @@
 import 'dart:io';
 
 import 'package:restio/restio.dart';
-import 'package:restio/web_socket.dart';
+import 'package:restio/ws.dart';
 import 'package:test/test.dart';
 
 final client = Restio();

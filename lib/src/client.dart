@@ -23,7 +23,7 @@ import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/src/push/sse/sse.dart';
-import 'package:restio/src/push/web_socket/web_socket.dart';
+import 'package:restio/src/push/ws/ws.dart';
 
 class Restio {
   final Duration connectTimeout;
@@ -74,6 +74,8 @@ class Restio {
         assert(maxRedirects != null),
         assert(followRedirects != null),
         adapter = adapter ?? DefaultClientAdapter();
+
+  static const version = '0.4.0';
 
   Call newCall(Request request) {
     return _Call(client: this, request: request);

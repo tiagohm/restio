@@ -5,7 +5,7 @@ import 'package:meta/meta.dart';
 import 'package:restio/src/cancellable.dart';
 import 'package:restio/src/chain.dart';
 import 'package:restio/src/client.dart';
-import 'package:restio/src/extensions.dart';
+import 'package:restio/src/helpers.dart';
 import 'package:restio/src/http2_transport.dart';
 import 'package:restio/src/http_transport.dart';
 import 'package:restio/src/interceptor.dart';
@@ -62,7 +62,7 @@ class ConnectInterceptor implements Interceptor {
 
       // Verificar se não é um IP.
       // Busca o real endereço (IP) do host através de um DNS.
-      if (client.dns != null && !request.uri.host.isIp()) {
+      if (client.dns != null && !isIp(request.uri.host)) {
         final addresses = await client.dns.lookup(request.uri.host);
 
         if (addresses != null && addresses.isNotEmpty) {

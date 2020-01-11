@@ -74,7 +74,7 @@ class ResponseBody {
   }
 
   Future close() async {
-    // nada.
+    return true;
   }
 
   @override
@@ -139,6 +139,7 @@ class _ResponseBodyData extends ResponseBodyData {
   @override
   Future<String> string() async {
     final encoded = await decompressed();
+
     return body.contentType?.encoding != null
         ? body.contentType.encoding.decode(encoded)
         : convert.utf8.decode(encoded);

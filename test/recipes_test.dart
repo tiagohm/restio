@@ -2,6 +2,7 @@
 
 import 'dart:io';
 
+import 'package:pubspec/pubspec.dart';
 import 'package:restio/restio.dart';
 import 'package:restio/src/client_certificate.dart';
 import 'package:restio/src/client_certificate_jar.dart';
@@ -16,11 +17,23 @@ void main() {
     ],
   );
 
+  Process process;
+
+  setUpAll(() async {
+    process = await Process.start('node', ['./test/node/ca/index.js']);
+    return Future.delayed(const Duration(seconds: 2));
+  });
+
+  tearDownAll(() {
+    process?.kill();
+  });
+
   test('Performing a GET request', () async {
     final request = Request.get('https://postman-echo.com/get');
     final call = client.newCall(request);
     final response = await call.execute();
     expect(response.code, 200);
+    await response.body.close();
   });
 
   test('Performing a POST request', () async {
@@ -35,6 +48,7 @@ void main() {
     final response = await call.execute();
     expect(response.code, 200);
     final json = await response.body.data.json();
+    await response.body.close();
     expect(json['headers']['content-length'], '58');
     expect(json['json'], null);
   });
@@ -50,6 +64,8 @@ void main() {
     expect(response.code, 200);
     expect(response.isSuccess, true);
     expect(response.message, 'OK');
+
+    await response.body.close();
   });
 
   test('Cancelling a Call', () async {
@@ -59,7 +75,8 @@ void main() {
     Future.delayed(const Duration(seconds: 5), () => call.cancel('Cancelado!'));
 
     try {
-      await call.execute();
+      final response = await call.execute();
+      await response.body.close();
     } on CancelledException catch (e) {
       expect(e.message, 'Cancelado!');
     }
@@ -200,6 +217,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
+    await response.body.close();
     expect(data['authenticated'], true);
   });
 
@@ -217,6 +235,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
+    await response.body.close();
     expect(data['authenticated'], true);
   });
 
@@ -233,6 +252,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
+    await response.body.close();
     expect(data['authenticated'], true);
     expect(data['token'], '123');
   });
@@ -251,6 +271,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
+    await response.body.close();
     expect(data['authenticated'], true);
   });
 
@@ -268,6 +289,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
+    await response.body.close();
     expect(data['message'], 'Hawk Authentication Successful');
   });
 
@@ -283,7 +305,8 @@ void main() {
     final call = timeoutClient.newCall(request);
 
     try {
-      await call.execute();
+      final response = await call.execute();
+      await response.body.close();
     } on TimedOutException catch (e) {
       expect(e.message, '');
     }
@@ -305,6 +328,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
+    await response.body.close();
     expect(data['items'].length, 2);
     expect(data['items'][0]['full_name'], 'flutter/flutter');
   });
@@ -315,6 +339,7 @@ void main() {
     final call = client.newCall(request);
     final response = await call.execute();
     final data = await response.body.data.raw();
+    await response.body.close();
 
     expect(data.length, 50);
   });
@@ -353,6 +378,8 @@ void main() {
 
       expect(response.code, 200);
       expect(response.redirects.length, 7);
+
+      await response.body.close();
     });
 
     test('Relative redirects n times', () async {
@@ -363,6 +390,8 @@ void main() {
       expect(response.code, 200);
       expect(response.redirects.length, 7);
       expect(response.redirects[6].request.uri.path, '/get');
+
+      await response.body.close();
     });
 
     test('Too many redirects exception', () async {
@@ -370,7 +399,8 @@ void main() {
       final call = redirectClient.newCall(request);
 
       try {
-        await call.execute();
+        final response = await call.execute();
+        await response.body.close();
       } on TooManyRedirectsException catch (e) {
         expect(e.message, 'Too many redirects: 10');
         expect(e.uri, Uri.parse('https://httpbin.org/absolute-redirect/10'));
@@ -391,6 +421,8 @@ void main() {
 
       expect(response.code, 200);
       expect(response.redirects.length, 7);
+
+      await response.body.close();
     });
 
     test('Relative redirects n times', () async {
@@ -401,6 +433,8 @@ void main() {
       expect(response.code, 200);
       expect(response.redirects.length, 7);
       expect(response.redirects[6].request.uri.path, '/get');
+
+      await response.body.close();
     });
 
     test('Too many redirects exception', () async {
@@ -408,7 +442,8 @@ void main() {
       final call = redirectClient.newCall(request);
 
       try {
-        await call.execute();
+        final response = await call.execute();
+        await response.body.close();
       } on TooManyRedirectsException catch (e) {
         expect(e.message, 'Too many redirects: 10');
         expect(e.uri, Uri.parse('https://httpbin.org/absolute-redirect/10'));
@@ -436,6 +471,8 @@ void main() {
 
     expect(data.length, 36001);
     expect(isDone, true);
+
+    await response.body.close();
   });
 
   test('Pause & Resume', () async {
@@ -450,7 +487,8 @@ void main() {
     final request = Request.get('https://httpbin.org/absolute-redirect/1');
     final call = retryAfterClient.newCall(request);
     final response = await call.execute();
-    expect(response.totalMilliseconds > 15000, true);
+    await response.body.close();
+    expect(response.totalMilliseconds, greaterThan(15000));
   });
 
   test('HTTP2', () async {
@@ -463,6 +501,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.json();
+    await response.body.close();
 
     expect(json['http2'], 1);
     expect(json['protocol'], 'HTTP/2.0');
@@ -475,22 +514,23 @@ void main() {
       clientCertificateJar: MyClientCertificateJar(),
     );
 
-    final request = Request.get('https://localhost:9000');
+    final request = Request.get('https://localhost:3002');
     final call = certificateClient.newCall(request);
     final response = await call.execute();
 
     expect(response.code, 200);
 
-    final json = await response.body.data.json();
+    final json = await response.body.data.string();
+    await response.body.close();
 
-    expect(json, 'HI!');
+    expect(json, 'Olá Tiago!');
   });
 
   test('Proxy', () async {
     final proxyClient = client.copyWith(
       proxy: const Proxy(
         host: 'localhost',
-        port: 3001,
+        port: 3004,
       ),
       auth: const BasicAuthenticator(
         username: 'c',
@@ -498,23 +538,23 @@ void main() {
       ),
     );
 
-    final request = Request.get('http://httpbin.org/basic-auth/c/d');
+    final request = Request.get('http://proxy-test/basic-auth/c/d');
     final call = proxyClient.newCall(request);
     final response = await call.execute();
 
     expect(response.code, 200);
 
     final json = await response.body.data.json();
+    await response.body.close();
 
     expect(json['authenticated'], true);
-    expect(response.headers.first('x-http-proxy'), 'true');
   });
 
   test('Auth Proxy', () async {
     final proxyClient = client.copyWith(
       proxy: const Proxy(
         host: 'localhost',
-        port: 3002,
+        port: 3004,
         auth: BasicAuthenticator(
           username: 'a',
           password: 'b',
@@ -526,16 +566,16 @@ void main() {
       ),
     );
 
-    final request = Request.get('http://httpbin.org/basic-auth/c/d');
+    final request = Request.get('http://proxy-test/basic-auth/c/d');
     final call = proxyClient.newCall(request);
     final response = await call.execute();
 
     expect(response.code, 200);
 
     final json = await response.body.data.json();
+    await response.body.close();
 
     expect(json['authenticated'], true);
-    expect(response.headers.first('x-http-proxy'), 'true');
   });
 
   test('DNS-Over-UDP', () async {
@@ -556,6 +596,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.json();
+    await response.body.close();
 
     expect(json['authenticated'], true);
     expect(response.dnsIp, isNotNull);
@@ -579,6 +620,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.json();
+    await response.body.close();
 
     expect(json['authenticated'], true);
     expect(response.dnsIp, isNotNull);
@@ -606,6 +648,7 @@ void main() {
     final request = Request.get('https://httpbin.org/absolute-redirect/5');
     final call = dnsClient.newCall(request);
     final response = await call.execute();
+    await response.body.close();
 
     expect(response.code, 200);
   });
@@ -614,10 +657,26 @@ void main() {
     final request = Request.get('https://swapi.co/api/planets');
     final call = client.newCall(request);
     final response = await call.execute();
+    await response.body.close();
 
     expect(response.code, 200);
     expect(response.cookies.length, 1);
     expect(response.cookies[0].name, '__cfduid');
+  });
+
+  test('Version', () async {
+    final request = Request.get('https://httpbin.org/get');
+    final call = client.newCall(request);
+    final response = await call.execute();
+    final json = await response.body.data.json();
+    await response.body.close();
+
+    print(json);
+
+    final pubSpec = await PubSpec.load(Directory('.'));
+
+    expect(response.code, 200);
+    expect(json['headers']['User-Agent'], 'Restio/${pubSpec.version}');
   });
 }
 
@@ -644,11 +703,11 @@ class _RetryAfterInterceptor implements Interceptor {
 class MyClientCertificateJar extends ClientCertificateJar {
   @override
   Future<ClientCertificate> get(String host, int port) async {
-    if (host == 'localhost' && port == 9000) {
+    if (host == 'localhost' && port == 3002) {
       return ClientCertificate(
-        await File('./test/server/server.crt').readAsBytes(),
-        await File('./test/server/server.key').readAsBytes(),
-        password: 'qZDTpGTCK4aRQV7JFh7WVnpCu6san4FC',
+        await File('./test/node/ca/certs/tiago.crt').readAsBytes(),
+        await File('./test/node/ca/certs/tiago.key').readAsBytes(),
+        password: '123mudar',
       );
     } else {
       return null;

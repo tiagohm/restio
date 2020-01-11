@@ -20,6 +20,7 @@ export 'disk_cache_store.dart';
 export 'editor.dart';
 export 'memory_cache_store.dart';
 export 'snapshot.dart';
+export 'snapshotable.dart';
 
 typedef KeyExtractor = String Function(Uri uri);
 

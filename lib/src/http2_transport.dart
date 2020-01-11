@@ -69,7 +69,8 @@ class Http2Transport implements Transport {
         headers
             .add(Header.ascii(HttpHeaders.userAgentHeader, client.userAgent));
       } else {
-        headers.add(Header.ascii(HttpHeaders.userAgentHeader, 'Restio/0.3.5'));
+        headers.add(Header.ascii(
+            HttpHeaders.userAgentHeader, 'Restio/${Restio.version}'));
       }
 
       // Content-Type.
@@ -112,7 +113,7 @@ class Http2Transport implements Transport {
     }
 
     // Monta a resposta.
-    return _makeResponse(client, request, _stream);
+    return _makeResponse(client, request, _stream, socket);
   }
 
   Future<SecureSocket> _createSocket(Request request) async {
@@ -193,6 +194,7 @@ class Http2Transport implements Transport {
     Restio client,
     Request request,
     ClientTransportStream stream,
+    SecureSocket socket,
   ) {
     final completer = Completer<Response>();
     final data = StreamController<List<int>>();
@@ -240,6 +242,8 @@ class Http2Transport implements Transport {
         );
 
         completer.complete(res);
+
+        socket.destroy();
       },
       onError: (e) {
         if (!completer.isCompleted) {

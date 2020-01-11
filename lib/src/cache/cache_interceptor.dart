@@ -1,13 +1,17 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:restio/restio.dart';
 import 'package:restio/src/cache/cache_request.dart';
 import 'package:restio/src/cache/cache_strategy.dart';
 import 'package:restio/src/chain.dart';
 import 'package:restio/src/client.dart';
+import 'package:restio/src/compression_type.dart';
+import 'package:restio/src/headers.dart';
+import 'package:restio/src/http_method.dart';
 import 'package:restio/src/interceptor.dart';
+import 'package:restio/src/media_type.dart';
 import 'package:restio/src/response.dart';
+import 'package:restio/src/response_body.dart';
 
 class CacheInterceptor implements Interceptor {
   final Restio client;
@@ -113,7 +117,7 @@ class CacheInterceptor implements Interceptor {
       networkResponse: _stripBody(networkResponse),
     );
 
-    if (response.hasBody && response.isCacheable(networkRequest)) {
+    if (response.hasBody && response.canCache(networkRequest)) {
       // Offer this request to the cache.
       final cacheRequest = await cache.put(response);
       return _cacheWritingResponse(cacheRequest, response);
