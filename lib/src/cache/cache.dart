@@ -16,10 +16,12 @@ import 'package:restio/src/response.dart';
 
 export 'cache_control.dart';
 export 'cache_store.dart';
+export 'cacheable.dart';
 export 'disk_cache_store.dart';
 export 'editor.dart';
 export 'memory_cache_store.dart';
 export 'snapshot.dart';
+export 'snapshotable.dart';
 
 typedef KeyExtractor = String Function(Uri uri);
 

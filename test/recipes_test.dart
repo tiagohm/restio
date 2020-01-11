@@ -558,7 +558,7 @@ void main() {
     final json = await response.body.data.json();
 
     expect(json['authenticated'], true);
-    expect(response.dnsIp, isNotNull);
+    expect(response.dns, isNotNull);
   });
 
   test('DNS-Over-HTTPS', () async {
@@ -581,7 +581,7 @@ void main() {
     final json = await response.body.data.json();
 
     expect(json['authenticated'], true);
-    expect(response.dnsIp, isNotNull);
+    expect(response.dns, isNotNull);
   });
 
   test('Force Accept-Encoding', () async {
