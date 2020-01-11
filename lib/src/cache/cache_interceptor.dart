@@ -1,22 +1,13 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:ip/ip.dart';
-import 'package:restio/src/cache/cache_control.dart';
+import 'package:restio/restio.dart';
 import 'package:restio/src/cache/cache_request.dart';
 import 'package:restio/src/cache/cache_strategy.dart';
-import 'package:restio/src/cache/cacheable.dart';
 import 'package:restio/src/chain.dart';
 import 'package:restio/src/client.dart';
-import 'package:restio/src/compression_type.dart';
-import 'package:restio/src/headers.dart';
-import 'package:restio/src/http_method.dart';
 import 'package:restio/src/interceptor.dart';
-import 'package:restio/src/media_type.dart';
-import 'package:restio/src/redirect.dart';
-import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
-import 'package:restio/src/response_body.dart';
 
 class CacheInterceptor implements Interceptor {
   final Restio client;
@@ -72,10 +63,8 @@ class CacheInterceptor implements Interceptor {
 
     // If we don't need the network, we're done.
     if (networkRequest == null) {
-      return _CacheableResponse.fromResponse(
-        cacheResponse,
-        null,
-        _stripBody(cacheResponse),
+      return cacheResponse.copyWith(
+        cacheResponse: _stripBody(cacheResponse),
       );
     }
 
@@ -95,16 +84,14 @@ class CacheInterceptor implements Interceptor {
     // If we have a cache response too, then we're doing a conditional get.
     if (cacheResponse != null) {
       if (networkResponse.code == HttpStatus.notModified) {
-        final response = _CacheableResponse.fromResponse(
-          cacheResponse.copyWith(
-            headers: _combine(cacheResponse.headers, networkResponse.headers),
-            sentAt: networkResponse.sentAt,
-            receivedAt: networkResponse.receivedAt,
-            spentMilliseconds: networkResponse.spentMilliseconds,
-            totalMilliseconds: networkResponse.totalMilliseconds,
-          ),
-          _stripBody(networkResponse),
-          _stripBody(cacheResponse),
+        final response = cacheResponse.copyWith(
+          headers: _combine(cacheResponse.headers, networkResponse.headers),
+          sentAt: networkResponse.sentAt,
+          receivedAt: networkResponse.receivedAt,
+          spentMilliseconds: networkResponse.spentMilliseconds,
+          totalMilliseconds: networkResponse.totalMilliseconds,
+          cacheResponse: _stripBody(cacheResponse),
+          networkResponse: _stripBody(networkResponse),
         );
 
         await networkResponse.body?.close();
@@ -121,13 +108,12 @@ class CacheInterceptor implements Interceptor {
       }
     }
 
-    final response = _CacheableResponse.fromResponse(
-      networkResponse,
-      _stripBody(networkResponse),
-      _stripBody(cacheResponse),
+    final response = networkResponse.copyWith(
+      cacheResponse: _stripBody(cacheResponse),
+      networkResponse: _stripBody(networkResponse),
     );
 
-    if (response.hasBody && response.canCache(networkRequest)) {
+    if (response.hasBody && response.isCacheable(networkRequest)) {
       // Offer this request to the cache.
       final cacheRequest = await cache.put(response);
       return _cacheWritingResponse(cacheRequest, response);
@@ -244,115 +230,6 @@ class CacheInterceptor implements Interceptor {
         contentType: response.body.contentType,
         onProgress: response.body.onProgress,
       ),
-    );
-  }
-}
-
-class _CacheableResponse extends Response implements Cacheable {
-  @override
-  final Response networkResponse;
-  @override
-  final Response cacheResponse;
-
-  _CacheableResponse({
-    request,
-    message,
-    code,
-    headers,
-    cookies,
-    body,
-    spentMilliseconds,
-    totalMilliseconds,
-    connectionInfo,
-    redirects,
-    originalRequest,
-    sentAt,
-    receivedAt,
-    certificate,
-    dns,
-    cacheControl,
-    this.networkResponse,
-    this.cacheResponse,
-  }) : super(
-          body: body,
-          cacheControl: cacheControl,
-          certificate: certificate,
-          code: code,
-          connectionInfo: connectionInfo,
-          cookies: cookies,
-          dns: dns,
-          headers: headers,
-          message: message,
-          originalRequest: originalRequest,
-          receivedAt: receivedAt,
-          redirects: redirects,
-          request: request,
-          sentAt: sentAt,
-          spentMilliseconds: spentMilliseconds,
-          totalMilliseconds: totalMilliseconds,
-        );
-
-  _CacheableResponse.fromResponse(
-    Response response,
-    this.networkResponse,
-    this.cacheResponse,
-  ) : super(
-          body: response.body,
-          cacheControl: response.cacheControl,
-          certificate: response.certificate,
-          code: response.code,
-          connectionInfo: response.connectionInfo,
-          cookies: response.cookies,
-          dns: response.dns,
-          headers: response.headers,
-          message: response.message,
-          originalRequest: response.originalRequest,
-          receivedAt: response.receivedAt,
-          redirects: response.redirects,
-          request: response.request,
-          sentAt: response.sentAt,
-          spentMilliseconds: response.spentMilliseconds,
-          totalMilliseconds: response.totalMilliseconds,
-        );
-
-  @override
-  Response copyWith({
-    Request request,
-    String message,
-    int code,
-    Headers headers,
-    List<Cookie> cookies,
-    ResponseBody body,
-    int spentMilliseconds,
-    int totalMilliseconds,
-    HttpConnectionInfo connectionInfo,
-    List<Redirect> redirects,
-    Request originalRequest,
-    DateTime sentAt,
-    DateTime receivedAt,
-    X509Certificate certificate,
-    IpAddress dns,
-    CacheControl cacheControl,
-  }) {
-    return _CacheableResponse(
-      request: request ?? this.request,
-      message: message ?? this.message,
-      code: code ?? this.code,
-      headers: headers ?? this.headers,
-      cookies: cookies ?? this.cookies,
-      body: body ?? this.body,
-      spentMilliseconds: spentMilliseconds ?? this.spentMilliseconds,
-      totalMilliseconds: totalMilliseconds ?? this.totalMilliseconds,
-      connectionInfo: connectionInfo ?? this.connectionInfo,
-      redirects: redirects ?? this.redirects,
-      originalRequest: originalRequest ?? this.originalRequest,
-      sentAt: sentAt ?? this.sentAt,
-      receivedAt: receivedAt ?? this.receivedAt,
-      certificate: certificate ?? this.certificate,
-      dns: dns ?? this.dns,
-      cacheControl: cacheControl ?? this.cacheControl,
-      networkResponse: networkResponse,
-      cacheResponse: cacheResponse,
     );
   }
 }

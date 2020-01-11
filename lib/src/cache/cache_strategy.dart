@@ -85,7 +85,7 @@ class CacheStrategyFactory {
     // If this response shouldn't have been stored, it should never be used
     // as a response source. This check should be redundant as long as the
     // persistence store is well-behaved and the rules are constant.
-    if (!cacheResponse.canCache(request)) {
+    if (!cacheResponse.isCacheable(request)) {
       return CacheStrategy._(request, null);
     }
 

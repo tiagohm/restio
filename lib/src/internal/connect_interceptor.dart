@@ -83,7 +83,7 @@ class ConnectInterceptor implements Interceptor {
 
       return response.copyWith(
         request: request,
-        dns: dnsIp,
+        dnsIp: dnsIp,
         sentAt: sentAt,
         receivedAt: receivedAt,
         spentMilliseconds: spentMilliseconds,

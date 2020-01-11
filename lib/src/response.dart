@@ -34,26 +34,31 @@ class Response {
 
   final X509Certificate certificate;
 
-  final IpAddress dns;
+  final IpAddress dnsIp;
 
-  Response(
-      {this.request,
-      this.message,
-      this.code,
-      this.headers,
-      this.cookies,
-      this.body,
-      this.spentMilliseconds,
-      this.totalMilliseconds,
-      this.connectionInfo,
-      this.redirects,
-      this.originalRequest,
-      this.sentAt,
-      this.receivedAt,
-      this.certificate,
-      this.dns,
-      CacheControl cacheControl})
-      : challenges = _challenges(code, headers),
+  final Response networkResponse;
+  final Response cacheResponse;
+
+  Response({
+    this.request,
+    this.message,
+    this.code,
+    this.headers,
+    this.cookies,
+    this.body,
+    this.spentMilliseconds,
+    this.totalMilliseconds,
+    this.connectionInfo,
+    this.redirects,
+    this.originalRequest,
+    this.sentAt,
+    this.receivedAt,
+    this.certificate,
+    this.dnsIp,
+    CacheControl cacheControl,
+    this.networkResponse,
+    this.cacheResponse,
+  })  : challenges = _challenges(code, headers),
         cacheControl =
             cacheControl ?? CacheControl.from(headers) ?? const CacheControl();
 
@@ -92,7 +97,7 @@ class Response {
     return res;
   }
 
-  bool canCache([Request request]) {
+  bool isCacheable([Request request]) {
     request ??= originalRequest;
 
     switch (code) {
@@ -170,8 +175,10 @@ class Response {
     DateTime sentAt,
     DateTime receivedAt,
     X509Certificate certificate,
-    IpAddress dns,
+    IpAddress dnsIp,
     CacheControl cacheControl,
+    Response networkResponse,
+    Response cacheResponse,
   }) {
     return Response(
       request: request ?? this.request,
@@ -188,8 +195,10 @@ class Response {
       sentAt: sentAt ?? this.sentAt,
       receivedAt: receivedAt ?? this.receivedAt,
       certificate: certificate ?? this.certificate,
-      dns: dns ?? this.dns,
+      dnsIp: dnsIp ?? this.dnsIp,
       cacheControl: cacheControl ?? this.cacheControl,
+      networkResponse: networkResponse ?? this.networkResponse,
+      cacheResponse: cacheResponse ?? this.cacheResponse,
     );
   }
 
@@ -198,6 +207,6 @@ class Response {
     return 'Response { body: $body, code: $code, totalMilliseconds: $totalMilliseconds, spentMilliseconds: $spentMilliseconds, sentAt: $sentAt, receivedAt: $receivedAt,'
         ' headers: $headers, cookies: $cookies, message: $message, request: $request,'
         ' connectionInfo: $connectionInfo, redirects: $redirects, originalRequest: $originalRequest,'
-        ' dns: $dns, cacheControl: $cacheControl }';
+        ' dnsIp: $dnsIp, cacheControl: $cacheControl, networkResponse: $networkResponse, cacheResponse: $cacheResponse }';
   }
 }
