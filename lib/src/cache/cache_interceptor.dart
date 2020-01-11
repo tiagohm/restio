@@ -69,6 +69,8 @@ class CacheInterceptor implements Interceptor {
     if (networkRequest == null) {
       return cacheResponse.copyWith(
         cacheResponse: _stripBody(cacheResponse),
+        spentMilliseconds: 0,
+        totalMilliseconds: 0,
       );
     }
 

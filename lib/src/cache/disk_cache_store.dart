@@ -104,11 +104,19 @@ class DiskCacheStore implements CacheStore {
     return true;
   }
 
+  static void _deleteFileSystemEntity(FileSystemEntity entity) {
+    entity.deleteSync(recursive: true);
+  }
+
   @override
   Future<bool> clear() async {
-    directory.listSync().forEach((item) => item.deleteSync());
-    _cache.clear();
-    return true;
+    try {
+      directory.listSync().forEach(_deleteFileSystemEntity);
+      _cache.clear();
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   @override

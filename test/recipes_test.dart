@@ -3,6 +3,7 @@
 import 'dart:io';
 
 import 'package:pubspec/pubspec.dart';
+import 'package:restio/cache.dart';
 import 'package:restio/restio.dart';
 import 'package:restio/src/client_certificate.dart';
 import 'package:restio/src/client_certificate_jar.dart';
@@ -475,10 +476,6 @@ void main() {
     await response.body.close();
   });
 
-  test('Pause & Resume', () async {
-    //  TODO:
-  });
-
   test('Retry after', () async {
     final retryAfterClient = client.copyWith(networkInterceptors: [
       _RetryAfterInterceptor(15),
@@ -677,6 +674,79 @@ void main() {
 
     expect(response.code, 200);
     expect(json['headers']['User-Agent'], 'Restio/${pubSpec.version}');
+  });
+
+  test('Cache', () async {
+    final cacheStore = DiskCacheStore(Directory('./.cache'));
+    final cache = Cache(store: cacheStore);
+    final cacheClient = client.copyWith(cache: cache, interceptors: []);
+
+    var request = Request.get('https://api.jikan.moe/v3/anime/1/episodes');
+
+    await cache.clear();
+
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+    await response.body.close();
+
+    expect(response.code, 200);
+    expect(response.spentMilliseconds, isNonZero);
+    expect(response.totalMilliseconds, isNonZero);
+    expect(response.networkResponse, isNotNull);
+    expect(response.cacheResponse, isNull);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+    await response.body.close();
+
+    expect(response.code, 200);
+    expect(response.spentMilliseconds, isZero);
+    expect(response.totalMilliseconds, isZero);
+    expect(response.networkResponse, isNull);
+    expect(response.cacheResponse, isNotNull);
+
+    request = request.copyWith(cacheControl: CacheControl.forceCache);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+    await response.body.close();
+
+    expect(response.code, 200);
+    expect(response.spentMilliseconds, isZero);
+    expect(response.totalMilliseconds, isZero);
+    expect(response.networkResponse, isNull);
+    expect(response.cacheResponse, isNotNull);
+
+    await cache.clear();
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+    await response.body.close();
+
+    expect(response.code, 504);
+    expect(response.cacheResponse, isNull);
+
+    request = request.copyWith(cacheControl: CacheControl.forceNetwork);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+    await response.body.close();
+
+    expect(response.code, 200);
+    expect(response.spentMilliseconds, isNonZero);
+    expect(response.totalMilliseconds, isNonZero);
+    expect(response.networkResponse, isNotNull);
+    expect(response.cacheResponse, isNull);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+    await response.body.close();
+
+    expect(response.code, 200);
+    expect(response.spentMilliseconds, isNonZero);
+    expect(response.totalMilliseconds, isNonZero);
+    expect(response.networkResponse, isNotNull);
+    expect(response.cacheResponse, isNull);
   });
 }
 

@@ -7,6 +7,8 @@ import 'package:restio/src/utils/string_pair_list.dart';
 class Headers extends StringPairList {
   const Headers._(List<String> items) : super(items);
 
+  static const empty = Headers._([]);
+
   HeadersBuilder toBuilder() {
     return HeadersBuilder._(this);
   }

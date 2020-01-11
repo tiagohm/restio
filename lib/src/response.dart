@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:ip/ip.dart';
+import 'package:meta/meta.dart';
 import 'package:restio/restio.dart';
 import 'package:restio/src/cache/cache_control.dart';
 import 'package:restio/src/challenge.dart';
@@ -41,15 +42,15 @@ class Response {
 
   Response({
     this.request,
-    this.message,
-    this.code,
-    this.headers,
-    this.cookies,
-    this.body,
-    this.spentMilliseconds,
-    this.totalMilliseconds,
+    this.message = '',
+    @required this.code,
+    this.headers = Headers.empty,
+    this.cookies = const [],
+    @required this.body,
+    this.spentMilliseconds = 0,
+    this.totalMilliseconds = 0,
     this.connectionInfo,
-    this.redirects,
+    this.redirects = const [],
     this.originalRequest,
     this.sentAt,
     this.receivedAt,
@@ -60,7 +61,7 @@ class Response {
     this.cacheResponse,
   })  : challenges = _challenges(code, headers),
         cacheControl =
-            cacheControl ?? CacheControl.from(headers) ?? const CacheControl();
+            cacheControl ?? CacheControl.from(headers) ?? CacheControl.empty;
 
   bool get isSuccess => code != null && code >= 200 && code <= 299;
 

@@ -186,6 +186,7 @@ class HttpTransport implements Transport {
 
       // Monta a resposta.
       final res = Response(
+        body: null,
         code: response.statusCode,
         headers: _obtainHeadersfromHttpHeaders(response.headers),
         message: response.reasonPhrase,

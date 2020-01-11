@@ -224,11 +224,9 @@ class Http2Transport implements Transport {
         data.close();
 
         var res = Response(
+          body: null,
           code: code,
           headers: headers.build(),
-          // message: response.reasonPhrase,
-          // connectionInfo: ,
-          // certificate: response.certificate,
         );
 
         res = res.copyWith(

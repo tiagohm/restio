@@ -5,6 +5,8 @@ import 'package:restio/src/utils/string_pair_list.dart';
 class Queries extends StringPairList {
   const Queries._(List<String> items) : super(items);
 
+  static const empty = Queries._([]);
+
   QueriesBuilder toBuilder() {
     return QueriesBuilder._(this);
   }

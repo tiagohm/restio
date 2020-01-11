@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:math';
 
 import 'package:ip/ip.dart';
 import 'package:restio/src/encodings.dart';
+import 'package:restio/src/response.dart';
 
 Encoding obtainEncodingByName(
   String name, [
@@ -68,4 +70,36 @@ bool isIp(String ip) {
   } catch (e) {
     return false;
   }
+}
+
+List<Cookie> obtainCookiesFromResponse(Response response) {
+  final cookies = <Cookie>[];
+
+  response.headers.forEach((name, value) {
+    if (name == 'set-cookie') {
+      try {
+        final cookie = Cookie.fromSetCookieValue(value);
+        if (cookie.name != null && cookie.name.isNotEmpty) {
+          final domain = cookie.domain == null
+              ? response.request.uri.host
+              : cookie.domain.startsWith('.')
+                  ? cookie.domain.substring(1)
+                  : cookie.domain;
+          final newCookie = Cookie(cookie.name, cookie.value)
+            ..expires = cookie.expires
+            ..maxAge = cookie.maxAge
+            ..domain = domain
+            ..path = cookie.path ?? response.request.uri.path
+            ..secure = cookie.secure
+            ..httpOnly = cookie.httpOnly;
+          // Adiciona à lista de cookies a salvar.
+          cookies.add(newCookie);
+        }
+      } catch (e) {
+        // nada.
+      }
+    }
+  });
+
+  return cookies;
 }

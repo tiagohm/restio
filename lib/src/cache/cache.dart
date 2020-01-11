@@ -10,6 +10,7 @@ import 'package:restio/src/cache/editor.dart';
 import 'package:restio/src/cache/entry.dart';
 import 'package:restio/src/cache/snapshot.dart';
 import 'package:restio/src/cache/snapshotable.dart';
+import 'package:restio/src/helpers.dart';
 import 'package:restio/src/http_method.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
@@ -110,7 +111,9 @@ class Cache {
       return null;
     }
 
-    return response;
+    return response.copyWith(
+      cookies: obtainCookiesFromResponse(response),
+    );
   }
 
   Future<CacheRequest> put(Response response) async {

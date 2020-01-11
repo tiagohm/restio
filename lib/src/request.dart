@@ -28,7 +28,7 @@ class Request {
         headers = headers ?? HeadersBuilder().build(),
         queries = _obtainQueries(uri, queries),
         cacheControl =
-            cacheControl ?? CacheControl.from(headers) ?? const CacheControl();
+            cacheControl ?? CacheControl.from(headers) ?? CacheControl.empty;
 
   Request.get(
     String uri, {

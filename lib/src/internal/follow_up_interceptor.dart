@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math';
 
 import 'package:restio/src/chain.dart';
 import 'package:restio/src/client.dart';
@@ -34,7 +35,7 @@ class FollowUpInterceptor implements Interceptor {
         return response.copyWith(
           redirects: redirects,
           originalRequest: originalRequest,
-          totalMilliseconds: elapsedMilliseconds,
+          totalMilliseconds: max(elapsedMilliseconds, 0),
         );
       }
 
@@ -49,10 +50,10 @@ class FollowUpInterceptor implements Interceptor {
 
       redirects.add(Redirect(
         request: request,
-        elapsedMilliseconds: elapsedMilliseconds,
+        elapsedMilliseconds: max(elapsedMilliseconds, 0),
         response: response.copyWith(
           originalRequest: originalRequest,
-          totalMilliseconds: response.spentMilliseconds,
+          totalMilliseconds: response.spentMilliseconds ?? 0,
         ),
       ));
     }
