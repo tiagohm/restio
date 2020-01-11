@@ -207,8 +207,7 @@ class CacheInterceptor implements Interceptor {
       return response;
     }
 
-    final cacheWritingSource =
-        StreamTransformer<List<int>, List<int>>.fromHandlers(
+    final cacheStream = StreamTransformer<List<int>, List<int>>.fromHandlers(
       handleData: (data, sink) {
         sink.add(data);
         cacheSink.add(data);
@@ -219,13 +218,13 @@ class CacheInterceptor implements Interceptor {
       },
       handleDone: (sink) {
         sink.close();
-        cacheSink.close();
       },
     ).bind(response.body.data.stream);
 
     return response.copyWith(
-      body: ResponseBody.stream(
-        cacheWritingSource,
+      body: _CacheResponseBody(
+        cacheStream,
+        () async => cacheSink.close(),
         compressionType: response.body.compressionType,
         contentLength: response.body.contentLength,
         contentType: response.body.contentType,
@@ -233,4 +232,26 @@ class CacheInterceptor implements Interceptor {
       ),
     );
   }
+}
+
+class _CacheResponseBody extends ResponseBody {
+  final Future Function() onClose;
+
+  _CacheResponseBody(
+    Stream<List<int>> stream,
+    this.onClose, {
+    MediaType contentType,
+    int contentLength,
+    CompressionType compressionType,
+    void Function(int sent, int total, bool done) onProgress,
+  }) : super(
+          stream,
+          contentType: contentType,
+          contentLength: contentLength,
+          compressionType: compressionType,
+          onProgress: onProgress,
+        );
+
+  @override
+  Future close() => onClose();
 }

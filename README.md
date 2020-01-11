@@ -69,26 +69,31 @@ final response = await call.execute();
 #### Get response stream:
 ```dart
 final stream = response.body.data.stream;
+await response.body.close();
 ```
 
 #### Get raw response bytes:
 ```dart
 final bytes = await response.body.data.raw();
+await response.body.close();
 ```
 
 #### Get decompressed response bytes (gzip, deflate or brotli):
 ```dart
 final bytes = await response.body.data.decompressed();
+await response.body.close();
 ```
 
 #### Get response string:
 ```dart
 final string = await response.body.data.string();
+await response.body.close();
 ```
 
 #### Get response JSON:
 ```dart
 final json = await response.body.data.json();
+await response.body.close();
 ```
 
 #### Sending form data:
@@ -152,6 +157,7 @@ final request = Request.get('https://httpbin.org/stream-bytes/36001');
 final call = client.newCall(request);
 final response = await call.execute();
 final data = await response.body.raw();
+await response.body.close();
 ```
 
 #### Listening for upload progress:
@@ -178,6 +184,7 @@ final response = await call.execute();
 final response = await call.execute();
 final responseBody = response.body;
 final data = await responseBody.raw();
+await response.body.close();
 
 // Called from any callback.
 responseBody.pause();

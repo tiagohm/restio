@@ -4,12 +4,12 @@ import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/src/cache/cache_request.dart';
-import 'package:restio/src/cache/cache_response_body.dart';
 import 'package:restio/src/cache/cache_store.dart';
 import 'package:restio/src/cache/cache_strategy.dart';
 import 'package:restio/src/cache/editor.dart';
 import 'package:restio/src/cache/entry.dart';
 import 'package:restio/src/cache/snapshot.dart';
+import 'package:restio/src/cache/snapshotable.dart';
 import 'package:restio/src/http_method.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
@@ -164,7 +164,7 @@ class Cache {
     Response network,
   ) async {
     final entry = Entry.fromResponse(network);
-    final body = cached.body as CacheResponseBody;
+    final body = cached.body as Snapshotable;
     final snapshot = body.snapshot;
     Editor editor;
     Sink<List<int>> sink;

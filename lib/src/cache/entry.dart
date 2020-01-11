@@ -1,14 +1,16 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:restio/src/cache/cache_response_body.dart';
+import 'package:restio/src/cache/cache.dart';
 import 'package:restio/src/cache/snapshot.dart';
+import 'package:restio/src/cache/snapshotable.dart';
 import 'package:restio/src/compression_type.dart';
 import 'package:restio/src/headers.dart';
 import 'package:restio/src/helpers.dart';
 import 'package:restio/src/media_type.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
+import 'package:restio/src/response_body.dart';
 
 class Entry {
   final String url;
@@ -96,7 +98,7 @@ class Entry {
       receivedAt: DateTime.fromMillisecondsSinceEpoch(receivedResponseMillis),
       spentMilliseconds: spentMilliseconds,
       totalMilliseconds: spentMilliseconds,
-      body: CacheResponseBody(
+      body: _SnapshotableResponseBody(
         snapshot,
         contentType: contentType,
         contentLength: contentLength,
@@ -226,4 +228,23 @@ class Entry {
 
     return result.build();
   }
+}
+
+class _SnapshotableResponseBody extends ResponseBody implements Snapshotable {
+  @override
+  final Snapshot snapshot;
+
+  _SnapshotableResponseBody(
+    this.snapshot, {
+    MediaType contentType,
+    int contentLength,
+    CompressionType compressionType,
+    void Function(int sent, int total, bool done) onProgress,
+  }) : super(
+          snapshot.source(Cache.entryBody),
+          contentType: contentType,
+          contentLength: contentLength,
+          compressionType: compressionType,
+          onProgress: onProgress,
+        );
 }

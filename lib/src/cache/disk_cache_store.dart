@@ -187,7 +187,7 @@ class _Editor implements Editor {
   }
 }
 
-class _FileSink implements StreamSink<List<int>> {
+class _FileSink extends StreamSink<List<int>> {
   final IOSink sink;
 
   _FileSink(this.sink);
@@ -198,7 +198,10 @@ class _FileSink implements StreamSink<List<int>> {
   }
 
   @override
-  void addError(Object error, [StackTrace stackTrace]) {
+  void addError(
+    Object error, [
+    StackTrace stackTrace,
+  ]) {
     sink.addError(error, stackTrace);
   }
 
@@ -209,7 +212,12 @@ class _FileSink implements StreamSink<List<int>> {
 
   @override
   Future close() async {
-    await sink.flush();
+    try {
+      await sink.flush();
+    } catch (e) {
+      // nada.
+    }
+
     return sink.close();
   }
 
