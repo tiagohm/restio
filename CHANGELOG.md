@@ -1,3 +1,7 @@
+## 0.4.2
+
+- Fix SSE connection bug.
+
 ## 0.4.1
 
 - Improvements.
