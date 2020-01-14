@@ -71,9 +71,8 @@ class HawkAuthenticator extends Authenticator {
     );
 
     return originalRequest.copyWith(
-      headers: originalRequest.headers
-          .toBuilder()
-          .set(headerName, headerValue)
+      headers: (originalRequest.headers.toBuilder()
+            ..set(headerName, headerValue))
           .build(),
     );
   }

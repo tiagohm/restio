@@ -62,9 +62,8 @@ class DigestAuthenticator extends Authenticator {
             : HttpHeaders.authorizationHeader;
 
         return response.request.copyWith(
-          headers: response.request.headers
-              .toBuilder()
-              .set(headerName, headerValue)
+          headers: (response.request.headers.toBuilder()
+                ..set(headerName, headerValue))
               .build(),
         );
       }

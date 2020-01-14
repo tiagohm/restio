@@ -50,12 +50,11 @@ class BasicAuthenticator extends Authenticator {
         : HttpHeaders.authorizationHeader;
 
     return originalRequest.copyWith(
-      headers: originalRequest.headers
-          .toBuilder()
-          .set(
-            headerName,
-            header(username, password, encoding: challenge?.encoding),
-          )
+      headers: (originalRequest.headers.toBuilder()
+            ..set(
+              headerName,
+              header(username, password, encoding: challenge?.encoding),
+            ))
           .build(),
     );
   }

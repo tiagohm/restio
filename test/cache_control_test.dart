@@ -88,10 +88,10 @@ void main() {
 
   test('Parse Headers', () {
     final cacheControl = CacheControl.from(
-      HeadersBuilder()
-          .add('cache-control', 'max-age=12')
-          .add('pragma', 'must-revalidate')
-          .add('pragma', 'public')
+      (HeadersBuilder()
+            ..add('cache-control', 'max-age=12')
+            ..add('pragma', 'must-revalidate')
+            ..add('pragma', 'public'))
           .build(),
     );
 

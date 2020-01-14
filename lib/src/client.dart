@@ -286,9 +286,8 @@ class _Sse implements Sse {
       onListen: () async {
         final realRequest = request.copyWith(
           method: 'GET',
-          headers: request.headers
-              .toBuilder()
-              .set('accept', 'text/event-stream')
+          headers: (request.headers.toBuilder()
+                ..set('accept', 'text/event-stream'))
               .build(),
         );
 

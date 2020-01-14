@@ -1,8 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 
-// ignore_for_file: avoid_returning_this
-
 @immutable
 abstract class StringPairList extends Equatable {
   @protected
@@ -153,7 +151,11 @@ abstract class StringPairListBuilder<L extends StringPairList> {
     return isCaseSensitive ? name : name?.toLowerCase();
   }
 
-  StringPairListBuilder<L> add(String name, value) {
+  void clear() {
+    items.clear();
+  }
+
+  void add(String name, Object value) {
     if (name == null || name.isEmpty) {
       throw ArgumentError('name is null or empty');
     }
@@ -171,17 +173,26 @@ abstract class StringPairListBuilder<L extends StringPairList> {
       items.add(name);
       items.add('$value'.trim());
     }
-
-    return this;
   }
 
-  StringPairListBuilder<L> set(String name, value) {
-    remove(name);
+  void set(String name, Object value) {
+    removeAll(name);
     add(name, value);
-    return this;
   }
 
-  StringPairListBuilder<L> remove(String name) {
+  void remove(String name, Object value) {
+    name = rightName(name);
+
+    for (var i = 0; i < items.length; i += 2) {
+      if (items[i] == name && items[i + 1] == value?.toString()) {
+        items.removeAt(i);
+        items.removeAt(i);
+        i -= 2;
+      }
+    }
+  }
+
+  void removeAll(String name) {
     name = rightName(name);
 
     for (var i = 0; i < items.length; i += 2) {
@@ -191,22 +202,18 @@ abstract class StringPairListBuilder<L extends StringPairList> {
         i -= 2;
       }
     }
-
-    return this;
   }
 
-  StringPairListBuilder<L> removeAt(int index) {
+  void removeAt(int index) {
     final realIndex = index * 2;
 
     if (realIndex < items.length) {
       items.removeAt(realIndex);
       items.removeAt(realIndex);
     }
-
-    return this;
   }
 
-  StringPairListBuilder<L> removeFirst(String name) {
+  void removeFirst(String name) {
     name = rightName(name);
 
     for (var i = 0; i < items.length; i += 2) {
@@ -216,11 +223,9 @@ abstract class StringPairListBuilder<L extends StringPairList> {
         break;
       }
     }
-
-    return this;
   }
 
-  StringPairListBuilder<L> removeLast(String name) {
+  void removeLast(String name) {
     name = rightName(name);
 
     for (var i = items.length - 2; i >= 0; i -= 2) {
@@ -230,8 +235,6 @@ abstract class StringPairListBuilder<L extends StringPairList> {
         break;
       }
     }
-
-    return this;
   }
 
   L build();

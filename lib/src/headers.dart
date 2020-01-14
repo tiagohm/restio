@@ -71,20 +71,20 @@ class HeadersBuilder extends StringPairListBuilder<Headers> {
   @override
   bool get isCaseSensitive => false;
 
-  HeadersBuilder addLine(String line) {
+  void addLine(String line) {
     final index = line.indexOf(':', 1);
 
     if (index != -1) {
-      return add(
+      add(
         line.substring(0, index).trim(),
         line.substring(index + 1).trim(),
       );
     } else if (line.startsWith(':')) {
       // Work around empty header names and header names that start with a
       // colon (created by old broken SPDY versions of the response cache).
-      return add('', line.substring(1).trim()); // Empty header name.
+      add('', line.substring(1).trim()); // Empty header name.
     } else {
-      return add('', line); // No header name.
+      add('', line); // No header name.
     }
   }
 

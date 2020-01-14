@@ -87,7 +87,8 @@ void main() {
     final request = Request.post(
       'https://postman-echo.com/post',
       body: RequestBody.string('Olá!', contentType: MediaType.text),
-      headers: HeadersBuilder().add('content-type', 'application/json').build(),
+      headers:
+          (HeadersBuilder()..add('content-type', 'application/json')).build(),
     );
 
     final data = await requestJson(client, request);
@@ -100,7 +101,7 @@ void main() {
   test('Posting Form Parameters', () async {
     final request = Request.post(
       'https://postman-echo.com/post',
-      body: FormBodyBuilder().add('a', 'b').add('c', 'd').build(),
+      body: (FormBodyBuilder()..add('a', 'b')..add('c', 'd')).build(),
     );
 
     final data = await requestJson(client, request);
@@ -316,8 +317,8 @@ void main() {
   test('Queries', () async {
     final request = Request.get(
       'https://api.github.com/search/repositories?q=flutter&sort=stars',
-      queries:
-          QueriesBuilder().add('order', 'desc').add('per_page', '2').build(),
+      queries: (QueriesBuilder()..add('order', 'desc')..add('per_page', '2'))
+          .build(),
     );
 
     expect(request.queries.first('q'), 'flutter');
@@ -762,9 +763,8 @@ class _RetryAfterInterceptor implements Interceptor {
     final response = await chain.proceed(request);
 
     return response.copyWith(
-      headers: response.headers
-          .toBuilder()
-          .set(HttpHeaders.retryAfterHeader, seconds)
+      headers: (response.headers.toBuilder()
+            ..set(HttpHeaders.retryAfterHeader, seconds))
           .build(),
     );
   }

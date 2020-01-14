@@ -43,9 +43,8 @@ class BearerAuthenticator extends Authenticator {
     final headerValue = '$prefix $token';
 
     return originalRequest.copyWith(
-      headers: originalRequest.headers
-          .toBuilder()
-          .set(headerName, headerValue)
+      headers: (originalRequest.headers.toBuilder()
+            ..set(headerName, headerValue))
           .build(),
     );
   }

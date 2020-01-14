@@ -2039,10 +2039,10 @@ void main() {
           MockResponseInterceptor([
             MockResponse(
               body: 'A',
-              headers: HeadersBuilder()
-                  .add('cache-control', 'max-age=60')
-                  .add('vary', 'accept-language, accept-charset')
-                  .add('vary', 'accept-encoding')
+              headers: (HeadersBuilder()
+                    ..add('cache-control', 'max-age=60')
+                    ..add('vary', 'accept-language, accept-charset')
+                    ..add('vary', 'accept-encoding'))
                   .build(),
             ),
             MockResponse(body: 'B'),
@@ -2083,10 +2083,10 @@ void main() {
           MockResponseInterceptor([
             MockResponse(
               body: 'A',
-              headers: HeadersBuilder()
-                  .add('cache-control', 'max-age=60')
-                  .add('vary', 'accept-language, accept-charset')
-                  .add('vary', 'accept-encoding')
+              headers: (HeadersBuilder()
+                    ..add('cache-control', 'max-age=60')
+                    ..add('vary', 'accept-language, accept-charset')
+                    ..add('vary', 'accept-encoding'))
                   .build(),
             ),
             MockResponse(body: 'B'),
@@ -2127,9 +2127,9 @@ void main() {
           MockResponseInterceptor([
             MockResponse(
               body: 'A',
-              headers: HeadersBuilder()
-                  .add('cache-control', 'max-age=60')
-                  .add('vary', '*')
+              headers: (HeadersBuilder()
+                    ..add('cache-control', 'max-age=60')
+                    ..add('vary', '*'))
                   .build(),
             ),
             MockResponse(body: 'B'),

@@ -163,10 +163,9 @@ class Entry {
     final sendRequestMillisString = responseHeaders.value(_sentMillis);
     final receivedResponseMillisString = responseHeaders.value(_receivedMillis);
 
-    responseHeaders = responseHeaders
-        .toBuilder()
-        .remove(_sentMillis)
-        .remove(_receivedMillis)
+    responseHeaders = (responseHeaders.toBuilder()
+          ..removeAll(_sentMillis)
+          ..removeAll(_receivedMillis))
         .build();
 
     final sentRequestMillis = int.tryParse(sendRequestMillisString);

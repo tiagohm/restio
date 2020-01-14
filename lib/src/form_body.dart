@@ -2,8 +2,6 @@ import 'package:restio/src/media_type.dart';
 import 'package:restio/src/request_body.dart';
 import 'package:restio/src/utils/string_pair_list.dart';
 
-// ignore_for_file: avoid_returning_this
-
 class FormBody extends StringPairList implements RequestBody {
   @override
   final MediaType contentType;
@@ -59,9 +57,8 @@ class FormBodyBuilder extends StringPairListBuilder<FormBody> {
     body.copyToBuilder(this);
   }
 
-  FormBodyBuilder charset(String value) {
+  void charset(String value) {
     _charset = value ?? 'utf-8';
-    return this;
   }
 
   @override

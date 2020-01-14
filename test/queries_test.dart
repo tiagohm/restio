@@ -34,7 +34,7 @@ void main() {
 
     expect(headers.length, 3);
 
-    builder.remove('foo');
+    builder.removeAll('foo');
 
     headers = builder.build();
 
