@@ -749,6 +749,18 @@ void main() {
     expect(response.networkResponse, isNotNull);
     expect(response.cacheResponse, isNull);
   });
+
+  test('Empty Cache-Control Value', () async {
+    final request = Request.get(
+      'https://httpbin.org/get',
+      headers: (HeadersBuilder()..add('cache-control', '')).build(),
+    );
+    final call = client.newCall(request);
+    final response = await call.execute();
+    await response.body.close();
+
+    expect(response.code, 200);
+  });
 }
 
 class _RetryAfterInterceptor implements Interceptor {

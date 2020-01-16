@@ -91,11 +91,19 @@ class CacheControl extends Equatable {
     final cacheControl = headers.all(HttpHeaders.cacheControlHeader);
 
     for (final item in pragma) {
-      params.addAll(_parseHeader(item));
+      if (item.isNotEmpty) {
+        params.addAll(_parseHeader(item));
+      }
     }
 
     for (final item in cacheControl) {
-      params.addAll(_parseHeader(item));
+      if (item.isNotEmpty) {
+        params.addAll(_parseHeader(item));
+      }
+    }
+
+    if (params.isEmpty) {
+      return CacheControl.empty;
     }
 
     return CacheControl.of(params);
