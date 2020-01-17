@@ -42,6 +42,10 @@ class FormBody extends StringPairList implements RequestBody {
     }
   }
 
+  FormBodyBuilder toBuilder() {
+    return FormBodyBuilder._(this);
+  }
+
   @override
   String toString() {
     return 'FormBody { contentType: $contentType, items: $items }';

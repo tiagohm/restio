@@ -134,7 +134,7 @@ class _ResponseBodyData extends ResponseBodyData {
   Future<List<int>> raw() => _raw(decompress: false);
 
   @override
-  Future<List<int>> decompressed() => _raw(decompress: true);
+  Future<List<int>> decompressed() => _raw();
 
   @override
   Future<String> string() async {
