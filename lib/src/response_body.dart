@@ -5,6 +5,7 @@ import 'package:restio/src/compression_type.dart';
 import 'package:restio/src/decompressor.dart';
 import 'package:restio/src/media_type.dart';
 import 'package:restio/src/response_body_data.dart';
+import 'package:restio/src/utils/closeable_stream.dart';
 
 class ResponseBody {
   final Stream<List<int>> _data;
@@ -28,7 +29,7 @@ class ResponseBody {
     CompressionType compressionType = CompressionType.notCompressed,
     void Function(int sent, int total, bool done) onProgress,
   }) {
-    return ResponseBody(
+    return ResponseBody.stream(
       Stream.fromIterable([data]),
       contentType: contentType,
       contentLength: contentLength == -1 ? data.length : contentLength,
@@ -44,11 +45,10 @@ class ResponseBody {
     void Function(int sent, int total, bool done) onProgress,
   }) {
     final encoding = contentType?.encoding ?? convert.utf8;
-    return ResponseBody(
+    return ResponseBody.stream(
       Stream.fromFuture(Future(() => encoding.encode(text))),
       contentType: contentType,
       contentLength: contentLength,
-      compressionType: CompressionType.notCompressed,
       onProgress: onProgress,
     );
   }
@@ -61,7 +61,7 @@ class ResponseBody {
     void Function(int sent, int total, bool done) onProgress,
   }) {
     return ResponseBody(
-      data,
+      data is CloseableStream ? data : CloseableStream(data),
       contentType: contentType,
       contentLength: contentLength,
       compressionType: compressionType,

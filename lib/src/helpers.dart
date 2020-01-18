@@ -105,6 +105,12 @@ List<Cookie> obtainCookiesFromResponse(Response response) {
 }
 
 const formEncodeSet = " \"':;<=>@[]^`{}|/\\?#&!\$(),~";
+const usernameEncodeSet = " \"':;<=>@[]^`{}|/\\?#";
+const passwordEncodeSet = " \"':;<=>@[]^`{}|/\\?#";
+const pathSegmentEncodeSet = ' \"<>^`{}|/\\?#';
+const queryEncodeSet = " \"'<>#";
+const fragmentEncodeSet = '';
+const queryComponentEncodeSet = " !\"#\$&'(),/:;<=>?@[]\\^`{|}~";
 
 const _hexDigits = [
   48,
@@ -129,9 +135,17 @@ List<int> canonicalize(
   String input,
   String encodeSet, {
   bool plusIsSpace = false,
-  bool unicodeAllowed = false,
+  bool asciiOnly = true,
   Encoding encoding,
 }) {
+  if (input == null) {
+    return null;
+  }
+
+  if (input.isEmpty) {
+    return const [];
+  }
+
   encoding ??= utf8;
 
   final res = <int>[];
@@ -144,7 +158,7 @@ List<int> canonicalize(
       res..add(37)..add(50)..add(66); // %2B.
     } else if (codeUnit < 0x20 ||
         codeUnit == 0x7f ||
-        codeUnit >= 0x80 && !unicodeAllowed ||
+        codeUnit >= 0x80 && asciiOnly ||
         encodeSet.contains(c) ||
         c == '%') {
       final bytes = encoding.encode(c);
@@ -167,9 +181,17 @@ String canonicalizeToString(
   String input,
   String encodeSet, {
   bool plusIsSpace = false,
-  bool unicodeAllowed = false,
+  bool asciiOnly = true,
   Encoding encoding,
 }) {
+  if (input == null) {
+    return null;
+  }
+
+  if (input.isEmpty) {
+    return '';
+  }
+
   encoding ??= utf8;
 
   return encoding.decode(
@@ -177,7 +199,7 @@ String canonicalizeToString(
       input,
       encodeSet,
       plusIsSpace: plusIsSpace,
-      unicodeAllowed: unicodeAllowed,
+      asciiOnly: asciiOnly,
       encoding: encoding,
     ),
   );

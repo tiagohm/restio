@@ -2521,7 +2521,7 @@ void main() {
       expect(await response.body.data.string(), 'A');
       await response.body.close();
 
-      expect(await cache.size(), 138);
+      expect(await cache.size(), 134);
 
       await cache.clear();
       expect(await cache.size(), 0);

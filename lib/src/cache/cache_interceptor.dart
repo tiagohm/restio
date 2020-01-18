@@ -12,6 +12,7 @@ import 'package:restio/src/interceptor.dart';
 import 'package:restio/src/media_type.dart';
 import 'package:restio/src/response.dart';
 import 'package:restio/src/response_body.dart';
+import 'package:restio/src/utils/closeable_stream.dart';
 
 class CacheInterceptor implements Interceptor {
   final Restio client;
@@ -213,24 +214,16 @@ class CacheInterceptor implements Interceptor {
       return response;
     }
 
-    final cacheStream = StreamTransformer<List<int>, List<int>>.fromHandlers(
-      handleData: (data, sink) {
-        sink.add(data);
-        cacheSink.add(data);
-      },
-      handleError: (error, stackTrace, sink) {
-        sink.addError(error, stackTrace);
-        cacheSink.addError(error, stackTrace);
-      },
-      handleDone: (sink) {
-        sink.close();
-      },
-    ).bind(response.body.data.stream);
+    final cacheStream = CloseableStream(
+      response.body.data.stream,
+      onData: cacheSink.add,
+      onError: cacheSink.addError,
+    );
 
     return response.copyWith(
       body: _CacheResponseBody(
         cacheStream,
-        () async => cacheSink.close(),
+        onClose: () async => cacheSink.close(),
         compressionType: response.body.compressionType,
         contentLength: response.body.contentLength,
         contentType: response.body.contentType,
@@ -241,11 +234,12 @@ class CacheInterceptor implements Interceptor {
 }
 
 class _CacheResponseBody extends ResponseBody {
+  final CloseableStream<List<int>> stream;
   final Future Function() onClose;
 
   _CacheResponseBody(
-    Stream<List<int>> stream,
-    this.onClose, {
+    this.stream, {
+    this.onClose,
     MediaType contentType,
     int contentLength,
     CompressionType compressionType,
@@ -259,5 +253,8 @@ class _CacheResponseBody extends ResponseBody {
         );
 
   @override
-  Future close() => onClose();
+  Future close() async {
+    await stream.close();
+    await onClose?.call();
+  }
 }
