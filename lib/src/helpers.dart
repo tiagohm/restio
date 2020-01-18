@@ -103,3 +103,82 @@ List<Cookie> obtainCookiesFromResponse(Response response) {
 
   return cookies;
 }
+
+const formEncodeSet = " \"':;<=>@[]^`{}|/\\?#&!\$(),~";
+
+const _hexDigits = [
+  48,
+  49,
+  50,
+  51,
+  52,
+  53,
+  54,
+  55,
+  56,
+  57,
+  65,
+  66,
+  67,
+  68,
+  69,
+  70
+];
+
+List<int> canonicalize(
+  String input,
+  String encodeSet, {
+  bool plusIsSpace = false,
+  bool unicodeAllowed = false,
+  Encoding encoding,
+}) {
+  encoding ??= utf8;
+
+  final res = <int>[];
+
+  for (var i = 0; i < input.length; i++) {
+    final c = input[i];
+    final codeUnit = input.codeUnitAt(i);
+
+    if (c == '+' && plusIsSpace) {
+      res..add(37)..add(50)..add(66); // %2B.
+    } else if (codeUnit < 0x20 ||
+        codeUnit == 0x7f ||
+        codeUnit >= 0x80 && !unicodeAllowed ||
+        encodeSet.contains(c) ||
+        c == '%') {
+      final bytes = encoding.encode(c);
+
+      for (final byte in bytes) {
+        res
+          ..add(37)
+          ..add(_hexDigits[(byte >> 4) & 0xf])
+          ..add(_hexDigits[byte & 0xf]);
+      }
+    } else {
+      res.addAll(encoding.encode(c));
+    }
+  }
+
+  return res;
+}
+
+String canonicalizeToString(
+  String input,
+  String encodeSet, {
+  bool plusIsSpace = false,
+  bool unicodeAllowed = false,
+  Encoding encoding,
+}) {
+  encoding ??= utf8;
+
+  return encoding.decode(
+    canonicalize(
+      input,
+      encodeSet,
+      plusIsSpace: plusIsSpace,
+      unicodeAllowed: unicodeAllowed,
+      encoding: encoding,
+    ),
+  );
+}

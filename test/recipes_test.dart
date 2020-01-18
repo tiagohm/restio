@@ -761,6 +761,38 @@ void main() {
 
     expect(response.code, 200);
   });
+
+  test('Encoded Form Body', () async {
+    final body = (FormBodyBuilder()
+          ..add(" \"':;<=>+@[]^`{}|/\\?#&!\$(),~",
+              " \"':;<=>+@[]^`{}|/\\?#&!\$(),~")
+          ..add('円', '円')
+          ..add('£', '£')
+          ..add('text', 'text'))
+        .build();
+
+    final request = Request.post(
+      'https://httpbin.org/post',
+      body: body,
+    );
+
+    final call = client.newCall(request);
+    final response = await call.execute();
+
+    final json = await response.body.data.json();
+
+    print(json['form']);
+
+    await response.body.close();
+
+    expect(response.code, 200);
+
+    expect(json['form'][" \"':;<=>+@[]^`{}|/\\?#&!\$(),~"],
+        " \"':;<=>+@[]^`{}|/\\?#&!\$(),~");
+    expect(json['form']['円'], '円');
+    expect(json['form']['£'], '£');
+    expect(json['form']['text'], 'text');
+  });
 }
 
 class _RetryAfterInterceptor implements Interceptor {

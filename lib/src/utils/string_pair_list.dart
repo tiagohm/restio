@@ -166,12 +166,12 @@ abstract class StringPairListBuilder<L extends StringPairList> {
       for (final item in value) {
         if (item is String || item is num || item is bool) {
           items.add(name);
-          items.add('$item'.trim());
+          items.add('$item');
         }
       }
     } else if (value is String || value is num || value is bool) {
       items.add(name);
-      items.add('$value'.trim());
+      items.add('$value');
     }
   }
 
