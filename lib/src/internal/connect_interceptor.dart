@@ -87,6 +87,7 @@ class ConnectInterceptor implements Interceptor {
         sentAt: sentAt,
         receivedAt: receivedAt,
         spentMilliseconds: spentMilliseconds,
+        totalMilliseconds: spentMilliseconds,
       );
     } on Exception {
       if (cancellable != null && cancellable.isCancelled) {

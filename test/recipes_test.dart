@@ -705,6 +705,10 @@ void main() {
     expect(response.spentMilliseconds, isNonZero);
     expect(response.totalMilliseconds, isNonZero);
     expect(response.networkResponse, isNotNull);
+    expect(response.networkResponse.spentMilliseconds, isNonZero);
+    expect(response.networkResponse.totalMilliseconds, isNonZero);
+    expect(
+        response.totalMilliseconds, response.networkResponse.totalMilliseconds);
     expect(response.cacheResponse, isNull);
 
     call = cacheClient.newCall(request);
@@ -755,6 +759,10 @@ void main() {
     expect(response.spentMilliseconds, isNonZero);
     expect(response.totalMilliseconds, isNonZero);
     expect(response.networkResponse, isNotNull);
+    expect(response.networkResponse.spentMilliseconds, isNonZero);
+    expect(response.networkResponse.totalMilliseconds, isNonZero);
+    expect(
+        response.totalMilliseconds, response.networkResponse.totalMilliseconds);
     expect(response.cacheResponse, isNull);
 
     call = cacheClient.newCall(request);

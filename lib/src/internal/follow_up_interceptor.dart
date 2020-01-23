@@ -32,10 +32,14 @@ class FollowUpInterceptor implements Interceptor {
       final followUp = await _followUpRequest(response);
 
       if (followUp == null) {
+        final totalMilliseconds = response.networkResponse?.totalMilliseconds ??
+            response.receivedAt.millisecondsSinceEpoch -
+                startTime.millisecondsSinceEpoch;
+
         return response.copyWith(
           redirects: redirects,
           originalRequest: originalRequest,
-          totalMilliseconds: max(elapsedMilliseconds, 0),
+          totalMilliseconds: max(0, totalMilliseconds),
         );
       }
 
@@ -59,7 +63,7 @@ class FollowUpInterceptor implements Interceptor {
     }
   }
 
-  Future<Request> _followUpRequest(Response response) {
+  Future<Request> _followUpRequest(Response response) async {
     final method = response.request.method;
 
     switch (response.code) {
@@ -82,7 +86,7 @@ class FollowUpInterceptor implements Interceptor {
     }
   }
 
-  Future<Request> _buildRedirectRequest(Response response) {
+  Future<Request> _buildRedirectRequest(Response response) async {
     // Does the client allow redirects?
     if (!client.followRedirects) {
       return null;
@@ -106,14 +110,16 @@ class FollowUpInterceptor implements Interceptor {
   Future<Request> _retryAfter(
     Response response,
     Request request,
-  ) {
+  ) async {
     try {
       final retryAfter = response.headers.first(HttpHeaders.retryAfterHeader);
-      final seconds = Duration(seconds: int.parse(retryAfter)) ??
-          HttpDate.parse(retryAfter).difference(DateTime.now().toUtc());
-      return Future.delayed(seconds, () => request);
+      final seconds = int.tryParse(retryAfter);
+      final duration = seconds != null
+          ? Duration(seconds: seconds)
+          : HttpDate.parse(retryAfter).difference(DateTime.now().toUtc());
+      return Future.delayed(duration, () => request);
     } catch (e) {
-      return Future(() => request);
+      return request;
     }
   }
 }
