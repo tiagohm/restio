@@ -60,17 +60,14 @@ class Http2Transport implements Transport {
       ];
 
       // User-Agent.
-      if (request.headers.has(HttpHeaders.userAgentHeader)) {
-        headers.add(
-          Header.ascii(HttpHeaders.userAgentHeader,
-              request.headers.last(HttpHeaders.userAgentHeader)),
-        );
-      } else if (client.userAgent != null) {
-        headers
-            .add(Header.ascii(HttpHeaders.userAgentHeader, client.userAgent));
-      } else {
-        headers.add(Header.ascii(
-            HttpHeaders.userAgentHeader, 'Restio/${Restio.version}'));
+      if (!request.headers.has(HttpHeaders.userAgentHeader)) {
+        if (client.userAgent != null) {
+          headers
+              .add(Header.ascii(HttpHeaders.userAgentHeader, client.userAgent));
+        } else {
+          headers.add(Header.ascii(
+              HttpHeaders.userAgentHeader, 'Restio/${Restio.version}'));
+        }
       }
 
       // Content-Type.
