@@ -265,8 +265,10 @@ class Http2Transport implements Transport {
 
   static int _obtainContentLength(Headers headers) {
     final contentLength = headers.first(HttpHeaders.contentLengthHeader);
-    if (contentLength == null)
+
+    if (contentLength == null) {
       return -1;
+    }
 
     try {
       return int.parse(contentLength[0]);

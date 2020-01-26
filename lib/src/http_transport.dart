@@ -153,7 +153,13 @@ class HttpTransport implements Transport {
 
       // Headers.
       request.headers?.forEach((key, value) {
-        clientRequest.headers.add(key, value);
+        switch (key) {
+          case HttpHeaders.userAgentHeader:
+            clientRequest.headers.set(key, value);
+            break;
+          default:
+            clientRequest.headers.add(key, value);
+        }
       });
 
       // Body.

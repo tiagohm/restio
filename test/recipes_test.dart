@@ -63,7 +63,7 @@ void main() {
 
     expect(response.body.contentType.type, 'application');
     expect(response.body.contentType.subType, 'json');
-    expect(response.body.contentLength, 221);
+    expect(response.body.contentLength, 429);
     expect(response.code, 200);
     expect(response.isSuccess, true);
     expect(response.message, 'OK');
@@ -345,7 +345,9 @@ void main() {
     final data = await response.body.data.raw();
     await response.body.close();
 
-    expect(data.length, 50);
+    print(data);
+
+    expect(data.length, 30);
   });
 
   test('Gzip', () async {
