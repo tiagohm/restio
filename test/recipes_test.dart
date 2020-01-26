@@ -819,6 +819,19 @@ void main() {
     expect(json['form']['£'], '£');
     expect(json['form']['text'], 'text');
   });
+
+  test('Fix Default JSON Encoding', () async {
+    final request =
+        Request.get('http://www.mocky.io/v2/5e2d86473000005000e77d19');
+    final call = client.newCall(request);
+    final response = await call.execute();
+    final json = await response.body.data.json();
+    await response.body.close();
+
+    expect(response.code, 200);
+
+    expect(json, 'este é um corpo UTF-8');
+  });
 }
 
 class _RetryAfterInterceptor implements Interceptor {
