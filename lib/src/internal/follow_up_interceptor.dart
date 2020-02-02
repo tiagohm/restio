@@ -32,14 +32,15 @@ class FollowUpInterceptor implements Interceptor {
       final followUp = await _followUpRequest(response);
 
       if (followUp == null) {
-        final totalMilliseconds = response.networkResponse?.totalMilliseconds ??
-            response.receivedAt.millisecondsSinceEpoch -
-                startTime.millisecondsSinceEpoch;
+        final totalMilliseconds = max(
+                response.networkResponse?.totalMilliseconds ?? 0,
+                response.receivedAt.millisecondsSinceEpoch -
+                    startTime.millisecondsSinceEpoch);
 
         return response.copyWith(
           redirects: redirects,
           originalRequest: originalRequest,
-          totalMilliseconds: max(0, totalMilliseconds),
+          totalMilliseconds: totalMilliseconds,
         );
       }
 

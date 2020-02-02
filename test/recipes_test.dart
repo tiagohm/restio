@@ -709,8 +709,8 @@ void main() {
     expect(response.networkResponse, isNotNull);
     expect(response.networkResponse.spentMilliseconds, isNonZero);
     expect(response.networkResponse.totalMilliseconds, isNonZero);
-    expect(
-        response.totalMilliseconds, response.networkResponse.totalMilliseconds);
+    expect(response.totalMilliseconds,
+        greaterThanOrEqualTo(response.networkResponse.totalMilliseconds));
     expect(response.cacheResponse, isNull);
 
     call = cacheClient.newCall(request);
@@ -763,8 +763,8 @@ void main() {
     expect(response.networkResponse, isNotNull);
     expect(response.networkResponse.spentMilliseconds, isNonZero);
     expect(response.networkResponse.totalMilliseconds, isNonZero);
-    expect(
-        response.totalMilliseconds, response.networkResponse.totalMilliseconds);
+    expect(response.totalMilliseconds,
+        greaterThanOrEqualTo(response.networkResponse.totalMilliseconds));
     expect(response.cacheResponse, isNull);
 
     call = cacheClient.newCall(request);
@@ -833,6 +833,21 @@ void main() {
     expect(response.code, 200);
 
     expect(json, 'este é um corpo UTF-8');
+  });
+
+  test('Fix Timestamp When Use Cache', () async {
+    final store = MemoryCacheStore();
+    final cacheClient = client.copyWith(cache: Cache(store: store));
+    final request = Request.get('https://httpbin.org/redirect/5');
+    final call = cacheClient.newCall(request);
+    final response = await call.execute();
+    final json = await response.body.data.json();
+    await response.body.close();
+
+    expect(response.code, 200);
+    expect(response.redirects.length, 5);
+    expect(response.totalMilliseconds,
+        greaterThanOrEqualTo(response.redirects.last.elapsedMilliseconds));
   });
 }
 
