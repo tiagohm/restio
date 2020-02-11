@@ -695,11 +695,9 @@ void main() {
     var request =
         Request.get('http://www.mocky.io/v2/5e230fa42f00009a00222692');
 
-    String text;
-
     var call = cacheClient.newCall(request);
     var response = await call.execute();
-    text = await response.body.data.string();
+    var text = await response.body.data.string();
     expect(text, 'Restio Caching test!');
     await response.body.close();
 
