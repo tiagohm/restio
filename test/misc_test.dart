@@ -1,4 +1,5 @@
 import 'package:http_parser/http_parser.dart';
+import 'package:restio/src/helpers.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -40,5 +41,26 @@ void main() {
       challenges[1].parameters['opaque'],
       '5ccc069c403ebaf9f0171e9517f40e41',
     );
+  });
+
+  test('Encode Form', () {
+    var res = canonicalizeToString(
+      " \"':;<=>+@[]^`{}|/\\?#&!\$(),~",
+      formEncodeSet,
+      plusIsSpace: true,
+    );
+    expect(
+      res,
+      '%20%22%27%3A%3B%3C%3D%3E%2B%40%5B%5D%5E%60%7B%7D%7C%2F%5C%3F%23%26%21%24%28%29%2C%7E',
+    );
+
+    res = canonicalizeToString('円', formEncodeSet, plusIsSpace: true);
+    expect(res, '%E5%86%86');
+
+    res = canonicalizeToString('£', formEncodeSet, plusIsSpace: true);
+    expect(res, '%C2%A3');
+
+    res = canonicalizeToString('\n\r\t', formEncodeSet, plusIsSpace: true);
+    expect(res, '%0A%0D%09');
   });
 }

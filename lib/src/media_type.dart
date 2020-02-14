@@ -120,11 +120,11 @@ class MediaType extends Equatable {
 
   Encoding get encoding => obtainEncodingByName(
         parameters['charset'],
-        _obtainDefaultEncoding(parameters['charset']),
+        _obtainDefaultEncoding(mimeType),
       );
 
-  static Encoding _obtainDefaultEncoding(String charset) {
-    return charset == 'application/json' || charset == 'text/plain'
+  static Encoding _obtainDefaultEncoding(String mimeType) {
+    return mimeType == 'application/json' || mimeType == 'text/plain'
         ? utf8
         : latin1;
   }

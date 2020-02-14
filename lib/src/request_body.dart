@@ -42,9 +42,14 @@ abstract class RequestBody {
     );
   }
 
-  factory RequestBody.json(Object o) {
+  factory RequestBody.json(
+    Object o, {
+    bool pretty = false,
+  }) {
     return RequestBody.string(
-      json.encoder.convert(o),
+      pretty
+          ? const JsonEncoder.withIndent('  ').convert(o)
+          : json.encoder.convert(o),
       contentType: MediaType.json,
     );
   }

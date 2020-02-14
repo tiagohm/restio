@@ -91,11 +91,15 @@ class DiskCacheStore implements CacheStore {
 
   @override
   Future<bool> remove(String key) async {
-    if (_cache[key][0].existsSync()) {
+    if (_cache[key] != null &&
+        _cache[key].containsKey(0) &&
+        _cache[key][0].existsSync()) {
       _cache[key][0].deleteSync();
     }
 
-    if (_cache[key][1].existsSync()) {
+    if (_cache[key] != null &&
+        _cache[key].containsKey(1) &&
+        _cache[key][1].existsSync()) {
       _cache[key][1].deleteSync();
     }
 

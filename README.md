@@ -8,7 +8,7 @@ In `pubspec.yaml` add the following dependency:
 
 ```yaml
 dependencies:
-  restio: ^0.4.2
+  restio: ^0.4.3
 ```
 
 ### How to use
@@ -144,7 +144,7 @@ final response = await call.execute();
 
 #### Listening for download progress:
 ```dart
-final ProgressCallback onProgress = (response, sent, total, done) {
+final ProgressCallback onProgress = (sent, total, done) {
   print('sent: $sent, total: $total, done: $done');
 };
 
@@ -162,7 +162,7 @@ await response.body.close();
 
 #### Listening for upload progress:
 ```dart
-final ProgressCallback onProgress = (request, sent, total, done) {
+final ProgressCallback onProgress = (sent, total, done) {
   print('sent: $sent, total: $total, done: $done');
 };
 

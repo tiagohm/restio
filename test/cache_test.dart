@@ -669,7 +669,7 @@ void main() {
 
     test('MaxAge Preferred With MaxAge And Expires', () async {
       await assertFullyCached(MockResponse(headers: {
-        'date': obtainDate(const Duration(hours: 0)),
+        'date': obtainDate(const Duration()),
         'expires': obtainDate(const Duration(hours: -1)),
         'cache-control': 'max-age=60',
       }));
@@ -689,7 +689,7 @@ void main() {
 
     test('MaxAge In The Future With Date Header', () async {
       await assertFullyCached(MockResponse(headers: {
-        'date': obtainDate(const Duration(hours: 0)),
+        'date': obtainDate(const Duration()),
         'cache-control': 'max-age=60',
       }));
     });
@@ -702,7 +702,7 @@ void main() {
 
     test('MaxAge With Last Modified But No Served Date', () async {
       await assertFullyCached(MockResponse(headers: {
-        'date': obtainDate(const Duration(seconds: 0)),
+        'date': obtainDate(const Duration()),
         'last-modified': obtainDate(const Duration(seconds: -120)),
         'cache-control': 'max-age=60',
       }));
@@ -1284,7 +1284,7 @@ void main() {
               MockResponse(
                 body: 'A',
                 headers: {
-                  'date': obtainDate(const Duration(minutes: 0)),
+                  'date': obtainDate(const Duration()),
                   'cache-control': 'max-age=60',
                 },
               ),
@@ -1454,7 +1454,7 @@ void main() {
             MockResponse(
               body: 'A',
               headers: {
-                'date': obtainDate(const Duration(minutes: 0)),
+                'date': obtainDate(const Duration()),
                 'cache-control': 'max-age=30',
               },
             ),
@@ -1556,7 +1556,7 @@ void main() {
               body: 'A',
               headers: {
                 'last-modified': obtainDate(const Duration(seconds: -120)),
-                'date': obtainDate(const Duration(seconds: 0)),
+                'date': obtainDate(const Duration()),
                 'cache-control': 'max-age=60',
               },
             ),
@@ -1591,7 +1591,7 @@ void main() {
               body: 'A',
               headers: {
                 'last-modified': obtainDate(const Duration(seconds: -120)),
-                'date': obtainDate(const Duration(seconds: 0)),
+                'date': obtainDate(const Duration()),
                 'cache-control': 'max-age=60',
               },
             ),
@@ -2310,7 +2310,7 @@ void main() {
       await assertNotCached(MockResponse(
         code: io.HttpStatus.partialContent,
         headers: {
-          'data': obtainDate(const Duration(hours: 0)),
+          'data': obtainDate(const Duration()),
           'Content-Range': 'bytes 100-100/200',
           'cache-control': 'max-age=60',
         },
@@ -2326,7 +2326,7 @@ void main() {
             MockResponse(
               body: 'A',
               headers: {
-                'last-modified': obtainDate(const Duration(seconds: 0)),
+                'last-modified': obtainDate(const Duration()),
                 'cache-control': 'max-age=0',
               },
             ),
@@ -2384,7 +2384,7 @@ void main() {
             MockResponse(
               body: 'A',
               headers: {
-                'date': obtainDate(const Duration(minutes: 0)),
+                'date': obtainDate(const Duration()),
                 'cache-control': 'max-age=30',
               },
             ),
@@ -2424,7 +2424,7 @@ void main() {
             MockResponse(
               body: 'B',
               headers: {
-                'date': obtainDate(const Duration(minutes: 0)),
+                'date': obtainDate(const Duration()),
                 'cache-control': 'max-age=30',
               },
             ),
@@ -2455,7 +2455,7 @@ void main() {
             MockResponse(
               body: 'A',
               headers: {
-                'date': obtainDate(const Duration(minutes: 0)),
+                'date': obtainDate(const Duration()),
                 'cache-control': 'max-age=0',
               },
             ),
@@ -2521,7 +2521,7 @@ void main() {
       expect(await response.body.data.string(), 'A');
       await response.body.close();
 
-      expect(await cache.size(), 138);
+      expect(await cache.size(), 134);
 
       await cache.clear();
       expect(await cache.size(), 0);

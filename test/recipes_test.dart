@@ -18,15 +18,17 @@ void main() {
     ],
   );
 
-  Process process;
+  final process = List<Process>(2);
 
   setUpAll(() async {
-    process = await Process.start('node', ['./test/node/ca/index.js']);
-    return Future.delayed(const Duration(seconds: 2));
+    process[0] = await Process.start('node', ['./test/node/ca/index.js']);
+    process[1] = await Process.start('node', ['./test/node/proxy/index.js']);
+    return Future.delayed(const Duration(seconds: 1));
   });
 
   tearDownAll(() {
-    process?.kill();
+    process[0]?.kill();
+    process[1]?.kill();
   });
 
   test('Performing a GET request', () async {
@@ -61,7 +63,7 @@ void main() {
 
     expect(response.body.contentType.type, 'application');
     expect(response.body.contentType.subType, 'json');
-    expect(response.body.contentLength, 221);
+    expect(response.body.contentLength, 429);
     expect(response.code, 200);
     expect(response.isSuccess, true);
     expect(response.message, 'OK');
@@ -343,7 +345,9 @@ void main() {
     final data = await response.body.data.raw();
     await response.body.close();
 
-    expect(data.length, 50);
+    print(data);
+
+    expect(data.length, 30);
   });
 
   test('Gzip', () async {
@@ -536,7 +540,7 @@ void main() {
       ),
     );
 
-    final request = Request.get('http://proxy-test/basic-auth/c/d');
+    final request = Request.get('http://httpbin.org/basic-auth/c/d');
     final call = proxyClient.newCall(request);
     final response = await call.execute();
 
@@ -545,14 +549,17 @@ void main() {
     final json = await response.body.data.json();
     await response.body.close();
 
+    print(json);
+
     expect(json['authenticated'], true);
+    expect(json['user'], 'c');
   });
 
   test('Auth Proxy', () async {
     final proxyClient = client.copyWith(
       proxy: const Proxy(
         host: 'localhost',
-        port: 3004,
+        port: 3005,
         auth: BasicAuthenticator(
           username: 'a',
           password: 'b',
@@ -564,7 +571,7 @@ void main() {
       ),
     );
 
-    final request = Request.get('http://proxy-test/basic-auth/c/d');
+    final request = Request.get('http://httpbin.org/basic-auth/c/d');
     final call = proxyClient.newCall(request);
     final response = await call.execute();
 
@@ -680,24 +687,34 @@ void main() {
   test('Cache', () async {
     final cacheStore = DiskCacheStore(Directory('./.cache'));
     final cache = Cache(store: cacheStore);
+    await cache.clear();
+
     final cacheClient = client.copyWith(cache: cache, interceptors: []);
 
-    var request = Request.get('https://api.jikan.moe/v3/anime/1/episodes');
-
-    await cache.clear();
+    // cache-control: private, max-age=60
+    var request =
+        Request.get('http://www.mocky.io/v2/5e230fa42f00009a00222692');
 
     var call = cacheClient.newCall(request);
     var response = await call.execute();
+    var text = await response.body.data.string();
+    expect(text, 'Restio Caching test!');
     await response.body.close();
 
     expect(response.code, 200);
     expect(response.spentMilliseconds, isNonZero);
     expect(response.totalMilliseconds, isNonZero);
     expect(response.networkResponse, isNotNull);
+    expect(response.networkResponse.spentMilliseconds, isNonZero);
+    expect(response.networkResponse.totalMilliseconds, isNonZero);
+    expect(response.totalMilliseconds,
+        greaterThanOrEqualTo(response.networkResponse.totalMilliseconds));
     expect(response.cacheResponse, isNull);
 
     call = cacheClient.newCall(request);
     response = await call.execute();
+    text = await response.body.data.string();
+    expect(text, 'Restio Caching test!');
     await response.body.close();
 
     expect(response.code, 200);
@@ -710,6 +727,8 @@ void main() {
 
     call = cacheClient.newCall(request);
     response = await call.execute();
+    text = await response.body.data.string();
+    expect(text, 'Restio Caching test!');
     await response.body.close();
 
     expect(response.code, 200);
@@ -722,6 +741,7 @@ void main() {
 
     call = cacheClient.newCall(request);
     response = await call.execute();
+    text = await response.body.data.string();
     await response.body.close();
 
     expect(response.code, 504);
@@ -731,16 +751,24 @@ void main() {
 
     call = cacheClient.newCall(request);
     response = await call.execute();
+    text = await response.body.data.string();
+    expect(text, 'Restio Caching test!');
     await response.body.close();
 
     expect(response.code, 200);
     expect(response.spentMilliseconds, isNonZero);
     expect(response.totalMilliseconds, isNonZero);
     expect(response.networkResponse, isNotNull);
+    expect(response.networkResponse.spentMilliseconds, isNonZero);
+    expect(response.networkResponse.totalMilliseconds, isNonZero);
+    expect(response.totalMilliseconds,
+        greaterThanOrEqualTo(response.networkResponse.totalMilliseconds));
     expect(response.cacheResponse, isNull);
 
     call = cacheClient.newCall(request);
     response = await call.execute();
+    text = await response.body.data.string();
+    expect(text, 'Restio Caching test!');
     await response.body.close();
 
     expect(response.code, 200);
@@ -748,6 +776,76 @@ void main() {
     expect(response.totalMilliseconds, isNonZero);
     expect(response.networkResponse, isNotNull);
     expect(response.cacheResponse, isNull);
+  });
+
+  test('Empty Cache-Control Value', () async {
+    final request = Request.get(
+      'https://httpbin.org/get',
+      headers: (HeadersBuilder()..add('cache-control', '')).build(),
+    );
+    final call = client.newCall(request);
+    final response = await call.execute();
+    await response.body.close();
+
+    expect(response.code, 200);
+  });
+
+  test('Encoded Form Body', () async {
+    final body = (FormBodyBuilder()
+          ..add(" \"':;<=>+@[]^`{}|/\\?#&!\$(),~",
+              " \"':;<=>+@[]^`{}|/\\?#&!\$(),~")
+          ..add('円', '円')
+          ..add('£', '£')
+          ..add('text', 'text'))
+        .build();
+
+    final request = Request.post(
+      'https://httpbin.org/post',
+      body: body,
+    );
+
+    final call = client.newCall(request);
+    final response = await call.execute();
+
+    final json = await response.body.data.json();
+
+    await response.body.close();
+
+    expect(response.code, 200);
+
+    expect(json['form'][" \"':;<=>+@[]^`{}|/\\?#&!\$(),~"],
+        " \"':;<=>+@[]^`{}|/\\?#&!\$(),~");
+    expect(json['form']['円'], '円');
+    expect(json['form']['£'], '£');
+    expect(json['form']['text'], 'text');
+  });
+
+  test('Fix Default JSON Encoding', () async {
+    final request =
+        Request.get('http://www.mocky.io/v2/5e2d86473000005000e77d19');
+    final call = client.newCall(request);
+    final response = await call.execute();
+    final json = await response.body.data.json();
+    await response.body.close();
+
+    expect(response.code, 200);
+
+    expect(json, 'este é um corpo UTF-8');
+  });
+
+  test('Fix Timestamp When Use Cache', () async {
+    final store = MemoryCacheStore();
+    final cacheClient = client.copyWith(cache: Cache(store: store));
+    final request = Request.get('https://httpbin.org/redirect/5');
+    final call = cacheClient.newCall(request);
+    final response = await call.execute();
+    final json = await response.body.data.json();
+    await response.body.close();
+
+    expect(response.code, 200);
+    expect(response.redirects.length, 5);
+    expect(response.totalMilliseconds,
+        greaterThanOrEqualTo(response.redirects.last.elapsedMilliseconds));
   });
 }
 

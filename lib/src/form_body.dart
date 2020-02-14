@@ -1,3 +1,6 @@
+import 'dart:convert';
+
+import 'package:restio/src/helpers.dart';
 import 'package:restio/src/media_type.dart';
 import 'package:restio/src/request_body.dart';
 import 'package:restio/src/utils/string_pair_list.dart';
@@ -36,10 +39,26 @@ class FormBody extends StringPairList implements RequestBody {
         yield encoding.encode('&');
       }
 
-      yield encoding.encode(items[i]);
+      yield _encodeForm(items[i], encoding);
       yield encoding.encode('=');
-      yield encoding.encode(items[i + 1]);
+      yield _encodeForm(items[i + 1], encoding);
     }
+  }
+
+  static List<int> _encodeForm(
+    String input,
+    Encoding encoding,
+  ) {
+    return canonicalize(
+      input,
+      formEncodeSet,
+      plusIsSpace: true,
+      encoding: encoding,
+    );
+  }
+
+  FormBodyBuilder toBuilder() {
+    return FormBodyBuilder._(this);
   }
 
   @override

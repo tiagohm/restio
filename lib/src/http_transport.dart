@@ -123,17 +123,14 @@ class HttpTransport implements Transport {
       _httpClient.autoUncompress = false;
 
       // User-Agent.
-      if (request.headers.has(HttpHeaders.userAgentHeader)) {
-        clientRequest.headers.set(
-          HttpHeaders.userAgentHeader,
-          request.headers.last(HttpHeaders.userAgentHeader),
-        );
-      } else if (client.userAgent != null) {
-        clientRequest.headers
-            .set(HttpHeaders.userAgentHeader, client.userAgent);
-      } else {
-        clientRequest.headers
-            .set(HttpHeaders.userAgentHeader, 'Restio/${Restio.version}');
+      if (!request.headers.has(HttpHeaders.userAgentHeader)) {
+        if (client.userAgent != null) {
+          clientRequest.headers
+              .set(HttpHeaders.userAgentHeader, client.userAgent);
+        } else {
+          clientRequest.headers
+              .set(HttpHeaders.userAgentHeader, 'Restio/${Restio.version}');
+        }
       }
 
       // Content-Type.
@@ -158,6 +155,7 @@ class HttpTransport implements Transport {
       request.headers?.forEach((key, value) {
         switch (key) {
           case HttpHeaders.userAgentHeader:
+            clientRequest.headers.set(key, value);
             break;
           default:
             clientRequest.headers.add(key, value);
