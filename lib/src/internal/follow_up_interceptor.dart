@@ -5,6 +5,7 @@ import 'package:restio/src/chain.dart';
 import 'package:restio/src/client.dart';
 import 'package:restio/src/exceptions.dart';
 import 'package:restio/src/interceptor.dart';
+import 'package:restio/src/queries.dart';
 import 'package:restio/src/redirect.dart';
 import 'package:restio/src/request.dart';
 import 'package:restio/src/response.dart';
@@ -96,13 +97,13 @@ class FollowUpInterceptor implements Interceptor {
     final location = response.headers.first(HttpHeaders.locationHeader);
 
     if (location != null && location.isNotEmpty) {
-      final uri = response.request.uri.resolve(location);
+      final uri = response.request.uriWithQueries.resolve(location);
 
       if (uri == null) {
         return null;
       }
 
-      return _retryAfter(response, response.request.copyWith(uri: uri));
+      return _retryAfter(response, response.request.copyWith(uri: uri, queries: Queries.empty));
     } else {
       return null;
     }
