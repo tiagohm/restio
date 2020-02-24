@@ -8,19 +8,17 @@ final _random = Random();
 
 class MultipartBody implements RequestBody {
   final List<Part> parts;
-  MediaType _contentType;
+  MediaType type;
   String _boundary;
 
   MultipartBody({
     this.parts = const [],
+    this.type = MediaType.multipartMixed,
     String boundary,
   })  : assert(boundary == null || boundary.isNotEmpty),
+        assert(type != null && type.type == 'multipart'),
         assert(parts != null) {
     _boundary = boundary ?? ('X-RESTIO-${_generateBoundary()}');
-    _contentType = MediaType.multipartFormData.copyWith(
-      charset: 'utf-8',
-      boundary: _boundary,
-    );
   }
 
   static String _generateBoundary() {
@@ -29,7 +27,7 @@ class MultipartBody implements RequestBody {
 
   @override
   Stream<List<int>> write() async* {
-    final encoding = _contentType.encoding;
+    final encoding = contentType.encoding;
 
     for (var i = 0; i < parts.length; i++) {
       yield* parts[i].write(encoding, boundary);
@@ -39,7 +37,7 @@ class MultipartBody implements RequestBody {
   }
 
   @override
-  MediaType get contentType => _contentType;
+  MediaType get contentType => type.copyWith(boundary: _boundary);
 
   int get size => parts.length;
 
@@ -47,16 +45,18 @@ class MultipartBody implements RequestBody {
 
   MultipartBody copyWith({
     List<Part> parts,
+    MediaType type,
     String boundary,
   }) {
     return MultipartBody(
       parts: parts ?? this.parts,
+      type: type ?? this.type,
       boundary: boundary ?? _boundary,
     );
   }
 
   @override
   String toString() {
-    return 'MultipartBody { contentType: $_contentType, parts: $parts }';
+    return 'MultipartBody { contentType: $contentType, parts: $parts }';
   }
 }

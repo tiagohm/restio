@@ -15,6 +15,26 @@ class MediaType extends Equatable {
     subType: 'x-www-form-urlencoded',
   );
 
+  static const multipartMixed = MediaType._(
+    type: 'multipart',
+    subType: 'mixed',
+  );
+
+  static const multipartAlternative = MediaType._(
+    type: 'multipart',
+    subType: 'alternative',
+  );
+
+  static const multipartDigest = MediaType._(
+    type: 'multipart',
+    subType: 'digest',
+  );
+
+  static const multipartParallel = MediaType._(
+    type: 'multipart',
+    subType: 'parallel',
+  );
+
   static const multipartFormData = MediaType._(
     type: 'multipart',
     subType: 'form-data',
@@ -120,7 +140,7 @@ class MediaType extends Equatable {
 
   Encoding get encoding => obtainEncodingByName(
         parameters['charset'],
-        _obtainDefaultEncoding(mimeType),
+        type == 'multipart' ? utf8 : _obtainDefaultEncoding(mimeType),
       );
 
   static Encoding _obtainDefaultEncoding(String mimeType) {
