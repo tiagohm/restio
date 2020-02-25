@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:restio/src/media_type.dart';
@@ -13,14 +14,13 @@ class MultipartBody implements RequestBody {
 
   MultipartBody({
     this.parts = const [],
+    MediaType type = MediaType.multipartFormData,
     String boundary,
   })  : assert(boundary == null || boundary.isNotEmpty),
+        assert(type != null && type.type == 'multipart'),
         assert(parts != null) {
     _boundary = boundary ?? ('X-RESTIO-${_generateBoundary()}');
-    _contentType = MediaType.multipartFormData.copyWith(
-      charset: 'utf-8',
-      boundary: _boundary,
-    );
+    _contentType = type.copyWith(boundary: _boundary);
   }
 
   static String _generateBoundary() {
@@ -35,7 +35,11 @@ class MultipartBody implements RequestBody {
       yield* parts[i].write(encoding, boundary);
     }
 
-    yield encoding.encode('\r\n--$boundary--\r\n');
+    yield utf8.encode('\r\n');
+    yield utf8.encode('--');
+    yield encoding.encode(boundary);
+    yield utf8.encode('--');
+    yield utf8.encode('\r\n');
   }
 
   @override
@@ -47,10 +51,17 @@ class MultipartBody implements RequestBody {
 
   MultipartBody copyWith({
     List<Part> parts,
+    MediaType type,
     String boundary,
   }) {
     return MultipartBody(
       parts: parts ?? this.parts,
+      type: type ?? MediaType(
+        type: _contentType.type,
+        subType: _contentType.subType,
+        charset: _contentType.charset,
+        parameters: Map.of(_contentType.parameters)..remove('charset')..remove('boundary'),
+      ),
       boundary: boundary ?? _boundary,
     );
   }
