@@ -41,15 +41,21 @@ class Part {
     Encoding encoding,
     String boundary,
   ) async* {
-    yield encoding.encode('\r\n--$boundary\r\n');
+    yield utf8.encode('\r\n');
+    yield utf8.encode('--');
+    yield encoding.encode(boundary);
+    yield utf8.encode('\r\n');
 
     if (headers != null) {
       for (final name in headers.keys) {
-        yield encoding.encode('$name: ${headers[name]}\r\n');
+        yield encoding.encode(name);
+        yield utf8.encode(': ');
+        yield encoding.encode(headers[name]);
+        yield utf8.encode('\r\n');
       }
     }
 
-    yield encoding.encode('\r\n');
+    yield utf8.encode('\r\n');
 
     if (body != null) {
       yield* body.write();
