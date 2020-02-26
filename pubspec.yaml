@@ -15,7 +15,7 @@ dependencies:
   mime: ^0.9.6+3
   meta: ^1.1.8
   http2: ^1.0.0
-  equatable: ^1.0.3
+  equatable: ^1.1.0
   raw: ^0.2.0
   ip: ^0.1.1
   brotli: ^0.2.2

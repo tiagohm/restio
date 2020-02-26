@@ -1,8 +1,9 @@
 import 'dart:convert';
 
+import 'package:equatable/equatable.dart';
 import 'package:restio/src/request_body.dart';
 
-class Part {
+class Part extends Equatable {
   final Map<String, String> headers;
   final RequestBody body;
 
@@ -15,13 +16,14 @@ class Part {
     String name,
     String value,
   ) {
+    final body = RequestBody.string(value);
+
     final headers = {
-      'Content-Disposition': 'form-data; name=\"$name\"',
+      'Content-Disposition': 'form-data; name="$name"',
+      'Content-Type': body.contentType.toString(),
     };
-    return Part(
-      headers: headers,
-      body: RequestBody.string(value),
-    );
+
+    return Part(headers: headers, body: body);
   }
 
   factory Part.file(
@@ -30,10 +32,10 @@ class Part {
     RequestBody body,
   ) {
     final headers = {
-      'Content-Disposition':
-          'form-data; name=\"$name\"; filename=\"$filename\"',
+      'Content-Disposition': 'form-data; name="$name"; filename="$filename"',
       'Content-Type': body.contentType.toString(),
     };
+
     return Part(headers: headers, body: body);
   }
 
@@ -41,26 +43,23 @@ class Part {
     Encoding encoding,
     String boundary,
   ) async* {
-    yield utf8.encode('\r\n');
-    yield utf8.encode('--');
-    yield encoding.encode(boundary);
-    yield utf8.encode('\r\n');
+    yield encoding.encode('\r\n--$boundary\r\n');
 
     if (headers != null) {
       for (final name in headers.keys) {
-        yield encoding.encode(name);
-        yield utf8.encode(': ');
-        yield encoding.encode(headers[name]);
-        yield utf8.encode('\r\n');
+        yield encoding.encode('$name: ${headers[name]}\r\n');
       }
     }
 
-    yield utf8.encode('\r\n');
+    yield encoding.encode('\r\n');
 
     if (body != null) {
       yield* body.write();
     }
   }
+
+  @override
+  List<Object> get props => [headers, body];
 
   @override
   String toString() {

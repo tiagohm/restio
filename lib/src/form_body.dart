@@ -62,13 +62,16 @@ class FormBody extends StringPairList implements RequestBody {
   }
 
   @override
+  List<Object> get props => [items, contentType];
+
+  @override
   String toString() {
     return 'FormBody { contentType: $contentType, items: $items }';
   }
 }
 
 class FormBodyBuilder extends StringPairListBuilder<FormBody> {
-  String _charset = 'utf-8';
+  var _charset = 'utf-8';
 
   FormBodyBuilder() : super();
 
