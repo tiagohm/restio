@@ -38,11 +38,6 @@ void main() {
     expect(p['port'], '8080');
   });
 
-  test('Port', () {
-    final p = parseUri('http://user:pass@example.com:8080');
-    expect(p['port'], '8080');
-  });
-
   test('Path', () {
     var p = parseUri('http://user:pass@example.com:8080/a/b/c/d');
     expect(p['path'], const ['a', 'b', 'c', 'd']);
@@ -50,8 +45,24 @@ void main() {
     p = parseUri('http://user:pass@example.com:8080');
     expect(p['path'], isEmpty);
 
+    p = parseUri('http://user:pass@example.com:8080/');
+    expect(p['path'], const ['']);
+
     p = parseUri('http://user:pass@example.com:8080//');
-    expect(p['path'], isEmpty);
+    expect(p['path'], const ['', '']);
+  });
+
+  test('Uri', () {
+    final uri = RequestUri.fromUri(
+        Uri.parse('https://user:pass@example.com:8080/a/b/c?d=e#f'));
+    expect(uri.scheme, 'https');
+    expect(uri.username, 'user');
+    expect(uri.password, 'pass');
+    expect(uri.host, 'example.com');
+    expect(uri.port, '8080');
+    expect(uri.path, const ['a', 'b', 'c']);
+    expect(uri.query, const ['d', 'e']);
+    expect(uri.fragment, 'f');
   });
 
   test('Https', () {
@@ -62,7 +73,7 @@ void main() {
     expect(p['password'], isNull);
     expect(p['host'], 'www.example.com');
     expect(p['port'], '123');
-    expect(p['path'], const ['forum', 'questions']);
+    expect(p['path'], const ['forum', 'questions', '']);
     expect(p['query'], const ['tag', 'networking', 'order', 'newest']);
     expect(p['fragment'], 'top');
   });

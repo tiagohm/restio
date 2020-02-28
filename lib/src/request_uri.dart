@@ -190,7 +190,8 @@ Map<String, dynamic> parseUri(String uri) {
     final paths = m.group(1)?.split('/') ?? const [];
 
     res['path'] = [
-      for (final item in paths) if (item.isNotEmpty) item,
+      for (var i = 0; i < paths.length; i++)
+        if (i > 0 || paths[i].isNotEmpty) paths[i],
     ];
 
     uri = uri.substring(m.end);
