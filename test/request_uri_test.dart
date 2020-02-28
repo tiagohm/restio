@@ -10,35 +10,114 @@ void main() {
     expect(parseUri('{{scheme}}://example.com')['scheme'], '{{scheme}}');
   });
 
-  test('Authority', () {
-    var p = parseUri('http://user:pass@example.com');
+  test('Username & Password', () {
+    final p = parseUri('http://user:pass@example.com');
     expect(p['username'], 'user');
     expect(p['password'], 'pass');
-    expect(p['host'], 'example.com');
-    expect(p['port'], isNull);
+  });
 
-    p = parseUri('http://user@example.com');
+  test('Password is Optional', () {
+    final p = parseUri('http://user@example.com');
     expect(p['username'], 'user');
     expect(p['password'], isNull);
-    expect(p['host'], 'example.com');
-    expect(p['port'], isNull);
+  });
 
-    p = parseUri('http://:pass@example.com');
-    expect(p['username'], '');
+  test('Username Can be Optional?', () {
+    final p = parseUri('http://:pass@example.com');
+    expect(p['username'], isEmpty);
     expect(p['password'], 'pass');
-    expect(p['host'], 'example.com');
-    expect(p['port'], isNull);
+  });
 
-    p = parseUri('http://example.com:8080');
+  test('Host', () {
+    final p = parseUri('http://user:pass@example.com');
+    expect(p['host'], 'example.com');
+  });
+
+  test('Port', () {
+    final p = parseUri('http://user:pass@example.com:8080');
+    expect(p['port'], '8080');
+  });
+
+  test('Port', () {
+    final p = parseUri('http://user:pass@example.com:8080');
+    expect(p['port'], '8080');
+  });
+
+  test('Path', () {
+    var p = parseUri('http://user:pass@example.com:8080/a/b/c/d');
+    expect(p['path'], const ['a', 'b', 'c', 'd']);
+
+    p = parseUri('http://user:pass@example.com:8080');
+    expect(p['path'], isEmpty);
+
+    p = parseUri('http://user:pass@example.com:8080//');
+    expect(p['path'], isEmpty);
+  });
+
+  test('Https', () {
+    final p = parseUri(
+        'https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top');
+    expect(p['scheme'], 'https');
+    expect(p['username'], 'john.doe');
+    expect(p['password'], isNull);
+    expect(p['host'], 'www.example.com');
+    expect(p['port'], '123');
+    expect(p['path'], const ['forum', 'questions']);
+    expect(p['query'], const ['tag', 'networking', 'order', 'newest']);
+    expect(p['fragment'], 'top');
+  });
+
+  test('Ldap', () {
+    final p = parseUri('ldap://[2001:db8::7]/c=GB?objectClass=one');
+    expect(p['scheme'], 'ldap');
     expect(p['username'], isNull);
     expect(p['password'], isNull);
-    expect(p['host'], 'example.com');
-    expect(p['port'], '8080');
+    expect(p['host'], '[2001:db8::7]');
+    expect(p['port'], isNull);
+    expect(p['path'], const ['c=GB']);
+    expect(p['query'], const ['objectClass', 'one']);
+    expect(p['fragment'], isNull);
+  });
 
-    p = parseUri('{{scheme}}://{{user}}:{{pass}}@{{host}}:{{port}}');
-    expect(p['username'], '{{user}}');
-    expect(p['password'], '{{pass}}');
-    expect(p['host'], '{{host}}');
-    expect(p['port'], '{{port}}');
+  test('Mailto', () {
+    final p = parseUri('mailto:John.Doe@example.com');
+    expect(p['scheme'], 'mailto');
+    expect(p['username'], isNull);
+    expect(p['password'], isNull);
+    expect(p['host'], isNull);
+    expect(p['port'], isNull);
+    expect(p['path'], const ['John.Doe@example.com']);
+    expect(p['query'], isEmpty);
+    expect(p['fragment'], isNull);
+  });
+
+  test('Tel', () {
+    final p = parseUri('tel:+1-816-555-1212');
+    expect(p['scheme'], 'tel');
+    expect(p['username'], isNull);
+    expect(p['password'], isNull);
+    expect(p['host'], isNull);
+    expect(p['port'], isNull);
+    expect(p['path'], const ['+1-816-555-1212']);
+    expect(p['query'], isEmpty);
+    expect(p['fragment'], isNull);
+  });
+
+  test('To String', () {
+    const uri = RequestUri(
+      scheme: 'https',
+      username: 'user',
+      password: 'pass',
+      host: 'example.com',
+      port: '8080',
+      path: ['a', 'b', 'c'],
+      query: ['d', 'e', 'd', 'f'],
+      fragment: 'g',
+    );
+
+    expect(
+      uri.toString(),
+      'https://user:pass@example.com:8080/a/b/c?d=e&d=f#g',
+    );
   });
 }

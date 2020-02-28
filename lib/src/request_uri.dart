@@ -3,9 +3,9 @@ import 'package:equatable/equatable.dart';
 class RequestUri extends Equatable {
   final String fragment;
   final String host;
-  final String path;
+  final List<String> path;
   final String port;
-  final Map<String, String> queryParameters;
+  final List<String> query;
   final String scheme;
   final String username;
   final String password;
@@ -15,7 +15,7 @@ class RequestUri extends Equatable {
     this.host,
     this.path,
     this.port,
-    this.queryParameters,
+    this.query,
     this.scheme,
     this.username,
     this.password,
@@ -27,13 +27,28 @@ class RequestUri extends Equatable {
     return RequestUri(
       fragment: uri.fragment,
       host: uri.host,
-      path: uri.path,
+      path: uri.pathSegments,
       port: uri.port?.toString(),
       scheme: uri.scheme,
       username: userInfo?.isNotEmpty == true ? userInfo[0] : null,
       password: userInfo?.length == 2 ? userInfo[1] : null,
-      queryParameters: Map<String, String>.from(uri.queryParameters),
+      query: _obtainQueryFromMap(uri.queryParametersAll),
     );
+  }
+
+  static List<String> _obtainQueryFromMap(
+    Map<String, List<String>> queries,
+  ) {
+    final res = <String>[];
+
+    queries.forEach((key, values) {
+      for (final item in values) {
+        res.add(key);
+        res.add(item);
+      }
+    });
+
+    return res;
   }
 
   factory RequestUri.parse(String uri) {
@@ -43,18 +58,72 @@ class RequestUri extends Equatable {
       fragment: p['fragment'],
       host: p['host'],
       path: p['path'],
-      port: p['port?.toString()'],
+      port: p['port'],
       scheme: p['scheme'],
       username: p['username'],
       password: p['password'],
-      queryParameters: Map<String, String>.from(p['queryParameters']),
+      query: p['query'],
     );
   }
 
   @override
   String toString() {
-    // TODO: implement toString
-    return super.toString();
+    final sb = StringBuffer();
+
+    sb.write(scheme);
+    sb.write(':');
+
+    if (host != null) {
+      sb.write('//');
+
+      if (username != null || password != null) {
+        if (username != null) {
+          sb.write(username);
+        }
+
+        if (password != null) {
+          sb.write(':');
+          sb.write(password);
+        }
+
+        sb.write('@');
+      }
+
+      sb.write(host);
+
+      if (port != null) {
+        sb.write(':');
+        sb.write(port);
+      }
+    }
+
+    if (path != null) {
+      for (final item in path) {
+        sb.write('/');
+        sb.write(item);
+      }
+    }
+
+    if (query != null && query.isNotEmpty) {
+      sb.write('?');
+
+      for (var i = 0; i < query.length; i += 2) {
+        if (i > 0) {
+          sb.write('&');
+        }
+
+        sb.write(query[i]);
+        sb.write('=');
+        sb.write(query[i + 1]);
+      }
+    }
+
+    if (fragment != null) {
+      sb.write('#');
+      sb.write(fragment);
+    }
+
+    return sb.toString();
   }
 
   @override
@@ -63,16 +132,19 @@ class RequestUri extends Equatable {
         host,
         path,
         port,
-        queryParameters,
+        query,
         scheme,
         username,
         password,
       ];
 }
 
-final _schemeRegex = RegExp('^([^:]*):');
-final _authorityRegex =
-    RegExp(r'^//(?:(?<userinfo>.*)@)?(?<host>[^:]+)(?::(?<port>.*))?[/?#]?');
+final _schemeRegex = RegExp(r'^([^:]*):');
+final _authorityRegex = RegExp(
+    r'^//(?:(?<userinfo>.*)@)?(?<host>(?:(?!\[)[^:]+)|\[.*\])(?::(?<port>[^/?#]*))?');
+final _pathRegex = RegExp(r'^([^?#]*)');
+final _queryRegex = RegExp(r'^\?([^#]*)');
+final _fragmentRegex = RegExp(r'^#(.*)');
 
 // TODO: Parse Encoded URI.
 Map<String, dynamic> parseUri(String uri) {
@@ -107,6 +179,51 @@ Map<String, dynamic> parseUri(String uri) {
     res['port'] = port;
 
     uri = uri.substring(m.end);
+  }
+
+  // Path.
+  m = _pathRegex.firstMatch(uri);
+
+  res['path'] = const <String>[];
+
+  if (m != null) {
+    final paths = m.group(1)?.split('/') ?? const [];
+
+    res['path'] = [
+      for (final item in paths) if (item.isNotEmpty) item,
+    ];
+
+    uri = uri.substring(m.end);
+  }
+
+  // Query.
+  m = _queryRegex.firstMatch(uri);
+
+  res['query'] = <String>[];
+
+  if (m != null) {
+    final queries = m.group(1)?.split('&') ?? const [];
+
+    for (final item in queries) {
+      final q = item.split('=');
+
+      res['query'].add(q[0]);
+
+      if (q.length == 2) {
+        res['query'].add(q[1]); // Value or empty.
+      } else {
+        res['query'].add(null); // No value.
+      }
+    }
+
+    uri = uri.substring(m.end);
+  }
+
+  // Fragment.
+  m = _fragmentRegex.firstMatch(uri);
+
+  if (m != null) {
+    res['fragment'] = m.group(1);
   }
 
   return res;
