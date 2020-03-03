@@ -82,12 +82,12 @@ void main() {
 
   test('Parse Empty as Null', () {
     expect(CacheControl.parse(''), null);
-    expect(CacheControl.of(null), null);
-    expect(CacheControl.from(null), null);
+    expect(CacheControl.fromMap(null), null);
+    expect(CacheControl.fromHeaders(null), null);
   });
 
   test('Parse Headers', () {
-    final cacheControl = CacheControl.from(
+    final cacheControl = CacheControl.fromHeaders(
       (HeadersBuilder()
             ..add('cache-control', 'max-age=12')
             ..add('pragma', 'must-revalidate')

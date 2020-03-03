@@ -40,7 +40,7 @@ class CacheControl extends Equatable {
     maxStale: Duration(seconds: 9223372036854),
   );
 
-  factory CacheControl.of(Map<String, String> params) {
+  factory CacheControl.fromMap(Map<String, String> params) {
     if (params == null) {
       return null;
     }
@@ -78,10 +78,10 @@ class CacheControl extends Equatable {
     }
 
     final params = _parseHeader(text);
-    return CacheControl.of(params);
+    return CacheControl.fromMap(params);
   }
 
-  factory CacheControl.from(Headers headers) {
+  factory CacheControl.fromHeaders(Headers headers) {
     if (headers == null) {
       return null;
     }
@@ -106,7 +106,7 @@ class CacheControl extends Equatable {
       return CacheControl.empty;
     }
 
-    return CacheControl.of(params);
+    return CacheControl.fromMap(params);
   }
 
   bool get hasMaxAge {

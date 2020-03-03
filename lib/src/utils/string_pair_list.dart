@@ -138,10 +138,6 @@ abstract class StringPairListBuilder<L extends StringPairList> {
 
   StringPairListBuilder();
 
-  StringPairListBuilder.from(L list) {
-    list.copyTo(items);
-  }
-
   @protected
   String rightName(String name) {
     return name;

@@ -27,8 +27,9 @@ class Request {
         uriWithQueries = _obtainUriWithQueries(uri, queries),
         headers = headers ?? HeadersBuilder().build(),
         queries = _obtainQueries(uri, queries),
-        cacheControl =
-            cacheControl ?? CacheControl.from(headers) ?? CacheControl.empty;
+        cacheControl = cacheControl ??
+            CacheControl.fromHeaders(headers) ??
+            CacheControl.empty;
 
   Request.get(
     String uri, {

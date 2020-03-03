@@ -182,7 +182,7 @@ void main() {
 
     request = Request.get(
       'https://postman-echo.com/get',
-      headers: Headers.of({HttpHeaders.userAgentHeader: 'jrit549ytyh549'}),
+      headers: Headers.fromMap({HttpHeaders.userAgentHeader: 'jrit549ytyh549'}),
     );
 
     data = await requestJson(client, request);
@@ -636,7 +636,7 @@ void main() {
 
     final request = Request.get(
       'https://http2.pro/api/v1',
-      headers: Headers.of({HttpHeaders.acceptEncodingHeader: 'gzip'}),
+      headers: Headers.fromMap({HttpHeaders.acceptEncodingHeader: 'gzip'}),
     );
     final call = http2Client.newCall(request);
     final response = await call.execute();

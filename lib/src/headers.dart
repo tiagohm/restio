@@ -18,7 +18,7 @@ class Headers extends StringPairList {
     return HeadersBuilder._(this);
   }
 
-  factory Headers.of(Map<String, dynamic> items) {
+  factory Headers.fromMap(Map<String, dynamic> items) {
     final headers = HeadersBuilder();
     items.forEach(headers.add);
     return headers.build();

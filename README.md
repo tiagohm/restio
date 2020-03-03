@@ -100,7 +100,7 @@ await response.body.close();
 ```dart
 final request = Request.post(
   'https://postman-echo.com/post',
-  body: body: FormBody.of({
+  body: body: FormBody.fromMap({
     'foo1': 'bar1',
     'foo2': 'bar2',
   }),

@@ -60,8 +60,9 @@ class Response {
     this.networkResponse,
     this.cacheResponse,
   })  : challenges = _challenges(code, headers),
-        cacheControl =
-            cacheControl ?? CacheControl.from(headers) ?? CacheControl.empty;
+        cacheControl = cacheControl ??
+            CacheControl.fromHeaders(headers) ??
+            CacheControl.empty;
 
   bool get isSuccess => code != null && code >= 200 && code <= 299;
 

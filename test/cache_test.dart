@@ -931,8 +931,8 @@ void main() {
         ],
       );
 
-      var request =
-          Request.get(url, headers: Headers.of({'range': 'bytes=1000-1001'}));
+      var request = Request.get(url,
+          headers: Headers.fromMap({'range': 'bytes=1000-1001'}));
       var call = cacheClient.newCall(request);
       var response = await call.execute();
 
@@ -1376,8 +1376,8 @@ void main() {
       await response.body.close();
 
       // With max-stale, we'll return that stale response.
-      request =
-          Request.get(url, headers: Headers.of({'cache-control': 'max-stale'}));
+      request = Request.get(url,
+          headers: Headers.fromMap({'cache-control': 'max-stale'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1416,7 +1416,7 @@ void main() {
 
       // With max-stale, we'll return that stale response.
       request = Request.get(url,
-          headers: Headers.of({'cache-control': 'max-stale=180'}));
+          headers: Headers.fromMap({'cache-control': 'max-stale=180'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1435,7 +1435,7 @@ void main() {
 
       // With max-stale, we'll return that stale response.
       final request = Request.get(url,
-          headers: Headers.of({'cache-control': 'only-if-cached'}));
+          headers: Headers.fromMap({'cache-control': 'only-if-cached'}));
       final call = cacheClient.newCall(request);
       final response = await call.execute();
 
@@ -1470,7 +1470,7 @@ void main() {
       await response.body.close();
 
       request = Request.get(url,
-          headers: Headers.of({'cache-control': 'only-if-cached'}));
+          headers: Headers.fromMap({'cache-control': 'only-if-cached'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1507,7 +1507,7 @@ void main() {
       await response.body.close();
 
       request = Request.get(url,
-          headers: Headers.of({'cache-control': 'only-if-cached'}));
+          headers: Headers.fromMap({'cache-control': 'only-if-cached'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1536,7 +1536,7 @@ void main() {
       await response.body.close();
 
       request = Request.get(url,
-          headers: Headers.of({'cache-control': 'only-if-cached'}));
+          headers: Headers.fromMap({'cache-control': 'only-if-cached'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1572,8 +1572,8 @@ void main() {
       expect(await response.body.data.string(), 'A');
       await response.body.close();
 
-      request =
-          Request.get(url, headers: Headers.of({'cache-control': 'no-cache'}));
+      request = Request.get(url,
+          headers: Headers.fromMap({'cache-control': 'no-cache'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1607,7 +1607,8 @@ void main() {
       expect(await response.body.data.string(), 'A');
       await response.body.close();
 
-      request = Request.get(url, headers: Headers.of({'pragma': 'no-cache'}));
+      request =
+          Request.get(url, headers: Headers.fromMap({'pragma': 'no-cache'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1632,8 +1633,8 @@ void main() {
         ],
       );
 
-      var request =
-          Request.get(url, headers: Headers.of({'authorization': 'password'}));
+      var request = Request.get(url,
+          headers: Headers.fromMap({'authorization': 'password'}));
       var call = cacheClient.newCall(request);
       var response = await call.execute();
 
@@ -1843,16 +1844,16 @@ void main() {
         ],
       );
 
-      var request =
-          Request.get(url, headers: Headers.of({'accept-language': 'pt-BR'}));
+      var request = Request.get(url,
+          headers: Headers.fromMap({'accept-language': 'pt-BR'}));
       var call = cacheClient.newCall(request);
       var response = await call.execute();
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
 
-      request =
-          Request.get(url, headers: Headers.of({'accept-language': 'en-US'}));
+      request = Request.get(url,
+          headers: Headers.fromMap({'accept-language': 'en-US'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1878,16 +1879,16 @@ void main() {
         ],
       );
 
-      var request =
-          Request.get(url, headers: Headers.of({'accept-language': 'pt-BR'}));
+      var request = Request.get(url,
+          headers: Headers.fromMap({'accept-language': 'pt-BR'}));
       var call = cacheClient.newCall(request);
       var response = await call.execute();
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
 
-      request =
-          Request.get(url, headers: Headers.of({'accept-language': 'pt-BR'}));
+      request = Request.get(url,
+          headers: Headers.fromMap({'accept-language': 'pt-BR'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1953,8 +1954,8 @@ void main() {
       expect(await response.body.data.string(), 'A');
       await response.body.close();
 
-      request =
-          Request.get(url, headers: Headers.of({'accept-language': 'pt-BR'}));
+      request = Request.get(url,
+          headers: Headers.fromMap({'accept-language': 'pt-BR'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -1980,8 +1981,8 @@ void main() {
         ],
       );
 
-      var request =
-          Request.get(url, headers: Headers.of({'accept-language': 'pt-BR'}));
+      var request = Request.get(url,
+          headers: Headers.fromMap({'accept-language': 'pt-BR'}));
       var call = cacheClient.newCall(request);
       var response = await call.execute();
 
@@ -2014,16 +2015,16 @@ void main() {
         ],
       );
 
-      var request =
-          Request.get(url, headers: Headers.of({'accept-language': 'pt-BR'}));
+      var request = Request.get(url,
+          headers: Headers.fromMap({'accept-language': 'pt-BR'}));
       var call = cacheClient.newCall(request);
       var response = await call.execute();
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
 
-      request =
-          Request.get(url, headers: Headers.of({'accept-language': 'pt-BR'}));
+      request = Request.get(url,
+          headers: Headers.fromMap({'accept-language': 'pt-BR'}));
       call = cacheClient.newCall(request);
       response = await call.execute();
 
@@ -2051,7 +2052,7 @@ void main() {
       );
 
       var request = Request.get(url,
-          headers: Headers.of({
+          headers: Headers.fromMap({
             'accept-language': 'pt-BR',
             'accept-charset': 'utf-8',
             'accept-encoding': 'identity',
@@ -2063,7 +2064,7 @@ void main() {
       await response.body.close();
 
       request = Request.get(url,
-          headers: Headers.of({
+          headers: Headers.fromMap({
             'accept-language': 'pt-BR',
             'accept-charset': 'utf-8',
             'accept-encoding': 'identity',
@@ -2095,7 +2096,7 @@ void main() {
       );
 
       var request = Request.get(url,
-          headers: Headers.of({
+          headers: Headers.fromMap({
             'accept-language': 'en-US',
             'accept-charset': 'utf-8',
             'accept-encoding': 'identity',
@@ -2107,7 +2108,7 @@ void main() {
       await response.body.close();
 
       request = Request.get(url,
-          headers: Headers.of({
+          headers: Headers.fromMap({
             'accept-language': 'pt-BR',
             'accept-charset': 'utf-8',
             'accept-encoding': 'identity',
@@ -2716,8 +2717,9 @@ class MockResponse extends Response {
     int code,
     body,
   }) : super(
-          headers:
-              headers is Headers ? headers : Headers.of(headers ?? const {}),
+          headers: headers is Headers
+              ? headers
+              : Headers.fromMap(headers ?? const {}),
           cacheControl: cacheControl,
           code: code ?? 200,
           redirects: const [],

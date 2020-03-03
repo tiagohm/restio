@@ -23,7 +23,7 @@ class FormBody extends StringPairList implements RequestBody {
   })  : items = const [],
         contentType = MediaType.formUrlEncoded.copyWith(charset: charset);
 
-  factory FormBody.of(
+  factory FormBody.fromMap(
     Map<String, dynamic> items, [
     String charset,
   ]) {
