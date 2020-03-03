@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:restio/src/queries.dart';
 import 'package:uri/uri.dart';
 
 class RequestUri extends Equatable {
@@ -6,7 +7,7 @@ class RequestUri extends Equatable {
   final String host;
   final List<String> path;
   final String port;
-  final List<String> query;
+  final Queries queries;
   final String scheme;
   final String username;
   final String password;
@@ -16,7 +17,7 @@ class RequestUri extends Equatable {
     this.host,
     this.path,
     this.port,
-    this.query,
+    this.queries,
     this.scheme,
     this.username,
     this.password,
@@ -33,23 +34,34 @@ class RequestUri extends Equatable {
       scheme: uri.scheme,
       username: userInfo?.isNotEmpty == true ? userInfo[0] : null,
       password: userInfo?.length == 2 ? userInfo[1] : null,
-      query: _obtainQueryFromMap(uri.queryParametersAll),
+      queries: _obtainQueriesFromMap(uri.queryParametersAll),
     );
   }
 
-  static List<String> _obtainQueryFromMap(
+  static Queries _obtainQueriesFromList(
+    List<String> queries,
+  ) {
+    final builder = QueriesBuilder();
+
+    for (var i = 0; i < queries.length; i += 2) {
+      builder.add(queries[i], queries[i + 1]);
+    }
+
+    return builder.build();
+  }
+
+  static Queries _obtainQueriesFromMap(
     Map<String, List<String>> queries,
   ) {
-    final res = <String>[];
+    final builder = QueriesBuilder();
 
     queries.forEach((key, values) {
       for (final item in values) {
-        res.add(key);
-        res.add(item);
+        builder.add(key, item);
       }
     });
 
-    return res;
+    return builder.build();
   }
 
   factory RequestUri.parse(String uri) {
@@ -63,7 +75,7 @@ class RequestUri extends Equatable {
       scheme: p['scheme'],
       username: p['username'],
       password: p['password'],
-      query: p['query'],
+      queries: _obtainQueriesFromList(p['query']),
     );
   }
 
@@ -113,18 +125,9 @@ class RequestUri extends Equatable {
       }
     }
 
-    if (query != null && query.isNotEmpty) {
+    if (queries != null && queries.isNotEmpty) {
       sb.write('?');
-
-      for (var i = 0; i < query.length; i += 2) {
-        if (i > 0) {
-          sb.write('&');
-        }
-
-        sb.write(query[i]);
-        sb.write('=');
-        sb.write(query[i + 1]);
-      }
+      sb.write(queries.toQueryString());
     }
 
     if (fragment != null) {
@@ -148,7 +151,7 @@ class RequestUri extends Equatable {
         host,
         path,
         port,
-        query,
+        queries,
         scheme,
         username,
         password,

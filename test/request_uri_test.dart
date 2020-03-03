@@ -1,3 +1,4 @@
+import 'package:restio/src/queries.dart';
 import 'package:restio/src/request_uri.dart';
 import 'package:test/test.dart';
 
@@ -61,7 +62,7 @@ void main() {
     expect(req.host, 'example.com');
     expect(req.port, '8080');
     expect(req.path, const ['a', 'b', 'c']);
-    expect(req.query, const ['d', 'e']);
+    expect(req.queries, Queries.fromMap({'d': 'e'}));
     expect(req.fragment, 'f');
 
     expect(req.toUri(), uri);
@@ -117,14 +118,14 @@ void main() {
   });
 
   test('To String', () {
-    const uri = RequestUri(
+    final uri = RequestUri(
       scheme: 'https',
       username: 'user',
       password: 'pass',
       host: 'example.com',
       port: '8080',
       path: ['a', 'b', 'c'],
-      query: ['d', 'e', 'd', 'f'],
+      queries: Queries.fromList(const ['d', 'e', 'd', 'f']),
       fragment: 'g',
     );
 

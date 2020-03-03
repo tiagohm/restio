@@ -839,7 +839,7 @@ void main() {
     final request = Request.get('https://httpbin.org/redirect/5');
     final call = cacheClient.newCall(request);
     final response = await call.execute();
-    final json = await response.body.data.json();
+    await response.body.data.json();
     await response.body.close();
 
     expect(response.code, 200);

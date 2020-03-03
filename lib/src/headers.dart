@@ -1,11 +1,16 @@
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:restio/src/utils/string_pair_list.dart';
 
 // ignore_for_file: avoid_returning_this
 
 class Headers extends StringPairList {
-  const Headers._(List<String> items) : super(items);
+  @protected
+  @override
+  final List<String> items;
+
+  const Headers._(this.items);
 
   static const empty = Headers._([]);
 
@@ -13,13 +18,15 @@ class Headers extends StringPairList {
     return HeadersBuilder._(this);
   }
 
-  @override
-  bool get isCaseSensitive => false;
-
-  static Headers of(Map<String, dynamic> items) {
+  factory Headers.of(Map<String, dynamic> items) {
     final headers = HeadersBuilder();
     items.forEach(headers.add);
     return headers.build();
+  }
+
+  @override
+  String rightName(String name) {
+    return name?.toLowerCase();
   }
 
   List<String> vary() {
@@ -69,7 +76,15 @@ class HeadersBuilder extends StringPairListBuilder<Headers> {
   }
 
   @override
-  bool get isCaseSensitive => false;
+  String rightName(String name) {
+    return name?.toLowerCase();
+  }
+
+  @override
+  Object rightValue(Object value) {
+    ArgumentError.checkNotNull(value);
+    return value;
+  }
 
   void addLine(String line) {
     final index = line.indexOf(':', 1);

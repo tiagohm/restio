@@ -3,18 +3,16 @@ import 'package:meta/meta.dart';
 
 @immutable
 abstract class StringPairList extends Equatable {
+  const StringPairList();
+  
   @protected
-  final List<String> items;
-
-  const StringPairList(List<String> items) : items = items ?? const [];
+  List<String> get items;
 
   int get length => items.length ~/ 2;
 
   bool get isEmpty => length == 0;
 
   bool get isNotEmpty => !isEmpty;
-
-  bool get isCaseSensitive => true;
 
   String nameAt(int index) {
     final realIndex = index * 2;
@@ -91,7 +89,7 @@ abstract class StringPairList extends Equatable {
 
   Set<String> names() {
     return {
-      for (var i = 0; i < items.length; i += 2) rightName(items[i]),
+      for (var i = 0; i < items.length; i += 2) items[i],
     };
   }
 
@@ -103,14 +101,14 @@ abstract class StringPairList extends Equatable {
 
   @protected
   String rightName(String name) {
-    return isCaseSensitive ? name : name?.toLowerCase();
+    return name;
   }
 
   Map<String, List<String>> toMap() {
     final res = <String, List<String>>{};
 
     for (var i = 0; i < items.length; i += 2) {
-      res.putIfAbsent(rightName(items[i]), () => []).add(items[i + 1]);
+      res.putIfAbsent(items[i], () => []).add(items[i + 1]);
     }
 
     return res;
@@ -118,7 +116,7 @@ abstract class StringPairList extends Equatable {
 
   void forEach(void Function(String name, String value) f) {
     for (var i = 0; i < items.length; i += 2) {
-      f(rightName(items[i]), items[i + 1]);
+      f(items[i], items[i + 1]);
     }
   }
 
@@ -144,44 +142,74 @@ abstract class StringPairListBuilder<L extends StringPairList> {
     list.copyTo(items);
   }
 
-  bool get isCaseSensitive => true;
-
   @protected
   String rightName(String name) {
-    return isCaseSensitive ? name : name?.toLowerCase();
+    return name;
+  }
+
+  @protected
+  Object rightValue(Object value) {
+    return value;
   }
 
   void clear() {
     items.clear();
   }
 
-  void add(String name, Object value) {
+  void add(
+    String name,
+    Object value,
+  ) {
     if (name == null || name.isEmpty) {
       throw ArgumentError('name is null or empty');
     }
 
     name = rightName(name);
+    value = rightValue(value);
 
-    if (value is Iterable) {
+    // Valor nulo.
+    if (value == null) {
+      items.add(name);
+      items.add(null);
+    }
+    // Lista.
+    else if (value is Iterable) {
       for (final item in value) {
-        if (item is String || item is num || item is bool) {
+        // Valor nulo.
+        if (item == null) {
+          items.add(name);
+          items.add(null);
+        }
+        // Dado.
+        else if (item is String || item is num || item is bool) {
           items.add(name);
           items.add('$item');
         }
       }
-    } else if (value is String || value is num || value is bool) {
+    }
+    // Dado.
+    else if (value is String || value is num || value is bool) {
       items.add(name);
       items.add('$value');
     }
   }
 
-  void set(String name, Object value) {
+  void set(
+    String name,
+    Object value,
+  ) {
+    name = rightName(name);
+    value = rightValue(value);
     removeAll(name);
     add(name, value);
   }
 
-  void remove(String name, Object value) {
+  void remove(
+    String name,
+    Object value,
+  ) {
     name = rightName(name);
+    value = rightValue(value);
 
     for (var i = 0; i < items.length; i += 2) {
       if (items[i] == name && items[i + 1] == value?.toString()) {

@@ -1,24 +1,27 @@
 import 'dart:convert';
 
+import 'package:meta/meta.dart';
 import 'package:restio/src/helpers.dart';
 import 'package:restio/src/media_type.dart';
 import 'package:restio/src/request_body.dart';
 import 'package:restio/src/utils/string_pair_list.dart';
 
 class FormBody extends StringPairList implements RequestBody {
+  @protected
+  @override
+  final List<String> items;
   @override
   final MediaType contentType;
 
   FormBody._({
-    List<String> items,
+    this.items,
     String charset,
-  })  : contentType = MediaType.formUrlEncoded.copyWith(charset: charset),
-        super(items);
+  }) : contentType = MediaType.formUrlEncoded.copyWith(charset: charset);
 
   FormBody({
     String charset,
-  })  : contentType = MediaType.formUrlEncoded.copyWith(charset: charset),
-        super(const []);
+  })  : items = const [],
+        contentType = MediaType.formUrlEncoded.copyWith(charset: charset);
 
   factory FormBody.of(
     Map<String, dynamic> items, [
@@ -81,6 +84,12 @@ class FormBodyBuilder extends StringPairListBuilder<FormBody> {
 
   void charset(String value) {
     _charset = value ?? 'utf-8';
+  }
+
+  @override
+  Object rightValue(Object value) {
+    ArgumentError.checkNotNull(value);
+    return value;
   }
 
   @override

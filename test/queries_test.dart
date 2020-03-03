@@ -95,4 +95,9 @@ void main() {
     expect(headers.first('bool'), 'true');
     expect(headers.first('iNt'), '5');
   });
+
+  test('Query Value can be null', () {
+    final builder = QueriesBuilder();
+    expect(() => builder.add('foo', null), isNot(throwsArgumentError));
+  });
 }

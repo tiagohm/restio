@@ -62,7 +62,7 @@ class DnsOverHttps extends PacketBasedDns {
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
           dns: dns,
-          queries: Queries.of({
+          queries: Queries.fromMap({
             'ct': 'application/dns-json',
           }),
         );
@@ -78,7 +78,7 @@ class DnsOverHttps extends PacketBasedDns {
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
           dns: dns,
-          queries: Queries.of({
+          queries: Queries.fromMap({
             'ct': 'application/dns-json',
           }),
         );

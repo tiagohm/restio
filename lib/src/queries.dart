@@ -1,7 +1,12 @@
+import 'package:meta/meta.dart';
 import 'package:restio/src/utils/string_pair_list.dart';
 
 class Queries extends StringPairList {
-  const Queries._(List<String> items) : super(items);
+  @protected
+  @override
+  final List<String> items;
+
+  const Queries._(this.items);
 
   static const empty = Queries._([]);
 
@@ -9,10 +14,45 @@ class Queries extends StringPairList {
     return QueriesBuilder._(this);
   }
 
-  static Queries of(Map<String, dynamic> items) {
-    final headers = QueriesBuilder();
-    items.forEach(headers.add);
-    return headers.build();
+  factory Queries.fromMap(Map<String, dynamic> items) {
+    final queries = QueriesBuilder();
+    items.forEach(queries.add);
+    return queries.build();
+  }
+
+  factory Queries.fromList(List<Object> items) {
+    final queries = QueriesBuilder();
+
+    for (var i = 0; i < items.length; i += 2) {
+      final key = items[i]?.toString();
+
+      if (key != null && key.isNotEmpty) {
+        queries.add(key, items[i + 1]);
+      }
+    }
+
+    return queries.build();
+  }
+
+  String toQueryString() {
+    final sb = StringBuffer();
+
+    for (var i = 0; i < items.length; i += 2) {
+      if (i > 0) {
+        sb.write('&');
+      }
+
+      sb.write(items[i]);
+
+      final value = items[i + 1];
+
+      if (value != null) {
+        sb.write('=');
+        sb.write(value);
+      }
+    }
+
+    return sb.toString();
   }
 
   @override
@@ -38,8 +78,8 @@ class Queries extends StringPairList {
 class QueriesBuilder extends StringPairListBuilder<Queries> {
   QueriesBuilder() : super();
 
-  QueriesBuilder._(Queries headers) {
-    headers.copyToBuilder(this);
+  QueriesBuilder._(Queries queries) {
+    queries.copyToBuilder(this);
   }
 
   @override

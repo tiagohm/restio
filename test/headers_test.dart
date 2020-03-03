@@ -92,4 +92,9 @@ void main() {
     expect(headers.first('BOOL'), 'true');
     expect(headers.first('InT'), '5');
   });
+
+  test('Header Value can not be null', () {
+    final builder = HeadersBuilder();
+    expect(() => builder.add('foo', null), throwsArgumentError);
+  });
 }
