@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:uri/uri.dart';
 
 class RequestUri extends Equatable {
   final String fragment;
@@ -66,6 +67,14 @@ class RequestUri extends Equatable {
     );
   }
 
+  factory RequestUri.expanded(
+    String uri,
+    Map<String, Object> variables,
+  ) {
+    final template = UriTemplate(uri);
+    return RequestUri.parse(template.expand(variables));
+  }
+
   @override
   String toString() {
     final sb = StringBuffer();
@@ -124,6 +133,13 @@ class RequestUri extends Equatable {
     }
 
     return sb.toString();
+  }
+
+  Uri toUri([Map<String, Object> variables]) {
+    final uri = toString();
+    return variables != null
+        ? Uri.parse(UriTemplate(uri).expand(variables))
+        : Uri.parse(uri);
   }
 
   @override

@@ -53,16 +53,18 @@ void main() {
   });
 
   test('Uri', () {
-    final uri = RequestUri.fromUri(
-        Uri.parse('https://user:pass@example.com:8080/a/b/c?d=e#f'));
-    expect(uri.scheme, 'https');
-    expect(uri.username, 'user');
-    expect(uri.password, 'pass');
-    expect(uri.host, 'example.com');
-    expect(uri.port, '8080');
-    expect(uri.path, const ['a', 'b', 'c']);
-    expect(uri.query, const ['d', 'e']);
-    expect(uri.fragment, 'f');
+    final uri = Uri.parse('https://user:pass@example.com:8080/a/b/c?d=e#f');
+    final req = RequestUri.fromUri(uri);
+    expect(req.scheme, 'https');
+    expect(req.username, 'user');
+    expect(req.password, 'pass');
+    expect(req.host, 'example.com');
+    expect(req.port, '8080');
+    expect(req.path, const ['a', 'b', 'c']);
+    expect(req.query, const ['d', 'e']);
+    expect(req.fragment, 'f');
+
+    expect(req.toUri(), uri);
   });
 
   test('Https', () {
