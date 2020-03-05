@@ -6,6 +6,7 @@ import 'package:restio/src/authenticator.dart';
 import 'package:restio/src/challenge.dart';
 import 'package:restio/src/helpers.dart';
 import 'package:restio/src/request.dart';
+import 'package:restio/src/request_uri.dart';
 import 'package:restio/src/response.dart';
 import 'package:utf/utf.dart';
 
@@ -79,7 +80,7 @@ class HawkAuthenticator extends Authenticator {
 
   static String _buildHeader({
     String method = '',
-    Uri uri,
+    RequestUri uri,
     String id,
     String key,
     HawkAlgorithm algorithm,
@@ -94,7 +95,7 @@ class HawkAuthenticator extends Authenticator {
       method: method,
       resource: uri.path ?? '',
       host: uri.host,
-      port: uri.port,
+      port: uri.effectivePort,
       ext: ext ?? '',
       isSha256: algorithm == HawkAlgorithm.sha256,
     );

@@ -1,9 +1,6 @@
 import 'dart:io';
 
 import 'package:restio/restio.dart';
-import 'package:restio/src/dns/dns.dart';
-import 'package:restio/src/dns/dns_over_https.dart';
-import 'package:restio/src/dns/dns_over_udp.dart';
 import 'package:test/test.dart';
 
 void main() {

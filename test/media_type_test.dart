@@ -1,6 +1,6 @@
 import 'dart:convert';
 
-import 'package:restio/src/media_type.dart';
+import 'package:restio/restio.dart';
 import 'package:test/test.dart';
 
 void main() {

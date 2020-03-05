@@ -9,6 +9,7 @@ import 'package:restio/src/headers.dart';
 import 'package:restio/src/helpers.dart';
 import 'package:restio/src/media_type.dart';
 import 'package:restio/src/request.dart';
+import 'package:restio/src/request_uri.dart';
 import 'package:restio/src/response.dart';
 import 'package:restio/src/response_body.dart';
 
@@ -81,7 +82,7 @@ class Entry {
     );
 
     final cacheRequest = Request(
-      uri: Uri.parse(url),
+      uri: RequestUri.parse(url),
       method: method,
       headers: varyHeaders,
     );
@@ -111,7 +112,7 @@ class Entry {
     Request request,
     Response response,
   ) {
-    return url == request.uriWithQueries.toString() &&
+    return url == request.uri.toString() &&
         method == request.method &&
         varyMatches(response, varyHeaders, request);
   }
@@ -184,7 +185,7 @@ class Entry {
   }
 
   factory Entry.fromResponse(Response response) {
-    final url = response.request.uriWithQueries.toString();
+    final url = response.request.uri.toString();
     final varyHeaders = _varyHeaders(response.request, response);
     final method = response.request.method;
     final code = response.code;

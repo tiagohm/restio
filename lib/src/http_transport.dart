@@ -35,7 +35,7 @@ class HttpTransport implements Transport {
 
     final clientCertificate = await client.clientCertificateJar?.get(
       request.uri.host,
-      request.uri.port,
+      request.uri.effectivePort,
     );
 
     if (clientCertificate != null) {
@@ -103,12 +103,12 @@ class HttpTransport implements Transport {
     try {
       if (client.connectTimeout != null && !client.connectTimeout.isNegative) {
         clientRequest = await _httpClient
-            .openUrl(request.method, request.uriWithQueries)
+            .openUrl(request.method, request.uri.toUri())
             .timeout(client.connectTimeout);
       } else {
         clientRequest = await _httpClient.openUrl(
           request.method,
-          request.uriWithQueries,
+          request.uri.toUri(),
         );
       }
 

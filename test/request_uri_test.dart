@@ -51,6 +51,9 @@ void main() {
 
     p = parseUri('http://user:pass@example.com:8080//');
     expect(p['path'], const ['', '']);
+
+    p = parseUri('https://example.com/a/b');
+    expect(p['path'], const ['a', 'b']);
   });
 
   test('Uri', () {
@@ -61,7 +64,7 @@ void main() {
     expect(req.password, 'pass');
     expect(req.host, 'example.com');
     expect(req.port, '8080');
-    expect(req.path, const ['a', 'b', 'c']);
+    expect(req.paths, const ['a', 'b', 'c']);
     expect(req.queries, Queries.fromMap({'d': 'e'}));
     expect(req.fragment, 'f');
 
@@ -124,7 +127,7 @@ void main() {
       password: 'pass',
       host: 'example.com',
       port: '8080',
-      path: ['a', 'b', 'c'],
+      paths: const ['a', 'b', 'c'],
       queries: Queries.fromList(const ['d', 'e', 'd', 'f']),
       fragment: 'g',
     );
@@ -133,5 +136,20 @@ void main() {
       uri.toString(),
       'https://user:pass@example.com:8080/a/b/c?d=e&d=f#g',
     );
+  });
+
+  test('Path String', () {
+    var uri = RequestUri.parse('https://example.com/a/b');
+    expect(uri.paths, const ['a', 'b']);
+    expect(uri.path, '/a/b');
+
+    uri = RequestUri.parse('https://example.com/a/b/');
+    expect(uri.path, '/a/b/');
+
+    uri = RequestUri.parse('https://example.com/');
+    expect(uri.path, '/');
+
+    uri = RequestUri.parse('https://example.com');
+    expect(uri.path, isEmpty);
   });
 }

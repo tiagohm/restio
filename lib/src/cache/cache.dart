@@ -13,6 +13,7 @@ import 'package:restio/src/cache/snapshotable.dart';
 import 'package:restio/src/helpers.dart';
 import 'package:restio/src/http_method.dart';
 import 'package:restio/src/request.dart';
+import 'package:restio/src/request_uri.dart';
 import 'package:restio/src/response.dart';
 
 export 'cache_control.dart';
@@ -23,9 +24,9 @@ export 'memory_cache_store.dart';
 export 'snapshot.dart';
 export 'snapshotable.dart';
 
-typedef KeyExtractor = String Function(Uri uri);
+typedef KeyExtractor = String Function(RequestUri uri);
 
-String _defaultKeyExtractor(Uri uri) {
+String _defaultKeyExtractor(RequestUri uri) {
   return HEX.encode(md5.convert(utf8.encode(uri.toString())).bytes);
 }
 
@@ -76,7 +77,7 @@ class Cache {
   }
 
   String _getKey(Request request) {
-    return _keyExtractor(request.uriWithQueries);
+    return _keyExtractor(request.uri);
   }
 
   Future<Response> get(Request request) async {

@@ -69,7 +69,7 @@ class ConnectInterceptor implements Interceptor {
           dnsIp = addresses[0];
 
           connectRequest = request.copyWith(
-            uri: request.uri.replace(host: dnsIp.toString()),
+            uri: request.uri.copyWith(host: dnsIp.toString()),
           );
         }
       }

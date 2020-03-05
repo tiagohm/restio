@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:restio/restio.dart';
-import 'package:restio/ws.dart';
 import 'package:test/test.dart';
 
 final client = Restio();
@@ -97,7 +96,7 @@ void main() {
 }
 
 Future<WebSocketConnection> openConnection() async {
-  final request = Request(uri: Uri.parse('ws://localhost:3001'));
+  final request = Request(uri: RequestUri.parse('ws://localhost:3001'));
   final ws = client.newWebSocket(request);
   final conn = await ws.open();
   return conn;

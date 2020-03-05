@@ -22,7 +22,7 @@ import 'package:restio/src/dns/dns_over_udp.dart';
 import 'package:restio/src/dns/dns_packet.dart';
 
 class DnsOverHttps extends PacketBasedDns {
-  final Uri uri;
+  final RequestUri uri;
   final Dns dns;
   final bool maximalPrivacy;
   final Duration timeout;
@@ -44,7 +44,7 @@ class DnsOverHttps extends PacketBasedDns {
     bool maximalPrivacy = false,
     Dns dns,
   }) : this(
-          Uri.parse('https://dns.google.com/resolve'),
+          RequestUri.parse('https://dns.google.com/resolve'),
           client: client,
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
@@ -57,7 +57,7 @@ class DnsOverHttps extends PacketBasedDns {
     bool maximalPrivacy = false,
     Dns dns,
   }) : this(
-          Uri.parse('https://cloudflare-dns.com/dns-query'),
+          RequestUri.parse('https://cloudflare-dns.com/dns-query'),
           client: client,
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
@@ -73,7 +73,7 @@ class DnsOverHttps extends PacketBasedDns {
     bool maximalPrivacy = false,
     Dns dns,
   }) : this(
-          Uri.parse('https://mozilla.cloudflare-dns.com/dns-query'),
+          RequestUri.parse('https://mozilla.cloudflare-dns.com/dns-query'),
           client: client,
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
@@ -83,7 +83,7 @@ class DnsOverHttps extends PacketBasedDns {
           }),
         );
 
-  Future<Response> _execute(Uri uri) async {
+  Future<Response> _execute(RequestUri uri) async {
     final request = Request(uri: uri, method: 'GET');
     final call = _client.newCall(request);
     return call.execute();
@@ -120,10 +120,11 @@ class DnsOverHttps extends PacketBasedDns {
     }
 
     // Additional queries.
-    uri.queryParametersAll.forEach((key, name) => queries[key] = name);
+    uri.queries.forEach((key, name) => queries[key] = name);
     this.queries?.forEach((key, name) => queries[key] = name);
 
-    final response = await _execute(uri.replace(queryParameters: queries));
+    final response =
+        await _execute(uri.copyWith(queries: Queries.fromMap(queries)));
 
     if (response.code != 200) {
       throw RestioException(

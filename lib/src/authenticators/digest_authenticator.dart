@@ -36,7 +36,7 @@ class DigestAuthenticator extends Authenticator {
         final realm = challenge.realm;
         final nonce = challenge.parameters['nonce'];
         final method = response.request.method;
-        final uri = response.request.uri.path;
+        final path = response.request.uri.path;
         final opaque = challenge.parameters['opaque'];
         // final stale = challenge.parameters['stale'];
         final algorithm = challenge.parameters['algorithm'] ?? 'MD5';
@@ -50,7 +50,7 @@ class DigestAuthenticator extends Authenticator {
           nonce: nonce,
           cnonce: cnonce,
           nonceCount: nonceCount,
-          uri: uri,
+          uri: path,
           qop: qop,
           method: method,
           opaque: opaque,

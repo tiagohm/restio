@@ -3,10 +3,7 @@
 import 'dart:io';
 
 import 'package:pubspec/pubspec.dart';
-import 'package:restio/cache.dart';
 import 'package:restio/restio.dart';
-import 'package:restio/src/client_certificate.dart';
-import 'package:restio/src/client_certificate_jar.dart';
 import 'package:test/test.dart';
 
 import 'utils.dart';
@@ -409,7 +406,8 @@ void main() {
         await response.body.close();
       } on TooManyRedirectsException catch (e) {
         expect(e.message, 'Too many redirects: 10');
-        expect(e.uri, Uri.parse('https://httpbin.org/absolute-redirect/10'));
+        expect(e.uri,
+            RequestUri.parse('https://httpbin.org/absolute-redirect/10'));
       }
     });
   });
@@ -452,7 +450,8 @@ void main() {
         await response.body.close();
       } on TooManyRedirectsException catch (e) {
         expect(e.message, 'Too many redirects: 10');
-        expect(e.uri, Uri.parse('https://httpbin.org/absolute-redirect/10'));
+        expect(e.uri,
+            RequestUri.parse('https://httpbin.org/absolute-redirect/10'));
       }
     });
   });

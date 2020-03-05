@@ -21,7 +21,7 @@ class Redirect implements RedirectInfo {
   String get method => request.method;
 
   @override
-  Uri get location => request.uri;
+  Uri get location => request.uri.toUri();
 
   @override
   String toString() {

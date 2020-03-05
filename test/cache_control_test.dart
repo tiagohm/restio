@@ -1,5 +1,4 @@
-import 'package:restio/src/cache/cache_control.dart';
-import 'package:restio/src/headers.dart';
+import 'package:restio/restio.dart';
 import 'package:test/test.dart';
 
 void main() {

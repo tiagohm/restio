@@ -1,9 +1,6 @@
 import 'dart:io';
 
-import 'package:restio/src/client.dart';
-import 'package:restio/src/cookie_jar.dart';
-import 'package:restio/src/request.dart';
-import 'package:restio/src/response.dart';
+import 'package:restio/restio.dart';
 import 'package:test/test.dart';
 
 import 'utils.dart';
@@ -15,7 +12,7 @@ void main() {
 
   test('Send Cookies', () async {
     final request = Request(
-      uri: Uri.parse('https://postman-echo.com/cookies'),
+      uri: RequestUri.parse('https://postman-echo.com/cookies'),
       method: 'GET',
     );
 

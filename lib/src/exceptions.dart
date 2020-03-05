@@ -1,3 +1,5 @@
+import 'package:restio/src/request_uri.dart';
+
 class RestioException implements Exception {
   final String message;
 
@@ -8,7 +10,7 @@ class RestioException implements Exception {
 }
 
 class TooManyRedirectsException extends RestioException {
-  final Uri uri;
+  final RequestUri uri;
 
   const TooManyRedirectsException(
     String message,

@@ -3,10 +3,10 @@ import 'package:restio/src/cache/cache_control.dart';
 import 'package:restio/src/headers.dart';
 import 'package:restio/src/queries.dart';
 import 'package:restio/src/request_body.dart';
+import 'package:restio/src/request_uri.dart';
 
 class Request {
-  final Uri uri;
-  final Uri uriWithQueries;
+  final RequestUri uri;
   final String method;
   final Headers headers;
   final Queries queries;
@@ -15,7 +15,7 @@ class Request {
   final CacheControl cacheControl;
 
   Request({
-    @required Uri uri,
+    @required RequestUri uri,
     this.method = 'GET',
     Headers headers,
     Queries queries,
@@ -23,8 +23,7 @@ class Request {
     this.extra,
     CacheControl cacheControl,
   })  : assert(uri != null),
-        uri = _obtainUriWithoutQueries(uri),
-        uriWithQueries = _obtainUriWithQueries(uri, queries),
+        uri = _obtainUri(uri, queries),
         headers = headers ?? HeadersBuilder().build(),
         queries = _obtainQueries(uri, queries),
         cacheControl = cacheControl ??
@@ -38,7 +37,7 @@ class Request {
     Map<String, dynamic> extra,
     CacheControl cacheControl,
   }) : this(
-          uri: Uri.parse(uri),
+          uri: RequestUri.parse(uri),
           headers: headers,
           queries: queries,
           extra: extra,
@@ -53,7 +52,7 @@ class Request {
     Map<String, dynamic> extra,
   }) : this(
           method: 'POST',
-          uri: Uri.parse(uri),
+          uri: RequestUri.parse(uri),
           headers: headers,
           queries: queries,
           body: body,
@@ -68,7 +67,7 @@ class Request {
     Map<String, dynamic> extra,
   }) : this(
           method: 'PUT',
-          uri: Uri.parse(uri),
+          uri: RequestUri.parse(uri),
           headers: headers,
           queries: queries,
           body: body,
@@ -83,7 +82,7 @@ class Request {
     CacheControl cacheControl,
   }) : this(
           method: 'HEAD',
-          uri: Uri.parse(uri),
+          uri: RequestUri.parse(uri),
           headers: headers,
           queries: queries,
           extra: extra,
@@ -98,7 +97,7 @@ class Request {
     Map<String, dynamic> extra,
   }) : this(
           method: 'DELETE',
-          uri: Uri.parse(uri),
+          uri: RequestUri.parse(uri),
           headers: headers,
           queries: queries,
           body: body,
@@ -113,48 +112,29 @@ class Request {
     Map<String, dynamic> extra,
   }) : this(
           method: 'PATCH',
-          uri: Uri.parse(uri),
+          uri: RequestUri.parse(uri),
           headers: headers,
           queries: queries,
           body: body,
           extra: extra,
         );
 
-  static Uri _obtainUriWithoutQueries(Uri uri) {
-    return Uri(
-      host: uri.host,
-      pathSegments: uri.pathSegments,
-      port: uri.port,
-      scheme: uri.scheme,
-      userInfo: uri.userInfo,
-    );
-  }
-
-  static Uri _obtainUriWithQueries(
-    Uri uri,
+  static RequestUri _obtainUri(
+    RequestUri uri,
     Queries queries,
   ) {
     queries = _obtainQueries(uri, queries);
-    uri = _obtainUriWithoutQueries(uri);
-
-    return Uri(
-      host: uri.host,
-      pathSegments: uri.pathSegments,
-      port: uri.port,
-      scheme: uri.scheme,
-      userInfo: uri.userInfo,
-      queryParameters: queries?.isNotEmpty == true ? queries.toMap() : null,
-    );
+    return uri.copyWith(queries: queries);
   }
 
   static Queries _obtainQueries(
-    Uri uri,
+    RequestUri uri,
     Queries queries,
   ) {
     final res = QueriesBuilder();
 
     // Adiciona as queries da URL.
-    uri.queryParametersAll.forEach(res.add);
+    uri.queries.forEach(res.add);
 
     // Adiciona as queries.
     queries?.forEach(res.add);
@@ -163,7 +143,7 @@ class Request {
   }
 
   Request copyWith({
-    Uri uri,
+    RequestUri uri,
     String method,
     Headers headers,
     Queries queries,

@@ -40,7 +40,7 @@ class Http2Transport implements Transport {
       socket = await _createSocket(request);
       _transport = ClientTransportConnection.viaSocket(socket);
 
-      final uri = request.uriWithQueries;
+      final uri = request.uri.toUri();
 
       var path = uri.path;
 
@@ -114,9 +114,11 @@ class Http2Transport implements Transport {
   }
 
   Future<SecureSocket> _createSocket(Request request) async {
+    final port = request.uri.effectivePort;
+
     return SecureSocket.connect(
       request.uri.host,
-      request.uri.port,
+      port,
       timeout: client.connectTimeout,
       context: SecurityContext(withTrustedRoots: client.withTrustedRoots),
       supportedProtocols: ['h2'],
@@ -125,7 +127,7 @@ class Http2Transport implements Transport {
             (client?.onBadCertificate?.call(
                   cert,
                   request.uri.host,
-                  request.uri.port,
+                  port,
                 ) ??
                 false);
       },

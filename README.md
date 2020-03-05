@@ -21,7 +21,7 @@ final client = Restio();
 2. Create a `Request`:
 ```dart
 final request = Request(
-    uri: Uri.parse('https://httpbin.org/json'),
+    uri: RequestUri.parse('https://httpbin.org/json'),
     method: HttpMethod.get,
 );
 ```
@@ -300,7 +300,7 @@ final response = await call.execute();
 #### WebSocket
 ```dart
 final client = Restio();
-final request = Request(uri: Uri.parse('wss://echo.websocket.org'));
+final request = Request(uri: RequestUri.parse('wss://echo.websocket.org'));
 final ws = client.newWebSocket(request);
 final conn = await ws.open();
 
@@ -318,7 +318,7 @@ await conn.close();
 #### SSE
 ```dart
 final client = Restio();
-final request = Request(uri: Uri.parse('https://my.sse.com'));
+final request = Request(uri: RequestUri.parse('https://my.sse.com'));
 final sse = client.newSse(request);
 final conn = await sse.open();
 

@@ -5,6 +5,7 @@ export 'package:restio/src/authenticators/basic_authenticator.dart';
 export 'package:restio/src/authenticators/bearer_authenticator.dart';
 export 'package:restio/src/authenticators/digest_authenticator.dart';
 export 'package:restio/src/authenticators/hawk_authenticator.dart';
+export 'package:restio/src/cache/cache.dart';
 export 'package:restio/src/call.dart';
 export 'package:restio/src/cancellable.dart';
 export 'package:restio/src/chain.dart';
@@ -32,15 +33,18 @@ export 'package:restio/src/media_type.dart';
 export 'package:restio/src/multipart_body.dart';
 export 'package:restio/src/part.dart';
 export 'package:restio/src/proxy.dart';
+export 'package:restio/src/push/sse/sse.dart';
+export 'package:restio/src/push/ws/ws.dart';
 export 'package:restio/src/queries.dart';
 export 'package:restio/src/redirect.dart';
 export 'package:restio/src/request.dart';
 export 'package:restio/src/request_body.dart';
+export 'package:restio/src/request_uri.dart';
 export 'package:restio/src/response.dart';
 export 'package:restio/src/response_body.dart';
 export 'package:restio/src/response_body_data.dart';
 export 'package:restio/src/transport.dart';
-export 'package:restio/src/utils/string_pair_list.dart';
 export 'package:restio/src/utils/output_buffer.dart';
+export 'package:restio/src/utils/string_pair_list.dart';
 
 // https://github.com/square/okhttp/tree/master/okhttp/src/main/java/okhttp3

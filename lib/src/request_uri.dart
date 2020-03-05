@@ -5,7 +5,7 @@ import 'package:uri/uri.dart';
 class RequestUri extends Equatable {
   final String fragment;
   final String host;
-  final List<String> path;
+  final List<String> paths;
   final String port;
   final Queries queries;
   final String scheme;
@@ -15,21 +15,22 @@ class RequestUri extends Equatable {
   const RequestUri({
     this.fragment,
     this.host,
-    this.path,
+    List<String> paths,
     this.port,
-    this.queries,
+    Queries queries,
     this.scheme,
     this.username,
     this.password,
-  });
+  })  : paths = paths ?? const [],
+        queries = queries ?? Queries.empty;
 
   factory RequestUri.fromUri(Uri uri) {
-    final userInfo = uri.userInfo?.split(':');
+    final userInfo = uri.userInfo.isNotEmpty ? uri.userInfo.split(':') : null;
 
     return RequestUri(
-      fragment: uri.fragment,
+      fragment: uri.hasFragment ? uri.fragment : null,
       host: uri.host,
-      path: uri.pathSegments,
+      paths: uri.pathSegments,
       port: uri.port?.toString(),
       scheme: uri.scheme,
       username: userInfo?.isNotEmpty == true ? userInfo[0] : null,
@@ -70,7 +71,7 @@ class RequestUri extends Equatable {
     return RequestUri(
       fragment: p['fragment'],
       host: p['host'],
-      path: p['path'],
+      paths: p['path'],
       port: p['port'],
       scheme: p['scheme'],
       username: p['username'],
@@ -85,6 +86,32 @@ class RequestUri extends Equatable {
   ) {
     final template = UriTemplate(uri);
     return RequestUri.parse(template.expand(variables));
+  }
+
+  RequestUri copyWith({
+    String fragment,
+    String host,
+    List<String> paths,
+    port,
+    Queries queries,
+    String scheme,
+    String username,
+    String password,
+  }) {
+    return RequestUri(
+      fragment: fragment ?? this.fragment,
+      host: host ?? this.host,
+      paths: paths ?? this.paths,
+      port: port?.toString() ?? this.port,
+      queries: queries ?? this.queries,
+      scheme: scheme ?? this.scheme,
+      username: username ?? this.username,
+      password: password ?? this.password,
+    );
+  }
+
+  RequestUri expand(Map<String, Object> variables) {
+    return RequestUri.expanded(toString(), variables);
   }
 
   @override
@@ -118,14 +145,12 @@ class RequestUri extends Equatable {
       }
     }
 
-    if (path != null) {
-      for (final item in path) {
-        sb.write('/');
-        sb.write(item);
-      }
+    for (final item in paths) {
+      sb.write('/');
+      sb.write(item);
     }
 
-    if (queries != null && queries.isNotEmpty) {
+    if (queries.isNotEmpty) {
       sb.write('?');
       sb.write(queries.toQueryString());
     }
@@ -138,18 +163,67 @@ class RequestUri extends Equatable {
     return sb.toString();
   }
 
-  Uri toUri([Map<String, Object> variables]) {
-    final uri = toString();
-    return variables != null
-        ? Uri.parse(UriTemplate(uri).expand(variables))
-        : Uri.parse(uri);
+  Uri toUri() {
+    return Uri.parse(toString());
+  }
+
+  static const _defaultPortMap = {
+    'acap': 674,
+    'afp': 548,
+    'dict': 2628,
+    'dns': 53,
+    'ftp': 21,
+    'git': 9418,
+    'gopher': 70,
+    'http': 80,
+    'https': 443,
+    'imap': 143,
+    'ipp': 631,
+    'ipps': 631,
+    'irc': 194,
+    'ircs': 6697,
+    'ldap': 389,
+    'ldaps': 636,
+    'mms': 1755,
+    'msrp': 2855,
+    'mtqp': 1038,
+    'nfs': 111,
+    'nntp': 119,
+    'nntps': 563,
+    'pop': 110,
+    'prospero': 1525,
+    'redis': 6379,
+    'rsync': 873,
+    'rtsp': 554,
+    'rtsps': 322,
+    'rtspu': 5005,
+    'sftp': 22,
+    'smb': 445,
+    'snmp': 161,
+    'ssh': 22,
+    'svn': 3690,
+    'telnet': 23,
+    'ventrilo': 3784,
+    'vnc': 5900,
+    'wais': 210,
+    'ws': 80,
+    'wss': 443,
+  };
+
+  int get effectivePort {
+    final schemePort = _defaultPortMap[scheme?.toLowerCase()] ?? 0;
+    return port == null ? schemePort : int.tryParse(port) ?? 0;
+  }
+
+  String get path {
+    return paths.isNotEmpty ? '/${paths.join('/')}' : '';
   }
 
   @override
   List<Object> get props => [
         fragment,
         host,
-        path,
+        paths,
         port,
         queries,
         scheme,
@@ -160,7 +234,7 @@ class RequestUri extends Equatable {
 
 final _schemeRegex = RegExp(r'^([^:]*):');
 final _authorityRegex = RegExp(
-    r'^//(?:(?<userinfo>.*)@)?(?<host>(?:(?!\[)[^:]+)|\[.*\])(?::(?<port>[^/?#]*))?');
+    r'^//(?:(?<userinfo>.*)@)?(?<host>(?:(?!\[)[^:/]+)|\[.*\])(?::(?<port>[^/?#]*))?');
 final _pathRegex = RegExp(r'^([^?#]*)');
 final _queryRegex = RegExp(r'^\?([^#]*)');
 final _fragmentRegex = RegExp(r'^#(.*)');

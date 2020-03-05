@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:restio/restio.dart';
-import 'package:restio/src/cache/cache.dart';
 import 'package:test/test.dart';
 
 // https://github.com/square/okhttp/blob/master/okhttp/src/test/java/okhttp3/CacheTest.java
@@ -182,7 +181,7 @@ void main() {
       );
 
       final request = Request(
-        uri: Uri.parse(url),
+        uri: RequestUri.parse(url),
         method: method,
         body: requestBodyOrNull(method),
       );
@@ -239,7 +238,7 @@ void main() {
       await response.body.close();
 
       request = Request(
-        uri: Uri.parse(url),
+        uri: RequestUri.parse(url),
         method: method,
         body: requestBodyOrNull(method),
       );
