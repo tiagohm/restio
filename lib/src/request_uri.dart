@@ -1,6 +1,5 @@
 import 'package:equatable/equatable.dart';
 import 'package:restio/src/queries.dart';
-import 'package:uri/uri.dart';
 
 class RequestUri extends Equatable {
   final String fragment;
@@ -80,14 +79,6 @@ class RequestUri extends Equatable {
     );
   }
 
-  factory RequestUri.expanded(
-    String uri,
-    Map<String, Object> variables,
-  ) {
-    final template = UriTemplate(uri);
-    return RequestUri.parse(template.expand(variables));
-  }
-
   RequestUri copyWith({
     String fragment,
     String host,
@@ -108,10 +99,6 @@ class RequestUri extends Equatable {
       username: username ?? this.username,
       password: password ?? this.password,
     );
-  }
-
-  RequestUri expand(Map<String, Object> variables) {
-    return RequestUri.expanded(toString(), variables);
   }
 
   @override
