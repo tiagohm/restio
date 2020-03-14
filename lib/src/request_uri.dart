@@ -202,6 +202,8 @@ class RequestUri extends Equatable {
     return port == null ? schemePort : int.tryParse(port) ?? 0;
   }
 
+  bool get hasDefaultPort => _defaultPortMap[scheme] == effectivePort;
+
   String get path {
     return paths.isNotEmpty ? '/${paths.join('/')}' : '';
   }
