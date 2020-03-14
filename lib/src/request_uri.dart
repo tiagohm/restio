@@ -105,11 +105,15 @@ class RequestUri extends Equatable {
   String toString() {
     final sb = StringBuffer();
 
-    sb.write(scheme);
-    sb.write(':');
+    if (scheme != null) {
+      sb.write(scheme);
+      sb.write(':');
+    }
 
     if (host != null) {
-      sb.write('//');
+      if (scheme != null) {
+        sb.write('//');
+      }
 
       if (username != null || password != null) {
         if (username != null) {
