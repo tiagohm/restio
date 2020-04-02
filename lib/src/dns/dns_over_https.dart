@@ -84,7 +84,7 @@ class DnsOverHttps extends PacketBasedDns {
         );
 
   Future<Response> _execute(RequestUri uri) async {
-    final request = Request(uri: uri, method: 'GET');
+    final request = Request(uri: uri);
     final call = _client.newCall(request);
     return call.execute();
   }

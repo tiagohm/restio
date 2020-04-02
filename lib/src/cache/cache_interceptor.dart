@@ -60,8 +60,6 @@ class CacheInterceptor implements Interceptor {
         message: 'Unsatisfiable Request (only-if-cached)',
         body: _emptyBody(),
         sentAt: now,
-        spentMilliseconds: 0,
-        totalMilliseconds: 0,
         receivedAt: now,
       );
     }
