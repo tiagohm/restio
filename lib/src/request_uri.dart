@@ -115,7 +115,7 @@ class RequestUri extends Equatable {
         sb.write('//');
       }
 
-      if (username != null || password != null) {
+      if (hasAuthority) {
         if (username != null) {
           sb.write(username);
         }
@@ -207,6 +207,8 @@ class RequestUri extends Equatable {
   }
 
   bool get hasDefaultPort => _defaultPortMap[scheme] == effectivePort;
+
+  bool get hasAuthority => username != null || password != null;
 
   String get path {
     return paths.isNotEmpty ? '/${paths.join('/')}' : '';
