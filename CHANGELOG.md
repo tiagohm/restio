@@ -1,3 +1,9 @@
+## 0.5.0
+
+- Fixed various bugs.
+- Added RequestUri class.
+- Renamed various methods.
+
 ## 0.4.3
 
 - Fixed various bugs.

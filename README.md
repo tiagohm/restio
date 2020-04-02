@@ -8,7 +8,7 @@ In `pubspec.yaml` add the following dependency:
 
 ```yaml
 dependencies:
-  restio: ^0.4.3
+  restio: ^0.5.0
 ```
 
 ### How to use
