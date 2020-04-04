@@ -27,7 +27,11 @@ class Queries extends StringPairList {
       final key = items[i]?.toString();
 
       if (key != null && key.isNotEmpty) {
-        queries.add(key, items[i + 1]);
+        try {
+          queries.add(key, items[i + 1]);
+        } catch (e) {
+          // nada.
+        }
       }
     }
 

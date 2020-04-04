@@ -109,7 +109,7 @@ class _ResponseBodyData extends ResponseBodyData {
   }
 
   Future<List<int>> _raw({
-    bool decompress = true,
+    bool decompress = false,
   }) {
     var sent = 0;
 
@@ -131,10 +131,10 @@ class _ResponseBodyData extends ResponseBodyData {
   }
 
   @override
-  Future<List<int>> raw() => _raw(decompress: false);
+  Future<List<int>> raw() => _raw();
 
   @override
-  Future<List<int>> decompressed() => _raw();
+  Future<List<int>> decompressed() => _raw(decompress: true);
 
   @override
   Future<String> string() async {

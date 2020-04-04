@@ -24,6 +24,24 @@ class Headers extends StringPairList {
     return headers.build();
   }
 
+  factory Headers.fromList(List<Object> items) {
+    final headers = HeadersBuilder();
+
+    for (var i = 0; i < items.length; i += 2) {
+      final key = items[i]?.toString();
+
+      if (key != null && key.isNotEmpty) {
+        try {
+          headers.add(key, items[i + 1]);
+        } catch (e) {
+          // nada.
+        }
+      }
+    }
+
+    return headers.build();
+  }
+
   @override
   String rightName(String name) {
     return name?.toLowerCase();

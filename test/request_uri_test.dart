@@ -56,6 +56,15 @@ void main() {
     expect(p['path'], const ['a', 'b']);
   });
 
+  test('Query', () {
+    final uri = RequestUri.parse('https://httpbin.org/get?a=b&c=d');
+    expect(uri.queries.length, 2);
+    expect(uri.queries.nameAt(0), 'a');
+    expect(uri.queries.valueAt(0), 'b');
+    expect(uri.queries.nameAt(1), 'c');
+    expect(uri.queries.valueAt(1), 'd');
+  });
+
   test('Uri', () {
     final uri = Uri.parse('https://user:pass@example.com:8080/a/b/c?d=e#f');
     final req = RequestUri.fromUri(uri);

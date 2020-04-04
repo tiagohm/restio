@@ -44,7 +44,11 @@ class RequestUri extends Equatable {
     final builder = QueriesBuilder();
 
     for (var i = 0; i < queries.length; i += 2) {
-      builder.add(queries[i], queries[i + 1]);
+      try {
+        builder.add(queries[i], queries[i + 1]);
+      } catch (e) {
+        // nada.
+      }
     }
 
     return builder.build();
@@ -57,7 +61,11 @@ class RequestUri extends Equatable {
 
     queries.forEach((key, values) {
       for (final item in values) {
-        builder.add(key, item);
+        try {
+          builder.add(key, item);
+        } catch (e) {
+          // nada.
+        }
       }
     });
 
