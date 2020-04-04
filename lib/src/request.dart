@@ -9,7 +9,6 @@ class Request {
   final RequestUri uri;
   final String method;
   final Headers headers;
-  final Queries queries;
   final RequestBody body;
   final Map<String, dynamic> extra;
   final CacheControl cacheControl;
@@ -25,7 +24,6 @@ class Request {
   })  : assert(uri != null),
         uri = _obtainUri(uri, queries),
         headers = headers ?? HeadersBuilder().build(),
-        queries = _obtainQueries(uri, queries),
         cacheControl = cacheControl ??
             CacheControl.fromHeaders(headers) ??
             CacheControl.empty;
@@ -118,6 +116,8 @@ class Request {
           body: body,
           extra: extra,
         );
+
+  Queries get queries => uri.queries;
 
   static RequestUri _obtainUri(
     RequestUri uri,
