@@ -155,7 +155,7 @@ class Request {
       uri: uri ?? this.uri,
       method: method ?? this.method,
       headers: headers ?? this.headers,
-      queries: queries ?? this.queries,
+      queries: queries ?? Queries.empty,
       body: body ?? this.body,
       extra: extra ?? this.extra,
       cacheControl: cacheControl ?? this.cacheControl,
