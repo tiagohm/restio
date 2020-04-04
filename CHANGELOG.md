@@ -1,3 +1,6 @@
+## 0.5.1
+ - Fixed Request Query bug.
+
 ## 0.5.0
 
 - Fixed various bugs.
