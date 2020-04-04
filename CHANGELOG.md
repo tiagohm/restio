@@ -1,3 +1,6 @@
+## 0.5.2
+ - Fixed Request Query duplication bug.
+
 ## 0.5.1
  - Fixed Request Query bug.
 
