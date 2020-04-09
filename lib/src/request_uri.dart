@@ -149,7 +149,7 @@ class RequestUri extends Equatable {
       sb.write(item);
     }
 
-    if (queries.isNotEmpty) {
+    if (hasQuery) {
       sb.write('?');
       sb.write(queries.toQueryString());
     }
@@ -217,6 +217,8 @@ class RequestUri extends Equatable {
   bool get hasDefaultPort => _defaultPortMap[scheme] == effectivePort;
 
   bool get hasAuthority => username != null || password != null;
+
+  bool get hasQuery => queries.isNotEmpty;
 
   String get path {
     return paths.isNotEmpty ? '/${paths.join('/')}' : '';

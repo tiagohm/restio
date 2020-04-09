@@ -88,12 +88,14 @@ class HawkAuthenticator extends Authenticator {
   }) {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
     final nonce = generateNonce(6);
+    final resource =
+        uri.hasQuery ? '${uri.path}?${uri.queries.toQueryString()}' : uri.path;
     final mac = _encodeToHawkHash(
       key: key,
       timestamp: timestamp,
       nonce: nonce,
       method: method,
-      resource: uri.path ?? '',
+      resource: resource,
       host: uri.host,
       port: uri.effectivePort,
       ext: ext ?? '',

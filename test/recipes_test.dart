@@ -294,6 +294,23 @@ void main() {
     expect(data['message'], 'Hawk Authentication Successful');
   });
 
+  test('Queries Should Be Included In the Hawk Auth Resource', () async {
+    final authClient = client.copyWith(
+      auth: const HawkAuthenticator(
+        id: 'dh37fgj492je',
+        key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
+      ),
+    );
+
+    var request = Request.get('https://postman-echo.com/auth/hawk?a=b');
+    var response = await requestResponse(authClient, request);
+    expect(response.code, 200);
+
+    request = Request.get('https://postman-echo.com/auth/hawk/?a=b');
+    response = await requestResponse(authClient, request);
+    expect(response.code, 200);
+  });
+
   test('Timeout', () async {
     final timeoutClient = client.copyWith(
       connectTimeout: const Duration(seconds: 2),
