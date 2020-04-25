@@ -4,7 +4,6 @@ import 'package:restio/src/core/chain.dart';
 import 'package:restio/src/core/cookie_jar.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/helpers.dart';
 
 class CookieInterceptor implements Interceptor {
   final CookieJar jar;
@@ -40,16 +39,10 @@ class CookieInterceptor implements Interceptor {
       }
     }
 
-    var response = await chain.proceed(request);
+    final response = await chain.proceed(request);
 
-    if (response != null) {
-      final cookies = obtainCookiesFromResponse(response);
-
-      response = response.copyWith(
-        cookies: cookies,
-      );
-
-      await jar?.save(response, cookies);
+    if (jar != null && response != null) {
+      await jar.save(response);
     }
 
     return response;

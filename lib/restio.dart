@@ -6,6 +6,7 @@ export 'package:restio/src/core/auth/basic_authenticator.dart';
 export 'package:restio/src/core/auth/bearer_authenticator.dart';
 export 'package:restio/src/core/auth/digest_authenticator.dart';
 export 'package:restio/src/core/auth/hawk_authenticator.dart';
+export 'package:restio/src/core/auth/nonce.dart';
 // Cache.
 export 'package:restio/src/core/cache/cache.dart' show KeyExtractor, Cache;
 export 'package:restio/src/core/cache/cache_store.dart';

@@ -118,9 +118,7 @@ class Cache {
       return null;
     }
 
-    return response.copyWith(
-      cookies: obtainCookiesFromResponse(response),
-    );
+    return response;
   }
 
   Future<CacheRequest> _put(Response response) async {

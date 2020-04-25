@@ -35,11 +35,8 @@ class _CookieJar extends CookieJar {
   }
 
   @override
-  Future<void> save(
-    Response response,
-    List<Cookie> cookies,
-  ) async {
-    for (final cookie in cookies) {
+  Future<void> save(Response response) async {
+    for (final cookie in response.cookies) {
       // Busca o cookie por nome.
       final index = _bucket.indexWhere((item) => item.name == cookie.name);
       // Se já existe, substitui.

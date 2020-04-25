@@ -241,10 +241,8 @@ class MyCookieJar extends CookieJar {
   }
 
   @override
-  Future<void> save(
-    Response response,
-    List<Cookie> cookies,
-  ) async {
+  Future<void> save(Response response) async {
+    final cookies = response.cookies;
     // TODO:
   }
 }

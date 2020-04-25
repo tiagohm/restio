@@ -1,23 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:math';
 
 import 'package:ip/ip.dart';
-import 'package:restio/src/core/response/response.dart';
-
-final _random = Random();
-const _allowedChars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-
-String generateNonce(int length) {
-  final nonce = StringBuffer('');
-
-  for (var i = 0; i < length; i++) {
-    nonce.write(_allowedChars[(_random.nextInt(_allowedChars.length))]);
-  }
-
-  return nonce.toString();
-}
 
 Future<List<int>> readAsBytes(Stream<List<int>> source) {
   final completer = Completer<List<int>>();
@@ -40,38 +24,6 @@ bool isIp(String ip) {
   } catch (e) {
     return false;
   }
-}
-
-List<Cookie> obtainCookiesFromResponse(Response response) {
-  final cookies = <Cookie>[];
-
-  response.headers.forEach((item) {
-    if (item.name == 'set-cookie') {
-      try {
-        final cookie = Cookie.fromSetCookieValue(item.value);
-        if (cookie.name != null && cookie.name.isNotEmpty) {
-          final domain = cookie.domain == null
-              ? response.request.uri.host
-              : cookie.domain.startsWith('.')
-                  ? cookie.domain.substring(1)
-                  : cookie.domain;
-          final newCookie = Cookie(cookie.name, cookie.value)
-            ..expires = cookie.expires
-            ..maxAge = cookie.maxAge
-            ..domain = domain
-            ..path = cookie.path ?? response.request.uri.path
-            ..secure = cookie.secure
-            ..httpOnly = cookie.httpOnly;
-          // Adiciona à lista de cookies a salvar.
-          cookies.add(newCookie);
-        }
-      } catch (e) {
-        // nada.
-      }
-    }
-  });
-
-  return cookies;
 }
 
 const formEncodeSet = " \"':;<=>@[]^`{}|/\\?#&!\$(),~";

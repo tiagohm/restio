@@ -3,11 +3,11 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:restio/src/core/auth/authenticator.dart';
+import 'package:restio/src/core/auth/nonce.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/challenge.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/helpers.dart';
 import 'package:utf/utf.dart';
 
 enum HawkAlgorithm { sha1, sha256 }
@@ -87,7 +87,7 @@ class HawkAuthenticator extends Authenticator {
     String ext,
   }) {
     final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000;
-    final nonce = generateNonce(6);
+    final nonce = Nonce.random(6).value;
     final resource =
         uri.hasQuery ? '${uri.path}?${uri.queries.toQueryString()}' : uri.path;
     final mac = _encodeToHawkHash(

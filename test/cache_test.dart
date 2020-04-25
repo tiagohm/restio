@@ -2722,7 +2722,6 @@ class MockResponse extends Response {
           cacheControl: cacheControl,
           code: code ?? 200,
           redirects: const [],
-          cookies: const [],
           body: body is ResponseBody
               ? body
               : ResponseBody.string(

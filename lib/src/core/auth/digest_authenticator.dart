@@ -2,9 +2,9 @@ import 'dart:io';
 
 import 'package:crypto/crypto.dart';
 import 'package:restio/src/core/auth/authenticator.dart';
+import 'package:restio/src/core/auth/nonce.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/helpers.dart';
 
 class DigestAuthenticator extends Authenticator {
   final String username;
@@ -41,7 +41,7 @@ class DigestAuthenticator extends Authenticator {
         // final stale = challenge.parameters['stale'];
         final algorithm = challenge.parameters['algorithm'] ?? 'MD5';
         final qop = challenge.parameters['qop'];
-        final cnonce = generateNonce(8);
+        final cnonce = Nonce.random(8).value;
         const nonceCount = '00000001';
 
         final headerValue = _buildHeader(

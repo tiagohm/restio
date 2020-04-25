@@ -7,6 +7,7 @@ import 'package:restio/src/core/request/header/cache_control.dart';
 import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/http_method.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/challenge.dart';
 import 'package:restio/src/core/response/response_body.dart';
 
@@ -45,7 +46,6 @@ class Response {
     this.message = '',
     @required this.code,
     this.headers = Headers.empty,
-    this.cookies = const [],
     @required this.body,
     this.spentMilliseconds = 0,
     this.totalMilliseconds = 0,
@@ -62,7 +62,8 @@ class Response {
   })  : challenges = _challenges(code, headers),
         cacheControl = cacheControl ??
             CacheControl.fromHeaders(headers) ??
-            CacheControl.empty;
+            CacheControl.empty,
+        cookies = _cookies(request?.uri, headers);
 
   bool get isSuccess => code != null && code >= 200 && code <= 299;
 
@@ -162,12 +163,48 @@ class Response {
     return false;
   }
 
+  static List<Cookie> _cookies(
+    RequestUri uri,
+    Headers headers,
+  ) {
+    final cookies = <Cookie>[];
+
+    if (uri != null) {
+      headers?.forEach((item) {
+        if (headers.compareName(item.name, 'set-cookie')) {
+          try {
+            final cookie = Cookie.fromSetCookieValue(item.value);
+            if (cookie.name != null && cookie.name.isNotEmpty) {
+              final domain = cookie.domain == null
+                  ? uri.host
+                  : cookie.domain.startsWith('.')
+                      ? cookie.domain.substring(1)
+                      : cookie.domain;
+              final newCookie = Cookie(cookie.name, cookie.value)
+                ..expires = cookie.expires
+                ..maxAge = cookie.maxAge
+                ..domain = domain
+                ..path = cookie.path ?? uri.path
+                ..secure = cookie.secure
+                ..httpOnly = cookie.httpOnly;
+              // Adiciona à lista de cookies a salvar.
+              cookies.add(newCookie);
+            }
+          } catch (e) {
+            // nada.
+          }
+        }
+      });
+    }
+
+    return cookies;
+  }
+
   Response copyWith({
     Request request,
     String message,
     int code,
     Headers headers,
-    List<Cookie> cookies,
     ResponseBody body,
     int spentMilliseconds,
     int totalMilliseconds,
@@ -187,7 +224,6 @@ class Response {
       message: message ?? this.message,
       code: code ?? this.code,
       headers: headers ?? this.headers,
-      cookies: cookies ?? this.cookies,
       body: body ?? this.body,
       spentMilliseconds: spentMilliseconds ?? this.spentMilliseconds,
       totalMilliseconds: totalMilliseconds ?? this.totalMilliseconds,
