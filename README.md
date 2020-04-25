@@ -289,7 +289,7 @@ final response = await call.execute();
 #### HTTP2
 
 ```dart
-final client = Restio(isHttp2: true);
+final client = Restio(http2: true);
 final request = Request.get('https://www.google.com/');
 final call = client.newCall(request);
 final response = await call.execute();

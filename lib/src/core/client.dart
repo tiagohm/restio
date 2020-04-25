@@ -45,7 +45,7 @@ class Restio {
   final ProgressCallback onUploadProgress;
   final ProgressCallback onDownloadProgress;
   final BadCertificateCallback onBadCertificate;
-  final bool isHttp2;
+  final bool http2;
   final ClientCertificateJar clientCertificateJar;
   final Dns dns;
   final Cache cache;
@@ -68,7 +68,7 @@ class Restio {
     this.onUploadProgress,
     this.onDownloadProgress,
     this.onBadCertificate,
-    this.isHttp2 = false,
+    this.http2 = false,
     this.clientCertificateJar,
     this.dns,
     this.cache,
@@ -118,7 +118,7 @@ class Restio {
     ProgressCallback onUploadProgress,
     ProgressCallback onDownloadProgress,
     BadCertificateCallback onBadCertificate,
-    bool isHttp2,
+    bool http2,
     ClientCertificateJar clientCertificateJar,
     Dns dns,
     Cache cache,
@@ -141,7 +141,7 @@ class Restio {
       onUploadProgress: onUploadProgress ?? this.onUploadProgress,
       onDownloadProgress: onDownloadProgress ?? this.onDownloadProgress,
       onBadCertificate: onBadCertificate ?? this.onBadCertificate,
-      isHttp2: isHttp2 ?? this.isHttp2,
+      http2: http2 ?? this.http2,
       clientCertificateJar: clientCertificateJar ?? this.clientCertificateJar,
       dns: dns ?? this.dns,
       cache: cache ?? this.cache,

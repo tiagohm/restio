@@ -111,7 +111,7 @@ class Http2Transport implements Transport {
     }
 
     // Monta a resposta.
-    return _makeResponse(client, request, _stream, socket);
+    return _makeResponse(client, _stream, socket);
   }
 
   Future<SecureSocket> _createSocket(Request request) async {
@@ -192,7 +192,6 @@ class Http2Transport implements Transport {
 
   static Future<Response> _makeResponse(
     Restio client,
-    Request request,
     ClientTransportStream stream,
     SecureSocket socket,
   ) {

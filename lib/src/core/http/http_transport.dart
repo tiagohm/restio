@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:ip/ip.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/http/transport.dart';
@@ -11,6 +12,7 @@ import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/compression_type.dart';
 import 'package:restio/src/core/response/response.dart';
 import 'package:restio/src/core/response/response_body.dart';
+import 'package:restio/src/helpers.dart';
 import 'package:restio/src/utils/output_buffer.dart';
 
 class HttpTransport implements Transport {
@@ -91,7 +93,7 @@ class HttpTransport implements Transport {
     final proxy = client.proxy;
     var hasProxy = false;
 
-    // Usar proxy.
+    // Proxy.
     if (proxy != null &&
         (proxy.http && request.uri.scheme == 'http' ||
             proxy.https && request.uri.scheme == 'https')) {
@@ -101,15 +103,33 @@ class HttpTransport implements Transport {
       };
     }
 
+    // Host.
+    IpAddress dnsIp;
+    var connectRequest = request;
+
+    // Verificar se não é um IP.
+    // Busca o real endereço (IP) do host através de um DNS.
+    if (client.dns != null && !isIp(request.uri.host)) {
+      final addresses = await client.dns.lookup(request.uri.host);
+
+      if (addresses != null && addresses.isNotEmpty) {
+        dnsIp = addresses[0];
+
+        connectRequest = request.copyWith(
+          uri: request.uri.copyWith(host: dnsIp.toString()),
+        );
+      }
+    }
+
     try {
       if (client.connectTimeout != null && !client.connectTimeout.isNegative) {
         clientRequest = await _httpClient
-            .openUrl(request.method, request.uri.toUri())
+            .openUrl(connectRequest.method, connectRequest.uri.toUri())
             .timeout(client.connectTimeout);
       } else {
         clientRequest = await _httpClient.openUrl(
-          request.method,
-          request.uri.toUri(),
+          connectRequest.method,
+          connectRequest.uri.toUri(),
         );
       }
 
@@ -124,7 +144,7 @@ class HttpTransport implements Transport {
       _httpClient.autoUncompress = false;
 
       // User-Agent.
-      if (!request.headers.has(HttpHeaders.userAgentHeader)) {
+      if (!connectRequest.headers.has(HttpHeaders.userAgentHeader)) {
         if (client.userAgent != null) {
           clientRequest.headers
               .set(HttpHeaders.userAgentHeader, client.userAgent);
@@ -135,25 +155,25 @@ class HttpTransport implements Transport {
       }
 
       // Content-Type.
-      if (!request.headers.has(HttpHeaders.contentTypeHeader) &&
-          request.body?.contentType != null) {
+      if (!connectRequest.headers.has(HttpHeaders.contentTypeHeader) &&
+          connectRequest.body?.contentType != null) {
         clientRequest.headers.contentType =
-            request.body.contentType.toContentType();
+            connectRequest.body.contentType.toContentType();
       }
 
       // Accept-Encoding.
-      if (!request.headers.has(HttpHeaders.acceptEncodingHeader)) {
+      if (!connectRequest.headers.has(HttpHeaders.acceptEncodingHeader)) {
         clientRequest.headers
             .set(HttpHeaders.acceptEncodingHeader, 'gzip, deflate, br');
       }
 
       // Connection.
-      if (!request.headers.has(HttpHeaders.connectionHeader)) {
+      if (!connectRequest.headers.has(HttpHeaders.connectionHeader)) {
         clientRequest.headers.set(HttpHeaders.connectionHeader, 'Keep-Alive');
       }
 
       // Headers.
-      request.headers?.forEach((item) {
+      connectRequest.headers?.forEach((item) {
         switch (item.name) {
           case HttpHeaders.userAgentHeader:
             clientRequest.headers.set(item.name, item.value);
@@ -163,9 +183,15 @@ class HttpTransport implements Transport {
         }
       });
 
+      // Host.
+      if (!connectRequest.headers.has(HttpHeaders.hostHeader) &&
+          dnsIp != null) {
+        clientRequest.headers.set('Host', request.uri.host);
+      }
+
       // Body.
-      if (request.body != null) {
-        final future = _send(clientRequest, request, client);
+      if (connectRequest.body != null) {
+        final future = _send(clientRequest, connectRequest, client);
         // Escreve os dados.
         if (client.writeTimeout != null && !client.writeTimeout.isNegative) {
           await future.timeout(client.writeTimeout);
@@ -191,6 +217,7 @@ class HttpTransport implements Transport {
         message: response.reasonPhrase,
         connectionInfo: response.connectionInfo,
         certificate: response.certificate,
+        dnsIp: dnsIp,
       );
 
       return res.copyWith(

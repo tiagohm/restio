@@ -510,7 +510,7 @@ void main() {
   });
 
   test('HTTP2', () async {
-    final http2Client = client.copyWith(isHttp2: true);
+    final http2Client = client.copyWith(http2: true);
 
     final request = Request.get('https://http2.pro/api/v1');
     final call = http2Client.newCall(request);
@@ -601,16 +601,8 @@ void main() {
 
   test('DNS-Over-UDP', () async {
     final dns = DnsOverUdp.google();
-
-    final dnsClient = client.copyWith(
-      dns: dns,
-      auth: const BasicAuthenticator(
-        username: 'postman',
-        password: 'password',
-      ),
-    );
-
-    final request = Request.get('https://postman-echo.com/basic-auth');
+    final dnsClient = client.copyWith(dns: dns);
+    final request = Request.get('https://httpbin.org/get?a=b');
     final call = dnsClient.newCall(request);
     final response = await call.execute();
 
@@ -619,22 +611,15 @@ void main() {
     final json = await response.body.data.json();
     await response.body.close();
 
-    expect(json['authenticated'], true);
+    expect(json['url'], 'https://httpbin.org/get?a=b');
+    expect(json['args']['a'], 'b');
     expect(response.dnsIp, isNotNull);
   });
 
   test('DNS-Over-HTTPS', () async {
     final dns = DnsOverHttps.google();
-
-    final dnsClient = client.copyWith(
-      dns: dns,
-      auth: const BasicAuthenticator(
-        username: 'postman',
-        password: 'password',
-      ),
-    );
-
-    final request = Request.get('https://postman-echo.com/basic-auth');
+    final dnsClient = client.copyWith(dns: dns);
+    final request = Request.get('https://httpbin.org/get?a=b');
     final call = dnsClient.newCall(request);
     final response = await call.execute();
 
@@ -643,12 +628,34 @@ void main() {
     final json = await response.body.data.json();
     await response.body.close();
 
-    expect(json['authenticated'], true);
+    expect(json['url'], 'https://httpbin.org/get?a=b');
+    expect(json['args']['a'], 'b');
     expect(response.dnsIp, isNotNull);
   });
 
+  test('Custom Host Header', () async {
+    final dns = DnsOverHttps.google();
+    final dnsClient = client.copyWith(dns: dns);
+
+    final request = Request.get(
+      'https://httpbin.org/get',
+      headers: Headers.fromMap(
+        const {'Host': 'google.com'},
+      ),
+    );
+    final call = dnsClient.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+
+    final json = await response.body.data.json();
+    await response.body.close();
+
+    expect(json['url'], 'https://google.com/get');
+  });
+
   test('Force Accept-Encoding', () async {
-    final http2Client = client.copyWith(isHttp2: true);
+    final http2Client = client.copyWith(http2: true);
 
     final request = Request.get(
       'https://http2.pro/api/v1',

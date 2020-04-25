@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:ip/ip.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/src/core/cancellable.dart';
 import 'package:restio/src/core/chain.dart';
@@ -11,7 +10,6 @@ import 'package:restio/src/core/http/transport.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/helpers.dart';
 
 class ConnectInterceptor implements Interceptor {
   final Restio client;
@@ -38,7 +36,7 @@ class ConnectInterceptor implements Interceptor {
   Future<Response> _execute(final Request request) async {
     final sentAt = DateTime.now();
 
-    final transport = client.isHttp2 == true
+    final transport = client.http2 == true
         ? _createHttp2Transport(client)
         : _createHttpTransport(client);
 
@@ -55,26 +53,8 @@ class ConnectInterceptor implements Interceptor {
       }
     });
 
-    Request connectRequest;
-
-    try {
-      IpAddress dnsIp;
-
-      // Verificar se não é um IP.
-      // Busca o real endereço (IP) do host através de um DNS.
-      if (client.dns != null && !isIp(request.uri.host)) {
-        final addresses = await client.dns.lookup(request.uri.host);
-
-        if (addresses != null && addresses.isNotEmpty) {
-          dnsIp = addresses[0];
-
-          connectRequest = request.copyWith(
-            uri: request.uri.copyWith(host: dnsIp.toString()),
-          );
-        }
-      }
-
-      final response = await transport.send(connectRequest ?? request);
+    try {     
+      final response = await transport.send(request);
 
       final receivedAt = DateTime.now();
 
@@ -83,7 +63,6 @@ class ConnectInterceptor implements Interceptor {
 
       return response.copyWith(
         request: request,
-        dnsIp: dnsIp,
         sentAt: sentAt,
         receivedAt: receivedAt,
         spentMilliseconds: spentMilliseconds,
