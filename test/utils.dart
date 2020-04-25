@@ -1,6 +1,6 @@
-import 'package:restio/src/client.dart';
-import 'package:restio/src/request.dart';
-import 'package:restio/src/response.dart';
+import 'package:restio/src/core/client.dart';
+import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/response/response.dart';
 
 Future<Response> requestResponse(Restio client, Request request) async {
   final call = client.newCall(request);

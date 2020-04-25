@@ -191,7 +191,7 @@ void main() {
       await response.body.data.string();
       await response.body.close();
 
-      expect(response.headers.first('x-response-id'), '1');
+      expect(response.headers.value('x-response-id'), '1');
 
       call = cacheClient.newCall(request);
       response = await call.execute();
@@ -199,9 +199,9 @@ void main() {
       await response.body.close();
 
       if (expectCached) {
-        expect(response.headers.first('x-response-id'), '1');
+        expect(response.headers.value('x-response-id'), '1');
       } else {
-        expect(response.headers.first('x-response-id'), '2');
+        expect(response.headers.value('x-response-id'), '2');
       }
     }
 
@@ -614,7 +614,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('warning'),
+      expect(response.headers.value('warning'),
           '113 HttpURLConnection "Heuristic expiration"');
     });
 
@@ -1111,7 +1111,7 @@ void main() {
               MockResponse(
                 body: gzip('ABCABCABC'),
                 headers: {
-                  'content-type': MediaType.text.toString(),
+                  'content-type': MediaType.text.toHeaderString(),
                   'content-encoding': 'gzip',
                   'last-modified': obtainDate(const Duration(hours: -2)),
                   'expires': obtainDate(const Duration(hours: -1)),
@@ -1120,7 +1120,7 @@ void main() {
               MockResponse(
                 code: io.HttpStatus.notModified,
                 headers: {
-                  'content-type': MediaType.text.toString(),
+                  'content-type': MediaType.text.toHeaderString(),
                   'content-encoding': 'deflate',
                 },
               ),
@@ -1160,7 +1160,7 @@ void main() {
               MockResponse(
                 body: gzip('ABCABCABC'),
                 headers: {
-                  'content-type': MediaType.text.toString(),
+                  'content-type': MediaType.text.toHeaderString(),
                   'content-encoding': 'gzip',
                   'last-modified': obtainDate(const Duration(hours: -2)),
                   'expires': obtainDate(const Duration(hours: -1)),
@@ -1343,7 +1343,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('warning'),
+      expect(response.headers.value('warning'),
           '110 HttpURLConnection "Response is stale"');
     });
 
@@ -1382,7 +1382,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('warning'),
+      expect(response.headers.value('warning'),
           '110 HttpURLConnection "Response is stale"');
     });
 
@@ -2182,7 +2182,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('allow'), 'GET, HEAD');
+      expect(response.headers.value('allow'), 'GET, HEAD');
 
       request = Request.get(url);
       call = cacheClient.newCall(request);
@@ -2190,7 +2190,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('allow'), 'GET, HEAD, PUT');
+      expect(response.headers.value('allow'), 'GET, HEAD, PUT');
     });
 
     test('Get Headers Returns Cached Hop By Hop Headers', () async {
@@ -2223,7 +2223,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('transfer-encoding'), 'identity');
+      expect(response.headers.value('transfer-encoding'), 'identity');
 
       request = Request.get(url);
       call = cacheClient.newCall(request);
@@ -2231,7 +2231,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('transfer-encoding'), 'identity');
+      expect(response.headers.value('transfer-encoding'), 'identity');
     });
 
     test('Get Headers Deletes Cached 100 Level Warnings', () async {
@@ -2259,7 +2259,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('warning'), '199 test danger');
+      expect(response.headers.value('warning'), '199 test danger');
 
       request = Request.get(url);
       call = cacheClient.newCall(request);
@@ -2267,7 +2267,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('warning'), null);
+      expect(response.headers.value('warning'), null);
     });
 
     test('Get Headers Retains Cached 200 Level Warnings', () async {
@@ -2295,7 +2295,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('warning'), '299 test danger');
+      expect(response.headers.value('warning'), '299 test danger');
 
       request = Request.get(url);
       call = cacheClient.newCall(request);
@@ -2303,7 +2303,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('warning'), '299 test danger');
+      expect(response.headers.value('warning'), '299 test danger');
     });
 
     test('Do Not Cache Partial Response', () async {
@@ -2349,7 +2349,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('allow'), isNull);
+      expect(response.headers.value('allow'), isNull);
 
       // A conditional cache hit updates the cache.
       await Future.delayed(const Duration(milliseconds: 500));
@@ -2360,7 +2360,7 @@ void main() {
       expect(response.code, 200);
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('allow'), 'GET, HEAD');
+      expect(response.headers.value('allow'), 'GET, HEAD');
       final updatedTimestamp = response.receivedAt.millisecondsSinceEpoch;
 
       // A full cache hit reads the cache.
@@ -2371,7 +2371,7 @@ void main() {
 
       expect(await response.body.data.string(), 'A');
       await response.body.close();
-      expect(response.headers.first('allow'), 'GET, HEAD');
+      expect(response.headers.value('allow'), 'GET, HEAD');
       expect(response.receivedAt.millisecondsSinceEpoch, updatedTimestamp);
     });
 
@@ -2565,18 +2565,18 @@ void main() {
       var call = cacheClient.newCall(request);
       var response = await call.execute();
 
-      expect(response.headers.first('Alpha'), 'α');
-      expect(response.headers.first('β'), 'Beta');
+      expect(response.headers.value('Alpha'), 'α');
+      expect(response.headers.value('β'), 'Beta');
       expect(await response.body.data.string(), 'abcd');
       await response.body.close();
 
       call = cacheClient.newCall(request);
       response = await call.execute();
 
-      expect(response.headers.first('Alpha'), 'α');
-      expect(response.headers.first('β'), 'Beta');
-      expect(response.headers.first('Gamma'), 'Γ');
-      expect(response.headers.first('Δ'), 'Delta');
+      expect(response.headers.value('Alpha'), 'α');
+      expect(response.headers.value('β'), 'Beta');
+      expect(response.headers.value('Gamma'), 'Γ');
+      expect(response.headers.value('Δ'), 'Delta');
       expect(await response.body.data.string(), 'abcd');
       await response.body.close();
     });

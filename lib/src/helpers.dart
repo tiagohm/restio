@@ -4,37 +4,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:ip/ip.dart';
-import 'package:restio/src/encodings.dart';
-import 'package:restio/src/response.dart';
-
-Encoding obtainEncodingByName(
-  String name, [
-  Encoding defaultValue = utf8,
-]) {
-  final encoding = Encoding.getByName(name);
-  if (encoding == null) {
-    name = name?.toLowerCase();
-    if (name == 'utf-16') {
-      return utf16;
-    }
-
-    if (name == 'utf-16le') {
-      return utf16le;
-    }
-
-    if (name == 'utf-16be') {
-      return utf16be;
-    }
-
-    if (name == 'utf-32') {
-      return utf32;
-    }
-
-    return defaultValue;
-  } else {
-    return encoding;
-  }
-}
+import 'package:restio/src/core/response/response.dart';
 
 final _random = Random();
 const _allowedChars = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -75,10 +45,10 @@ bool isIp(String ip) {
 List<Cookie> obtainCookiesFromResponse(Response response) {
   final cookies = <Cookie>[];
 
-  response.headers.forEach((name, value) {
-    if (name == 'set-cookie') {
+  response.headers.forEach((item) {
+    if (item.name == 'set-cookie') {
       try {
-        final cookie = Cookie.fromSetCookieValue(value);
+        final cookie = Cookie.fromSetCookieValue(item.value);
         if (cookie.name != null && cookie.name.isNotEmpty) {
           final domain = cookie.domain == null
               ? response.request.uri.host

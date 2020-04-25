@@ -100,7 +100,7 @@ void main() {
   test('Posting Form Parameters', () async {
     final request = Request.post(
       'https://postman-echo.com/post',
-      body: (FormBodyBuilder()..add('a', 'b')..add('c', 'd')).build(),
+      body: (FormBuilder()..add('a', 'b')..add('c', 'd')).build(),
     );
 
     final data = await requestJson(client, request);
@@ -337,10 +337,10 @@ void main() {
           .build(),
     );
 
-    expect(request.queries.first('q'), 'flutter');
-    expect(request.queries.first('sort'), 'stars');
-    expect(request.queries.first('order'), 'desc');
-    expect(request.queries.first('per_page'), '2');
+    expect(request.queries.value('q'), 'flutter');
+    expect(request.queries.value('sort'), 'stars');
+    expect(request.queries.value('order'), 'desc');
+    expect(request.queries.value('per_page'), '2');
 
     final response = await requestResponse(client, request);
     expect(response.code, 200);
@@ -524,7 +524,7 @@ void main() {
     expect(json['http2'], 1);
     expect(json['protocol'], 'HTTP/2.0');
     expect(json['push'], 0);
-    expect(response.headers.first(HttpHeaders.contentEncodingHeader), 'br');
+    expect(response.headers.value(HttpHeaders.contentEncodingHeader), 'br');
   });
 
   test('Client Certificate', () async {
@@ -658,7 +658,7 @@ void main() {
     final response = await call.execute();
 
     expect(response.code, 200);
-    expect(response.headers.first(HttpHeaders.contentEncodingHeader), 'gzip');
+    expect(response.headers.value(HttpHeaders.contentEncodingHeader), 'gzip');
   });
 
   test('Fix DNS timeout bug', () async {
@@ -675,14 +675,14 @@ void main() {
   });
 
   test('Cookies', () async {
-    final request = Request.get('https://swapi.co/api/planets');
+    final request = Request.get('https://postman-echo.com/get');
     final call = client.newCall(request);
     final response = await call.execute();
     await response.body.close();
 
     expect(response.code, 200);
     expect(response.cookies.length, 1);
-    expect(response.cookies[0].name, '__cfduid');
+    expect(response.cookies[0].name, 'sails.sid');
   });
 
   test('Version', () async {
@@ -807,7 +807,7 @@ void main() {
   });
 
   test('Encoded Form Body', () async {
-    final body = (FormBodyBuilder()
+    final body = (FormBuilder()
           ..add(" \"':;<=>+@[]^`{}|/\\?#&!\$(),~",
               " \"':;<=>+@[]^`{}|/\\?#&!\$(),~")
           ..add('円', '円')

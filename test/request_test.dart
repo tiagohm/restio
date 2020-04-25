@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:restio/restio.dart';
-import 'package:restio/src/request.dart';
 import 'package:test/test.dart';
 
 void main() {

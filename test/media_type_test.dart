@@ -10,7 +10,7 @@ void main() {
     expect(mediaType.subType, 'plain');
     expect(mediaType.charset, 'utf-8');
     expect(mediaType.boundary, 'foo');
-    expect(mediaType.toString(), 'text/plain; boundary=foo; charset=utf-8');
+    expect(mediaType.toHeaderString(), 'text/plain; boundary=foo; charset=utf-8');
   });
 
   test('Multipart/Form-Data is UTF-8', () {

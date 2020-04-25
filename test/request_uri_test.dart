@@ -1,5 +1,5 @@
-import 'package:restio/src/queries.dart';
-import 'package:restio/src/request_uri.dart';
+import 'package:restio/restio.dart';
+import 'package:restio/src/utils/parse_uri.dart';
 import 'package:test/test.dart';
 
 void main() {
@@ -137,12 +137,14 @@ void main() {
       host: 'example.com',
       port: '8080',
       paths: const ['a', 'b', 'c'],
-      queries: Queries.fromList(const ['d', 'e', 'd', 'f']),
+      queries: Queries.fromMap(const {
+        'd': ['e', 'f']
+      }),
       fragment: 'g',
     );
 
     expect(
-      uri.toString(),
+      uri.toUriString(),
       'https://user:pass@example.com:8080/a/b/c?d=e&d=f#g',
     );
   });
@@ -159,6 +161,6 @@ void main() {
     expect(uri.path, '/');
 
     uri = RequestUri.parse('https://example.com');
-    expect(uri.path, isEmpty);
+    expect(uri.path, '/');
   });
 }

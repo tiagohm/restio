@@ -88,12 +88,12 @@ void main() {
 
     final headers = builder.build();
 
-    expect(headers.first('string'), isNull);
-    expect(headers.first('BOOL'), isNull);
-    expect(headers.first('InT'), isNull);
-    expect(headers.first('STRING'), 'foo');
-    expect(headers.first('bool'), 'true');
-    expect(headers.first('iNt'), '5');
+    expect(headers.value('string'), isNull);
+    expect(headers.value('BOOL'), isNull);
+    expect(headers.value('InT'), isNull);
+    expect(headers.value('STRING'), 'foo');
+    expect(headers.value('bool'), 'true');
+    expect(headers.value('iNt'), '5');
   });
 
   test('Query Value can be null', () {
