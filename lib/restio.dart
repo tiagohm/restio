@@ -50,7 +50,6 @@ export 'package:restio/src/core/response/challenge.dart';
 export 'package:restio/src/core/response/compression_type.dart';
 export 'package:restio/src/core/response/decompressor.dart';
 export 'package:restio/src/core/response/response_body_data.dart';
-export 'package:restio/src/core/response/response_body.dart';
 export 'package:restio/src/core/response/response.dart';
 export 'package:restio/src/core/call.dart';
 export 'package:restio/src/core/cancellable.dart';
@@ -66,3 +65,8 @@ export 'package:restio/src/core/redirect.dart';
 // Interceptors.
 export 'package:restio/src/core/interceptors/interceptor.dart';
 export 'package:restio/src/core/interceptors/log_interceptor.dart';
+// Common.
+export 'package:restio/src/common/closeable.dart';
+export 'package:restio/src/common/item_list_builder.dart';
+export 'package:restio/src/common/item_list.dart';
+export 'package:restio/src/common/item.dart';

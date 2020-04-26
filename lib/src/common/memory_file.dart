@@ -1,7 +1,7 @@
 class MemoryFile {
   List<int> data;
 
-  MemoryFile([List<int> data]) : data = data ?? <int>[];
+  MemoryFile([this.data]);
 
   int get length => data.length;
 

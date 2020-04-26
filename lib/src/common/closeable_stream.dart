@@ -9,12 +9,14 @@ class CloseableStream<T> extends Stream<T> implements Closeable {
   final void Function(T event) onData;
   final void Function() onDone;
   final Function onError;
+  final FutureOr<void> Function() onClose;
 
   CloseableStream(
     this.stream, {
     this.onData,
     this.onDone,
     this.onError,
+    this.onClose,
   });
 
   @override
@@ -86,5 +88,7 @@ class CloseableStream<T> extends Stream<T> implements Closeable {
     if (stream is Closeable) {
       await (stream as Closeable).close();
     }
+
+    await onClose?.call();
   }
 }

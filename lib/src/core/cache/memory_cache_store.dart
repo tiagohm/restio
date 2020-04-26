@@ -172,12 +172,13 @@ class MemoryCacheStore extends CacheStore {
     final streams = <Stream<List<int>>>[];
 
     for (var i = 0; i < valueCount; i++) {
-      try {
-        final s = Stream.value(entry.getCleanFile(i).data);
-        streams.add(s);
-      } catch (e) {
+      final data = entry.getCleanFile(i).data;
+
+      if (data == null) {
         return null;
       }
+
+      streams.add(Stream.value(data));
     }
 
     return _Snapshot(this, key, entry.sequenceNumber, streams, entry.lengths);

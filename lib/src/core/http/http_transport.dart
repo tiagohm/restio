@@ -12,7 +12,6 @@ import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/compression_type.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/core/response/response_body.dart';
 import 'package:restio/src/helpers.dart';
 
 class HttpTransport implements Transport {

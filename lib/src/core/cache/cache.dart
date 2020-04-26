@@ -22,7 +22,6 @@ import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/compression_type.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/core/response/response_body.dart';
 import 'package:restio/src/helpers.dart';
 
 part 'cache_interceptor.dart';
@@ -185,14 +184,11 @@ class Cache {
         final metaData = entry.metaData();
         sink = editor.newSink(Cache.entryMetaData);
         sink.add(metaData);
+        sink.close();
         await editor.commit();
       }
-    } catch (e, stackTrace) {
-      print(e);
-      print(stackTrace);
+    } catch (e) {
       await _abortQuietly(editor);
-    } finally {
-      sink.close();
     }
   }
 
