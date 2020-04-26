@@ -1,7 +1,7 @@
 import 'package:equatable/equatable.dart';
+import 'package:restio/src/common/parse_uri.dart';
 import 'package:restio/src/core/request/query/queries.dart';
 import 'package:restio/src/core/request/query/queries_builder.dart';
-import 'package:restio/src/utils/parse_uri.dart';
 
 class RequestUri extends Equatable {
   final String fragment;

@@ -11,7 +11,7 @@ Future<String> obtainResponseBodyAsString(Response response) async {
   try {
     return response.body.data.string();
   } finally {
-    await response.body.close();
+    await response.close();
   }
 }
 
@@ -25,6 +25,6 @@ Future<dynamic> requestJson(Restio client, Request request) async {
   try {
     return response.body.data.json();
   } finally {
-    await response.body.close();
+    await response.close();
   }
 }

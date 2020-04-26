@@ -1,6 +1,8 @@
 import 'dart:async';
 
-class SourceSink extends StreamSink<List<int>> {
+import 'package:restio/src/common/closeable.dart';
+
+class SourceSink extends StreamSink<List<int>> implements Closeable {
   final List<int> data;
   final _completer = Completer<List<int>>();
   var _closed = false;

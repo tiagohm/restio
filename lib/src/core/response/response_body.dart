@@ -1,11 +1,4 @@
-import 'dart:async';
-import 'dart:convert' as convert;
-
-import 'package:restio/src/core/request/header/media_type.dart';
-import 'package:restio/src/core/response/compression_type.dart';
-import 'package:restio/src/core/response/decompressor.dart';
-import 'package:restio/src/core/response/response_body_data.dart';
-import 'package:restio/src/utils/closeable_stream.dart';
+part of 'response.dart';
 
 class ResponseBody {
   final Stream<List<int>> _data;
@@ -14,7 +7,7 @@ class ResponseBody {
   final CompressionType compressionType;
   final void Function(int sent, int total, bool done) onProgress;
 
-  ResponseBody(
+  const ResponseBody(
     this._data, {
     this.contentType,
     this.contentLength,
@@ -69,12 +62,17 @@ class ResponseBody {
     );
   }
 
-  ResponseBodyData get data {
-    return _ResponseBodyData(this);
+  factory ResponseBody.empty() {
+    return ResponseBody.bytes(
+      const [],
+      compressionType: CompressionType.notCompressed,
+      contentLength: 0,
+      contentType: MediaType.octetStream,
+    );
   }
 
-  Future close() async {
-    return true;
+  ResponseBodyData get data {
+    return _ResponseBodyData(this);
   }
 
   @override

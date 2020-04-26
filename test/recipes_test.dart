@@ -33,7 +33,7 @@ void main() {
     final call = client.newCall(request);
     final response = await call.execute();
     expect(response.code, 200);
-    await response.body.close();
+    await response.close();
   });
 
   test('Performing a POST request', () async {
@@ -48,7 +48,7 @@ void main() {
     final response = await call.execute();
     expect(response.code, 200);
     final json = await response.body.data.json();
-    await response.body.close();
+    await response.close();
     expect(json['headers']['content-length'], '58');
     expect(json['json'], null);
   });
@@ -65,7 +65,7 @@ void main() {
     expect(response.isSuccess, true);
     expect(response.message, 'OK');
 
-    await response.body.close();
+    await response.close();
   });
 
   test('Cancelling a Call', () async {
@@ -76,7 +76,7 @@ void main() {
 
     try {
       final response = await call.execute();
-      await response.body.close();
+      await response.close();
     } on CancelledException catch (e) {
       expect(e.message, 'Cancelado!');
     }
@@ -218,7 +218,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
-    await response.body.close();
+    await response.close();
     expect(data['authenticated'], true);
   });
 
@@ -236,7 +236,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
-    await response.body.close();
+    await response.close();
     expect(data['authenticated'], true);
   });
 
@@ -253,7 +253,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
-    await response.body.close();
+    await response.close();
     expect(data['authenticated'], true);
     expect(data['token'], '123');
   });
@@ -272,7 +272,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
-    await response.body.close();
+    await response.close();
     expect(data['authenticated'], true);
   });
 
@@ -290,7 +290,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
-    await response.body.close();
+    await response.close();
     expect(data['message'], 'Hawk Authentication Successful');
   });
 
@@ -324,7 +324,7 @@ void main() {
 
     try {
       final response = await call.execute();
-      await response.body.close();
+      await response.close();
     } on TimedOutException catch (e) {
       expect(e.message, '');
     }
@@ -346,7 +346,7 @@ void main() {
     expect(response.code, 200);
 
     final data = await response.body.data.json();
-    await response.body.close();
+    await response.close();
     expect(data['items'].length, 2);
     expect(data['items'][0]['full_name'], 'flutter/flutter');
   });
@@ -357,7 +357,7 @@ void main() {
     final call = client.newCall(request);
     final response = await call.execute();
     final data = await response.body.data.raw();
-    await response.body.close();
+    await response.close();
 
     print(data);
 
@@ -399,7 +399,7 @@ void main() {
       expect(response.code, 200);
       expect(response.redirects.length, 7);
 
-      await response.body.close();
+      await response.close();
     });
 
     test('Relative redirects n times', () async {
@@ -411,7 +411,7 @@ void main() {
       expect(response.redirects.length, 7);
       expect(response.redirects[6].request.uri.path, '/get');
 
-      await response.body.close();
+      await response.close();
     });
 
     test('Too many redirects exception', () async {
@@ -420,7 +420,7 @@ void main() {
 
       try {
         final response = await call.execute();
-        await response.body.close();
+        await response.close();
       } on TooManyRedirectsException catch (e) {
         expect(e.message, 'Too many redirects: 10');
         expect(e.uri,
@@ -443,7 +443,7 @@ void main() {
       expect(response.code, 200);
       expect(response.redirects.length, 7);
 
-      await response.body.close();
+      await response.close();
     });
 
     test('Relative redirects n times', () async {
@@ -455,7 +455,7 @@ void main() {
       expect(response.redirects.length, 7);
       expect(response.redirects[6].request.uri.path, '/get');
 
-      await response.body.close();
+      await response.close();
     });
 
     test('Too many redirects exception', () async {
@@ -464,7 +464,7 @@ void main() {
 
       try {
         final response = await call.execute();
-        await response.body.close();
+        await response.close();
       } on TooManyRedirectsException catch (e) {
         expect(e.message, 'Too many redirects: 10');
         expect(e.uri,
@@ -494,7 +494,7 @@ void main() {
     expect(data.length, 36001);
     expect(isDone, true);
 
-    await response.body.close();
+    await response.close();
   });
 
   test('Retry after', () async {
@@ -505,7 +505,7 @@ void main() {
     final request = Request.get('https://httpbin.org/absolute-redirect/1');
     final call = retryAfterClient.newCall(request);
     final response = await call.execute();
-    await response.body.close();
+    await response.close();
     expect(response.totalMilliseconds, greaterThan(15000));
   });
 
@@ -519,7 +519,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.json();
-    await response.body.close();
+    await response.close();
 
     expect(json['http2'], 1);
     expect(json['protocol'], 'HTTP/2.0');
@@ -539,7 +539,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.string();
-    await response.body.close();
+    await response.close();
 
     expect(json, 'Olá Tiago!');
   });
@@ -563,7 +563,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.json();
-    await response.body.close();
+    await response.close();
 
     print(json);
 
@@ -594,7 +594,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.json();
-    await response.body.close();
+    await response.close();
 
     expect(json['authenticated'], true);
   });
@@ -609,7 +609,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.json();
-    await response.body.close();
+    await response.close();
 
     expect(json['url'], 'https://httpbin.org/get?a=b');
     expect(json['args']['a'], 'b');
@@ -626,7 +626,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.json();
-    await response.body.close();
+    await response.close();
 
     expect(json['url'], 'https://httpbin.org/get?a=b');
     expect(json['args']['a'], 'b');
@@ -649,7 +649,7 @@ void main() {
     expect(response.code, 200);
 
     final json = await response.body.data.json();
-    await response.body.close();
+    await response.close();
 
     expect(json['url'], 'https://google.com/get');
   });
@@ -676,7 +676,7 @@ void main() {
     final request = Request.get('https://httpbin.org/absolute-redirect/5');
     final call = dnsClient.newCall(request);
     final response = await call.execute();
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
   });
@@ -685,7 +685,7 @@ void main() {
     final request = Request.get('https://postman-echo.com/get');
     final call = client.newCall(request);
     final response = await call.execute();
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
     expect(response.cookies.length, 1);
@@ -697,7 +697,7 @@ void main() {
     final call = client.newCall(request);
     final response = await call.execute();
     final json = await response.body.data.json();
-    await response.body.close();
+    await response.close();
 
     print(json);
 
@@ -722,7 +722,7 @@ void main() {
     var response = await call.execute();
     var text = await response.body.data.string();
     expect(text, 'Restio Caching test!');
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
     expect(response.spentMilliseconds, isNonZero);
@@ -738,7 +738,7 @@ void main() {
     response = await call.execute();
     text = await response.body.data.string();
     expect(text, 'Restio Caching test!');
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
     expect(response.spentMilliseconds, isZero);
@@ -752,7 +752,7 @@ void main() {
     response = await call.execute();
     text = await response.body.data.string();
     expect(text, 'Restio Caching test!');
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
     expect(response.spentMilliseconds, isZero);
@@ -765,7 +765,7 @@ void main() {
     call = cacheClient.newCall(request);
     response = await call.execute();
     text = await response.body.data.string();
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 504);
     expect(response.cacheResponse, isNull);
@@ -776,7 +776,7 @@ void main() {
     response = await call.execute();
     text = await response.body.data.string();
     expect(text, 'Restio Caching test!');
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
     expect(response.spentMilliseconds, isNonZero);
@@ -792,7 +792,7 @@ void main() {
     response = await call.execute();
     text = await response.body.data.string();
     expect(text, 'Restio Caching test!');
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
     expect(response.spentMilliseconds, isNonZero);
@@ -808,7 +808,7 @@ void main() {
     );
     final call = client.newCall(request);
     final response = await call.execute();
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
   });
@@ -832,7 +832,7 @@ void main() {
 
     final json = await response.body.data.json();
 
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
 
@@ -849,7 +849,7 @@ void main() {
     final call = client.newCall(request);
     final response = await call.execute();
     final json = await response.body.data.json();
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
 
@@ -863,7 +863,7 @@ void main() {
     final call = cacheClient.newCall(request);
     final response = await call.execute();
     await response.body.data.json();
-    await response.body.close();
+    await response.close();
 
     expect(response.code, 200);
     expect(response.redirects.length, 5);

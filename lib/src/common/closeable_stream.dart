@@ -1,18 +1,22 @@
 import 'dart:async';
 
-class CloseableStream<T> extends Stream<T> {
+import 'package:restio/src/common/closeable.dart';
+
+class CloseableStream<T> extends Stream<T> implements Closeable {
   StreamSubscription<T> _subscription;
 
   final Stream<T> stream;
   final void Function(T event) onData;
   final void Function() onDone;
   final Function onError;
+  final FutureOr<void> Function() onClose;
 
   CloseableStream(
     this.stream, {
     this.onData,
     this.onDone,
     this.onError,
+    this.onClose,
   });
 
   @override
@@ -63,7 +67,7 @@ class CloseableStream<T> extends Stream<T> {
         cancelOnError: cancelOnError,
       );
 
-      if (stream is! CloseableStream) {
+      if (stream is! Closeable) {
         _subscription = s;
       }
 
@@ -74,11 +78,17 @@ class CloseableStream<T> extends Stream<T> {
     }
   }
 
-  Future close() async {
-    if (stream is CloseableStream) {
-      return (stream as CloseableStream).close();
-    } else {
-      return _subscription?.cancel();
+  @override
+  Future<void> close() async {
+    if (_subscription != null) {
+      await _subscription.cancel();
+      _subscription = null;
     }
+
+    if (stream is Closeable) {
+      await (stream as Closeable).close();
+    }
+
+    await onClose?.call();
   }
 }

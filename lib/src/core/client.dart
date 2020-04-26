@@ -338,8 +338,8 @@ class _SseConnection implements SseConnection {
   Stream<Event> get stream => controller.stream;
 
   @override
-  Future close() {
-    return controller.close();
+  Future<void> close() async {
+    await controller.close();
   }
 
   @override

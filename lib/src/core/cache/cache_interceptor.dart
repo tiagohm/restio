@@ -34,7 +34,7 @@ class CacheInterceptor implements Interceptor {
 
     if (cacheCandidate != null && cacheResponse == null) {
       // The cache candidate wasn't applicable. Close it.
-      await cacheCandidate.body?.close();
+      await cacheCandidate.close();
     }
 
     // If we're forbidden from using the network and the cache is insufficient, fail.
@@ -44,7 +44,7 @@ class CacheInterceptor implements Interceptor {
         request: request,
         code: HttpStatus.gatewayTimeout,
         message: 'Unsatisfiable Request (only-if-cached)',
-        body: _emptyBody(),
+        body: ResponseBody.empty(),
         sentAt: now,
         receivedAt: now,
       );
@@ -66,7 +66,7 @@ class CacheInterceptor implements Interceptor {
     } catch (e) {
       // If we're crashing on I/O or otherwise, don't leak the cache body.
       if (networkResponse == null && cacheCandidate != null) {
-        await cacheCandidate.body?.close();
+        await cacheCandidate.close();
       }
 
       rethrow;
@@ -85,7 +85,7 @@ class CacheInterceptor implements Interceptor {
           networkResponse: _stripBody(networkResponse),
         );
 
-        await networkResponse.body?.close();
+        await networkResponse.close();
 
         // Update the cache after combining headers but before stripping the
         // Content-Encoding header (as performed by initContentStream()).
@@ -95,7 +95,7 @@ class CacheInterceptor implements Interceptor {
 
         return response;
       } else {
-        await cacheResponse.body?.close();
+        await cacheResponse.close();
       }
     }
 
@@ -123,17 +123,8 @@ class CacheInterceptor implements Interceptor {
     return response;
   }
 
-  static ResponseBody _emptyBody() {
-    return ResponseBody.bytes(
-      const [],
-      compressionType: CompressionType.notCompressed,
-      contentLength: 0,
-      contentType: MediaType.octetStream,
-    );
-  }
-
   static Response _stripBody(Response response) {
-    return response?.copyWith(body: _emptyBody());
+    return response?.copyWith(body: ResponseBody.empty());
   }
 
   static Headers _combine(
@@ -153,15 +144,15 @@ class CacheInterceptor implements Interceptor {
       if (_isContentSpecificHeader(name) ||
           !_isEndToEnd(name) ||
           networkHeaders.value(name) == null) {
-        builder.add(name, value);
+        builder.set(name, value);
       }
     }
 
     for (var i = 0; i < networkHeaders.length; i++) {
       final name = networkHeaders.nameAt(i);
-      
+
       if (!_isContentSpecificHeader(name) && _isEndToEnd(name)) {
-        builder.add(name, networkHeaders.valueAt(i));
+        builder.set(name, networkHeaders.valueAt(i));
       }
     }
 
@@ -202,44 +193,23 @@ class CacheInterceptor implements Interceptor {
     final cacheStream = CloseableStream(
       response.body.data.stream,
       onData: cacheSink.add,
-      onError: cacheSink.addError,
+      onError: (e, stackTrace) async {
+        await cacheRequest.abort();
+        cacheSink.addError(e, stackTrace);
+      },
+      onClose: () async {
+        await cacheSink.close();
+      },
     );
 
     return response.copyWith(
-      body: _CacheResponseBody(
+      body: ResponseBody(
         cacheStream,
-        onClose: () async => cacheSink.close(),
         compressionType: response.body.compressionType,
         contentLength: response.body.contentLength,
         contentType: response.body.contentType,
         onProgress: response.body.onProgress,
       ),
     );
-  }
-}
-
-class _CacheResponseBody extends ResponseBody {
-  final CloseableStream<List<int>> stream;
-  final Future Function() onClose;
-
-  _CacheResponseBody(
-    this.stream, {
-    this.onClose,
-    MediaType contentType,
-    int contentLength,
-    CompressionType compressionType,
-    void Function(int sent, int total, bool done) onProgress,
-  }) : super(
-          stream,
-          contentType: contentType,
-          contentLength: contentLength,
-          compressionType: compressionType,
-          onProgress: onProgress,
-        );
-
-  @override
-  Future close() async {
-    await stream.close();
-    await onClose?.call();
   }
 }

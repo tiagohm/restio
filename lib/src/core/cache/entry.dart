@@ -109,9 +109,12 @@ class Entry {
     Headers cachedRequest,
     Request newRequest,
   ) {
-    return !cachedResponse.headers.vary().any((item) {
-      return cachedRequest.first(item) != newRequest.headers.first(item);
-    });
+    final vary = cachedResponse.headers.vary();
+
+    return vary.isEmpty ||
+        !vary.any((item) {
+          return cachedRequest.value(item) != newRequest.headers.value(item);
+        });
   }
 
   static Future<Entry> sourceEntry(Stream<List<int>> source) async {

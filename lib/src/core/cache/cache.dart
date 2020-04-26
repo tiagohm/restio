@@ -6,6 +6,8 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
+import 'package:restio/src/common/closeable.dart';
+import 'package:restio/src/common/closeable_stream.dart';
 import 'package:restio/src/core/cache/cache_store.dart';
 import 'package:restio/src/core/cache/editor.dart';
 import 'package:restio/src/core/cache/snapshot.dart';
@@ -21,9 +23,7 @@ import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/compression_type.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/core/response/response_body.dart';
 import 'package:restio/src/helpers.dart';
-import 'package:restio/src/utils/closeable_stream.dart';
 
 part 'cache_interceptor.dart';
 part 'cache_request.dart';
@@ -93,32 +93,36 @@ class Cache {
 
     try {
       snapshot = await store.get(key);
-
-      if (snapshot == null) {
-        return null;
-      }
     } catch (e, stackTrace) {
+      // Give up because the cache cannot be read.
       print(e);
       print(stackTrace);
-      // Give up because the cache cannot be read.
+      return null;
+    }
+
+    if (snapshot == null) {
       return null;
     }
 
     try {
-      entry = await Entry.sourceEntry(snapshot.source(entryMetaData));
-    } catch (e, stackTrace) {
-      print(e);
-      print(stackTrace);
-      return null;
+      try {
+        entry = await Entry.sourceEntry(snapshot.source(entryMetaData));
+      } catch (e, stackTrace) {
+        print(e);
+        print(stackTrace);
+        return null;
+      }
+
+      final response = entry.response(snapshot);
+
+      if (!entry.matches(request, response)) {
+        return null;
+      }
+
+      return response;
+    } finally {
+      await snapshot.close();
     }
-
-    final response = entry.response(snapshot);
-
-    if (!entry.matches(request, response)) {
-      return null;
-    }
-
-    return response;
   }
 
   Future<CacheRequest> _put(Response response) async {
@@ -185,14 +189,19 @@ class Cache {
         final metaData = entry.metaData();
         sink = editor.newSink(Cache.entryMetaData);
         sink.add(metaData);
+
+        if (sink is Closeable) {
+          await (sink as Closeable).close();
+        } else {
+          sink.close();
+        }
+
         await editor.commit();
       }
     } catch (e, stackTrace) {
       print(e);
       print(stackTrace);
       await _abortQuietly(editor);
-    } finally {
-      sink.close();
     }
   }
 
@@ -200,7 +209,7 @@ class Cache {
     return store.remove(_getKey(request));
   }
 
-  Future<bool> clear() {
+  Future<void> clear() {
     return store.clear();
   }
 

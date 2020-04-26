@@ -3,8 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:brotli/brotli.dart';
+import 'package:restio/src/common/output_buffer.dart';
 import 'package:restio/src/core/response/compression_type.dart';
-import 'package:restio/src/utils/output_buffer.dart';
 
 typedef ChunkReceivedCallback = void Function(List<int> chunk);
 
