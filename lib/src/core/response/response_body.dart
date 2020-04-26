@@ -1,13 +1,14 @@
 import 'dart:async';
 import 'dart:convert' as convert;
 
+import 'package:restio/src/common/closeable.dart';
+import 'package:restio/src/common/closeable_stream.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/response/compression_type.dart';
 import 'package:restio/src/core/response/decompressor.dart';
 import 'package:restio/src/core/response/response_body_data.dart';
-import 'package:restio/src/utils/closeable_stream.dart';
 
-class ResponseBody {
+class ResponseBody implements Closeable {
   final Stream<List<int>> _data;
   final MediaType contentType;
   final int contentLength;
@@ -73,6 +74,7 @@ class ResponseBody {
     return _ResponseBodyData(this);
   }
 
+  @override
   Future close() async {
     return true;
   }

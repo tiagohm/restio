@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:path/path.dart';
+import 'package:restio/src/common/file_stream_sink.dart';
 import 'package:restio/src/core/cache/cache_store.dart';
 import 'package:restio/src/core/cache/editor.dart';
 import 'package:restio/src/core/cache/snapshot.dart';
@@ -10,6 +11,7 @@ class DiskCacheStore implements CacheStore {
   final Directory directory;
   final _cache = <String, Map<int, File>>{};
   var _initialized = false;
+  var _closed = false;
 
   DiskCacheStore(this.directory);
 
@@ -23,6 +25,12 @@ class DiskCacheStore implements CacheStore {
     }
 
     return _Editor(this, key, _cache[key]);
+  }
+
+  void _checkNotClosed() {
+    if (_closed) {
+      throw StateError('Cache is closed');
+    }
   }
 
   void _initialize(String key) {
@@ -53,13 +61,16 @@ class DiskCacheStore implements CacheStore {
 
   @override
   Future<Snapshot> get(String key) async {
+    _checkNotClosed();
+
     _initialize(key);
 
     if (!_cache.containsKey(key)) {
       return null;
     }
 
-    return Snapshot(
+    return _Snapshot(
+      this,
       key,
       CacheStore.anySequenceNumber,
       _sources(key),
@@ -73,8 +84,10 @@ class DiskCacheStore implements CacheStore {
     final data = _cache[key];
 
     return [
-      data[0].openRead(),
-      data[1].openRead(),
+      Stream.value(data[0].readAsBytesSync()),
+      Stream.value(data[1].readAsBytesSync()),
+      // data[0].openRead(),
+      // data[1].openRead(),
     ];
   }
 
@@ -91,6 +104,8 @@ class DiskCacheStore implements CacheStore {
 
   @override
   Future<bool> remove(String key) async {
+    _checkNotClosed();
+
     if (_cache[key] != null &&
         _cache[key].containsKey(0) &&
         _cache[key][0].existsSync()) {
@@ -108,23 +123,26 @@ class DiskCacheStore implements CacheStore {
     return true;
   }
 
-  static void _deleteFileSystemEntity(FileSystemEntity entity) {
+  static void _deleteFile(FileSystemEntity entity) {
     entity.deleteSync(recursive: true);
   }
 
   @override
-  Future<bool> clear() async {
+  Future<void> clear() async {
+    _checkNotClosed();
+
     try {
-      directory.listSync().forEach(_deleteFileSystemEntity);
+      directory.listSync().forEach(_deleteFile);
       _cache.clear();
-      return true;
     } catch (e) {
-      return false;
+      // nada.
     }
   }
 
   @override
   Future<int> size() async {
+    _checkNotClosed();
+
     var total = 0;
 
     _cache.forEach((key, source) {
@@ -134,6 +152,31 @@ class DiskCacheStore implements CacheStore {
     });
 
     return total;
+  }
+
+  @override
+  Future<void> close() async {
+    _closed = true;
+  }
+
+  @override
+  bool get isClosed => _closed;
+}
+
+class _Snapshot extends Snapshot {
+  final CacheStore store;
+
+  _Snapshot(
+    this.store,
+    String key,
+    int sequenceNumber,
+    List<Stream<List<int>>> sources,
+    List<int> lengths,
+  ) : super(key, sequenceNumber, sources, lengths);
+
+  @override
+  Future<Editor> edit() {
+    return store.edit(key, sequenceNumber);
   }
 }
 
@@ -178,7 +221,7 @@ class _Editor implements Editor {
       cache[index].createSync();
     }
 
-    return _FileSink(cache[index].openWrite(mode: FileMode.write));
+    return FileStreamSink(cache[index]);
   }
 
   @override
@@ -197,42 +240,4 @@ class _Editor implements Editor {
 
     return cache[index].openRead();
   }
-}
-
-class _FileSink extends StreamSink<List<int>> {
-  final IOSink sink;
-
-  _FileSink(this.sink);
-
-  @override
-  void add(List<int> event) {
-    sink.add(event);
-  }
-
-  @override
-  void addError(
-    Object error, [
-    StackTrace stackTrace,
-  ]) {
-    sink.addError(error, stackTrace);
-  }
-
-  @override
-  Future addStream(Stream<List<int>> stream) {
-    return sink.addStream(stream);
-  }
-
-  @override
-  Future close() async {
-    try {
-      await sink.flush();
-    } catch (e) {
-      // nada.
-    }
-
-    return sink.close();
-  }
-
-  @override
-  Future get done => sink.done;
 }

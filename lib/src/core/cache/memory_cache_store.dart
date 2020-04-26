@@ -1,128 +1,352 @@
 import 'dart:async';
 
-import 'package:restio/src/common/source_sink.dart';
+import 'package:restio/src/common/memory_file.dart';
+import 'package:restio/src/common/memory_stream_sink.dart';
 import 'package:restio/src/core/cache/cache_store.dart';
 import 'package:restio/src/core/cache/editor.dart';
 import 'package:restio/src/core/cache/snapshot.dart';
 
-class MemoryCacheStore implements CacheStore {
-  final _cache = <String, Map<int, List<int>>>{};
+class MemoryCacheStore extends CacheStore {
+  static final _keyPattern = RegExp(r'^[a-z0-9_-]{1,120}$');
+
+  int _maxSize;
+  final int valueCount;
+  int _size = 0;
+  final _lruEntries = <String, _Entry>{};
+  int _nextSequenceNumber = 0;
+  var _isClosed = false;
+
+  MemoryCacheStore({
+    this.valueCount = 2,
+    int maxSize = 10 * 1024 * 1024,
+  })  : assert(valueCount != null && valueCount > 0),
+        assert(maxSize != null && maxSize > 0),
+        _maxSize = maxSize;
+
+  int get maxSize => _maxSize;
+
+  Future<void> increaseMaxSize(int value) async {
+    _maxSize = value;
+    await cleanup();
+  }
+
+  Future<void> cleanup() async {
+    // Closed.
+    if (_isClosed) {
+      return;
+    }
+
+    _trimToSize();
+  }
+
+  @override
+  Future<void> clear() async {
+    _checkNotClosed();
+
+    final entries = List.of(_lruEntries.values);
+
+    for (final entry in entries) {
+      await entry.editor?.abort();
+    }
+
+    _trimToSize(0);
+  }
 
   @override
   Future<Editor> edit(
     String key, [
-    int expectedSequenceNumber,
+    int expectedSequenceNumber = -1,
   ]) async {
-    if (!_cache.containsKey(key)) {
-      _cache[key] = <int, List<int>>{};
+    _checkNotClosed();
+    _validateKey(key);
+
+    var entry = _lruEntries[key];
+
+    // Snapshot is stale.
+    if (expectedSequenceNumber != CacheStore.anySequenceNumber &&
+        (entry == null || entry.sequenceNumber != expectedSequenceNumber)) {
+      return null;
     }
 
-    return _Editor(_cache[key]);
+    if (entry == null) {
+      entry = _Entry(key, valueCount);
+      _lruEntries[key] = entry;
+    }
+    // Another edit is in progress.
+    else if (entry.editor != null) {
+      return null;
+    }
+
+    final editor = _Editor(this, entry, valueCount);
+    entry.editor = editor;
+    return editor;
+  }
+
+  void _checkNotClosed() {
+    if (_isClosed) {
+      throw StateError('Cache is closed');
+    }
+  }
+
+  void _validateKey(String key) {
+    if (!_keyPattern.hasMatch(key)) {
+      throw ArgumentError('Key is invalid: $key');
+    }
+  }
+
+  Future<void> _completeEdit(
+    _Editor editor,
+    bool success,
+  ) async {
+    final entry = editor.entry;
+
+    if (entry.editor != editor) {
+      throw StateError('Wrong editor for key ${entry.key}');
+    }
+
+    if (success && !entry.readable) {
+      for (var i = 0; i < valueCount; i++) {
+        if (!editor.written[i]) {
+          await editor.abort();
+
+          throw StateError(
+            "Newly created entry didn't create value for index $i",
+          );
+        }
+      }
+    }
+
+    for (var i = 0; i < valueCount; i++) {
+      final dirty = entry.getDirtyFile(i);
+
+      if (success) {
+        if (dirty.exists) {
+          final clean = entry.getCleanFile(i);
+
+          dirty.copyTo(clean);
+
+          final oldLength = entry.lengths[i];
+          final newLength = clean.length;
+
+          entry.lengths[i] = newLength;
+
+          _size = _size - oldLength + newLength;
+        }
+      } else {
+        dirty.delete();
+      }
+    }
+
+    entry.editor = null;
+
+    if (entry.readable || success) {
+      entry.readable = true;
+
+      if (success) {
+        entry.sequenceNumber = _nextSequenceNumber++;
+      }
+    } else {
+      _lruEntries.remove(entry.key);
+    }
+
+    if (_size > maxSize) {
+      await cleanup();
+    }
   }
 
   @override
   Future<Snapshot> get(String key) async {
-    if (!_cache.containsKey(key)) {
+    _checkNotClosed();
+    _validateKey(key);
+
+    final entry = _lruEntries[key];
+
+    if (entry == null) {
       return null;
     }
 
-    return Snapshot(
-      key,
-      CacheStore.anySequenceNumber,
-      _sources(key),
-      _lengths(key),
-    );
-  }
+    if (!entry.readable) {
+      return null;
+    }
 
-  List<Stream<List<int>>> _sources(String key) {
-    final data = _cache[key];
+    final streams = <Stream<List<int>>>[];
 
-    return [
-      Stream.value(data[0] ?? const []),
-      Stream.value(data[1] ?? const []),
-    ];
-  }
+    for (var i = 0; i < valueCount; i++) {
+      try {
+        final s = Stream.value(entry.getCleanFile(i).data);
+        streams.add(s);
+      } catch (e) {
+        return null;
+      }
+    }
 
-  List<int> _lengths(String key) {
-    final data = _cache[key];
-
-    return [
-      data[0]?.length ?? 0,
-      data[1]?.length ?? 0,
-    ];
+    return _Snapshot(this, key, entry.sequenceNumber, streams, entry.lengths);
   }
 
   @override
   Future<bool> remove(String key) async {
-    return _cache.remove(key) != null;
-  }
+    _checkNotClosed();
+    _validateKey(key);
 
-  @override
-  Future<bool> clear() async {
-    _cache.clear();
+    final entry = _lruEntries[key];
+
+    if (entry == null || entry.editor != null) {
+      return false;
+    }
+
+    for (var i = 0; i < valueCount; i++) {
+      final file = entry.getCleanFile(i);
+
+      file.delete();
+
+      _size -= entry.lengths[i];
+
+      entry.lengths[i] = 0;
+    }
+
+    _lruEntries.remove(key);
+
     return true;
   }
 
   @override
   Future<int> size() async {
-    var total = 0;
+    return _lruEntries.values.fold<int>(0, (a, b) => a + b.length);
+  }
 
-    _cache.forEach((key, source) {
-      source.forEach((index, data) {
-        total += data.length;
-      });
-    });
+  @override
+  Future<void> close() async {
+    if (_isClosed) {
+      return;
+    }
 
-    return total;
+    await clear();
+
+    _isClosed = true;
+  }
+
+  @override
+  bool get isClosed => _isClosed;
+
+  void _trimToSize([int forcedSize]) {
+    final maxSize = forcedSize ?? this.maxSize;
+
+    while (_size > maxSize) {
+      final first = _lruEntries.isEmpty ? null : _lruEntries.values.first;
+      remove(first.key);
+    }
+  }
+}
+
+class _Entry {
+  final String key;
+  final List<int> lengths;
+  final int valueCount;
+  final List<MemoryFile> _cleanFiles;
+  final List<MemoryFile> _dirtyFiles;
+
+  var readable = false;
+  _Editor editor;
+  var sequenceNumber = 0;
+
+  _Entry(this.key, this.valueCount)
+      : lengths = List.filled(valueCount, 0),
+        _cleanFiles = List.generate(valueCount, (i) => MemoryFile()),
+        _dirtyFiles = List.generate(valueCount, (i) => MemoryFile());
+
+  void setLengths(List<String> lengths) {
+    if (lengths.length != valueCount) {
+      throw ArgumentError('lengths');
+    }
+
+    for (var i = 0; i < lengths.length; i++) {
+      this.lengths[i] = int.parse(lengths[i]);
+    }
+  }
+
+  MemoryFile getCleanFile(int i) {
+    return _cleanFiles[i];
+  }
+
+  MemoryFile getDirtyFile(int i) {
+    return _dirtyFiles[i];
+  }
+
+  int get length => lengths.fold(0, (a, b) => a + b);
+}
+
+class _Snapshot extends Snapshot {
+  final CacheStore store;
+
+  _Snapshot(
+    this.store,
+    String key,
+    int sequenceNumber,
+    List<Stream<List<int>>> sources,
+    List<int> lengths,
+  ) : super(key, sequenceNumber, sources, lengths);
+
+  @override
+  Future<Editor> edit() {
+    return store.edit(key, sequenceNumber);
   }
 }
 
 class _Editor implements Editor {
-  var _done = false;
-  final Map<int, List<int>> cache;
+  final _Entry entry;
+  final List<bool> written;
+  bool hasErrors = false;
+  bool committed = false;
+  final MemoryCacheStore cache;
 
-  _Editor(this.cache);
+  _Editor(this.cache, this.entry, int valueCount)
+      : written = entry.readable ? null : List.filled(valueCount, false);
 
   @override
-  Future<void> abort() async {
-    if (_done) {
-      throw StateError('Editor is closed');
-    }
-
-    cache.clear();
-    _done = true;
+  Future<void> abort() {
+    return cache._completeEdit(this, false);
   }
 
   @override
   Future<void> commit() async {
-    if (_done) {
-      throw StateError('Editor is closed');
+    if (hasErrors) {
+      await cache._completeEdit(this, false);
+      // The previous entry is stale.
+      await cache.remove(entry.key);
+    } else {
+      await cache._completeEdit(this, true);
     }
 
-    _done = true;
+    committed = true;
   }
 
   @override
   StreamSink<List<int>> newSink(int index) {
-    if (_done) {
-      throw StateError('Editor is closed');
+    if (entry.editor != this) {
+      throw StateError('Wrong editor for index $index');
     }
 
-    cache[index] = [];
+    if (!entry.readable) {
+      written[index] = true;
+    }
 
-    return SourceSink(cache[index]);
+    final dirtyFile = entry.getDirtyFile(index);
+
+    return MemoryStreamSink(dirtyFile, onError: () => hasErrors = true);
   }
 
   @override
   Stream<List<int>> newSource(int index) {
-    if (_done) {
-      throw AssertionError();
+    if (entry.editor != this) {
+      throw StateError('Wrong editor for index $index');
     }
 
-    if (!cache.containsKey(index)) {
-      cache[index] = [];
+    if (!entry.readable) {
+      return null;
     }
 
-    return Stream.value(cache[index]);
+    final dirtyFile = entry.getDirtyFile(index);
+
+    return Stream.value(dirtyFile.data);
   }
 }

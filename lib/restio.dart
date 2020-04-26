@@ -12,6 +12,7 @@ export 'package:restio/src/core/cache/cache.dart' show KeyExtractor, Cache;
 export 'package:restio/src/core/cache/cache_store.dart';
 export 'package:restio/src/core/cache/editor.dart';
 export 'package:restio/src/core/cache/disk_cache_store.dart';
+export 'package:restio/src/core/cache/disk_lru_cache_store.dart';
 export 'package:restio/src/core/cache/memory_cache_store.dart';
 export 'package:restio/src/core/cache/snapshot.dart';
 export 'package:restio/src/core/cache/snapshotable.dart';

@@ -1,5 +1,5 @@
 import 'package:restio/restio.dart';
-import 'package:restio/src/utils/parse_uri.dart';
+import 'package:restio/src/common/parse_uri.dart';
 import 'package:test/test.dart';
 
 void main() {

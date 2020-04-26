@@ -159,7 +159,7 @@ class CacheInterceptor implements Interceptor {
 
     for (var i = 0; i < networkHeaders.length; i++) {
       final name = networkHeaders.nameAt(i);
-      
+
       if (!_isContentSpecificHeader(name) && _isEndToEnd(name)) {
         builder.add(name, networkHeaders.valueAt(i));
       }
@@ -202,7 +202,10 @@ class CacheInterceptor implements Interceptor {
     final cacheStream = CloseableStream(
       response.body.data.stream,
       onData: cacheSink.add,
-      onError: cacheSink.addError,
+      onError: (e, stackTrace) async {
+        await cacheRequest.abort();
+        cacheSink.addError(e, stackTrace);
+      },
     );
 
     return response.copyWith(
@@ -238,7 +241,7 @@ class _CacheResponseBody extends ResponseBody {
         );
 
   @override
-  Future close() async {
+  Future<void> close() async {
     await stream.close();
     await onClose?.call();
   }

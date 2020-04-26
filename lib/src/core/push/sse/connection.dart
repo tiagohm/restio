@@ -1,9 +1,8 @@
+import 'package:restio/src/common/closeable.dart';
 import 'package:restio/src/core/push/sse/event.dart';
 
-abstract class SseConnection {
+abstract class SseConnection implements Closeable {
   Stream<Event> get stream;
-
-  Future close();
 
   bool get isClosed;
 }

@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:mime/mime.dart';
+import 'package:restio/src/common/encoding.dart';
 import 'package:restio/src/common/item.dart';
-import 'package:restio/src/utils/encoding.dart';
 
 class MediaType extends Item {
   final String type;
