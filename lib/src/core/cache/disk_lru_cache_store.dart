@@ -72,8 +72,9 @@ class DiskLruCacheStore extends CacheStore {
         await store._readJournal();
         store._processJournal();
         return store;
-      } catch (e) {
+      } catch (e, stackTrace) {
         print(e);
+        print(stackTrace);
         await store.clear();
       }
     }
@@ -128,7 +129,9 @@ class DiskLruCacheStore extends CacheStore {
         _readJournalLine(lines[lineCount++]);
       } on FileSystemException {
         rethrow;
-      } catch (e) {
+      } catch (e, stackTrace) {
+        print(e);
+        print(stackTrace);
         error = true;
         break;
       }
@@ -436,7 +439,9 @@ class DiskLruCacheStore extends CacheStore {
       try {
         final s = Stream.value(entry.getCleanFile(i).readAsBytesSync());
         streams.add(s);
-      } catch (e) {
+      } catch (e, stackTrace) {
+        print(e);
+        print(stackTrace);
         return null;
       }
     }

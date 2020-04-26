@@ -37,8 +37,9 @@ class _BodySink implements StreamSink<List<int>> {
   ]) async {
     try {
       await editor.abort();
-    } catch (e) {
-      // nada.
+    } catch (e, stackTrace) {
+      print(e);
+      print(stackTrace);
     }
 
     sink.addError(error, stackTrace);
@@ -54,7 +55,9 @@ class _BodySink implements StreamSink<List<int>> {
     try {
       await sink.close();
       await editor.commit();
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print(e);
+      print(stackTrace);
       await editor.abort();
     }
   }

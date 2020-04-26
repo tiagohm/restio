@@ -12,7 +12,7 @@ class MemoryCacheStore extends CacheStore {
   int _maxSize;
   final int valueCount;
   int _size = 0;
-  final _lruEntries = <String, _Entry>{};
+  final _cache = <String, _Entry>{};
   int _nextSequenceNumber = 0;
   var _isClosed = false;
 
@@ -43,7 +43,7 @@ class MemoryCacheStore extends CacheStore {
   Future<void> clear() async {
     _checkNotClosed();
 
-    final entries = List.of(_lruEntries.values);
+    final entries = List.of(_cache.values);
 
     for (final entry in entries) {
       await entry.editor?.abort();
@@ -60,7 +60,7 @@ class MemoryCacheStore extends CacheStore {
     _checkNotClosed();
     _validateKey(key);
 
-    var entry = _lruEntries[key];
+    var entry = _cache[key];
 
     // Snapshot is stale.
     if (expectedSequenceNumber != CacheStore.anySequenceNumber &&
@@ -70,7 +70,7 @@ class MemoryCacheStore extends CacheStore {
 
     if (entry == null) {
       entry = _Entry(key, valueCount);
-      _lruEntries[key] = entry;
+      _cache[key] = entry;
     }
     // Another edit is in progress.
     else if (entry.editor != null) {
@@ -146,7 +146,7 @@ class MemoryCacheStore extends CacheStore {
         entry.sequenceNumber = _nextSequenceNumber++;
       }
     } else {
-      _lruEntries.remove(entry.key);
+      _cache.remove(entry.key);
     }
 
     if (_size > maxSize) {
@@ -159,7 +159,7 @@ class MemoryCacheStore extends CacheStore {
     _checkNotClosed();
     _validateKey(key);
 
-    final entry = _lruEntries[key];
+    final entry = _cache[key];
 
     if (entry == null) {
       return null;
@@ -189,7 +189,7 @@ class MemoryCacheStore extends CacheStore {
     _checkNotClosed();
     _validateKey(key);
 
-    final entry = _lruEntries[key];
+    final entry = _cache[key];
 
     if (entry == null || entry.editor != null) {
       return false;
@@ -205,14 +205,14 @@ class MemoryCacheStore extends CacheStore {
       entry.lengths[i] = 0;
     }
 
-    _lruEntries.remove(key);
+    _cache.remove(key);
 
     return true;
   }
 
   @override
   Future<int> size() async {
-    return _lruEntries.values.fold<int>(0, (a, b) => a + b.length);
+    return _cache.values.fold<int>(0, (a, b) => a + b.length);
   }
 
   @override
@@ -233,7 +233,7 @@ class MemoryCacheStore extends CacheStore {
     final maxSize = forcedSize ?? this.maxSize;
 
     while (_size > maxSize) {
-      final first = _lruEntries.isEmpty ? null : _lruEntries.values.first;
+      final first = _cache.isEmpty ? null : _cache.values.first;
       remove(first.key);
     }
   }

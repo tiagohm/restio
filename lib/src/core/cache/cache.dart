@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:crypto/crypto.dart';
 import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
+import 'package:restio/src/common/closeable.dart';
 import 'package:restio/src/common/closeable_stream.dart';
 import 'package:restio/src/core/cache/cache_store.dart';
 import 'package:restio/src/core/cache/editor.dart';
@@ -92,8 +93,10 @@ class Cache {
 
     try {
       snapshot = await store.get(key);
-    } catch (e) {
+    } catch (e, stackTrace) {
       // Give up because the cache cannot be read.
+      print(e);
+      print(stackTrace);
       return null;
     }
 
@@ -104,7 +107,9 @@ class Cache {
     try {
       try {
         entry = await Entry.sourceEntry(snapshot.source(entryMetaData));
-      } catch (e) {
+      } catch (e, stackTrace) {
+        print(e);
+        print(stackTrace);
         return null;
       }
 
@@ -184,10 +189,18 @@ class Cache {
         final metaData = entry.metaData();
         sink = editor.newSink(Cache.entryMetaData);
         sink.add(metaData);
-        sink.close();
+
+        if (sink is Closeable) {
+          await (sink as Closeable).close();
+        } else {
+          sink.close();
+        }
+
         await editor.commit();
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print(e);
+      print(stackTrace);
       await _abortQuietly(editor);
     }
   }
