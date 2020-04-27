@@ -1,7 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
+import 'package:file/file.dart';
+import 'package:file/local.dart';
+import 'package:file/memory.dart';
 import 'package:path/path.dart' as path;
 import 'package:restio/src/common/file_stream_sink.dart';
 import 'package:restio/src/common/strict_line_splitter.dart';
@@ -11,11 +13,11 @@ import 'package:restio/src/core/cache/snapshot.dart';
 
 // https://github.com/JakeWharton/DiskLruCache/blob/master/src/main/java/com/jakewharton/disklrucache/DiskLruCache.java
 
-class DiskLruCacheStore implements CacheStore {
+class LruCacheStore implements CacheStore {
   static const journalFile = 'journal';
   static const journalFileTmp = 'journal.tmp';
   static const journalFileBackup = 'journal.bkp';
-  static const magic = 'tiagohm.restio.DiskLruCacheStore';
+  static const magic = 'tiagohm.restio.LruCacheStore';
   static const version = '1';
   static final _keyPattern = RegExp(r'^[a-z0-9_-]{1,120}$');
   static const _clean = 'CLEAN';
@@ -34,30 +36,28 @@ class DiskLruCacheStore implements CacheStore {
   final _lruEntries = <String, _Entry>{};
   int _redundantOpCount = 0;
   int _nextSequenceNumber = 0;
-  final Directory _directory;
+  final String directory;
+  final FileSystem fileSystem;
 
-  DiskLruCacheStore._(
-    this._directory,
+  LruCacheStore._(
+    this.fileSystem,
+    this.directory,
     this.appVersion,
     this.valueCount,
     this._maxSize,
-  )   : _journalFile = File(path.join(_directory.path, journalFile)),
-        _journalFileTmp = File(path.join(_directory.path, journalFileTmp)),
+  )   : _journalFile = fileSystem.file(path.join(directory, journalFile)),
+        _journalFileTmp = fileSystem.file(path.join(directory, journalFileTmp)),
         _journalFileBackup =
-            File(path.join(_directory.path, journalFileBackup));
+            fileSystem.file(path.join(directory, journalFileBackup));
 
-  static Future<DiskLruCacheStore> open(
-    Directory directory, {
-    // int appVersion,
-    // int valueCount,
+  static Future<LruCacheStore> open(
+    FileSystem fileSystem,
+    String directory, {
     int maxSize = 10 * 1024 * 1024, // 10 MiB
   }) async {
-    assert(directory != null && directory.existsSync());
     assert(maxSize != null && maxSize > 0);
-    // assert(appVersion != null && appVersion > 0);
-    // assert(valueCount != null && valueCount > 0);
 
-    final store = DiskLruCacheStore._(directory, 1, 2, maxSize);
+    final store = LruCacheStore._(fileSystem, directory, 1, 2, maxSize);
 
     if (store._journalFileBackup.existsSync()) {
       if (store._journalFile.existsSync()) {
@@ -75,13 +75,30 @@ class DiskLruCacheStore implements CacheStore {
       } catch (e, stackTrace) {
         print(e);
         print(stackTrace);
-        directory.listSync().forEach((i) => i.deleteSync());
+
+        fileSystem
+            .directory(directory)
+            .listSync()
+            .forEach((i) => i.deleteSync());
       }
     }
 
     await store._rebuildJournal();
 
     return store;
+  }
+
+  static Future<LruCacheStore> memory({
+    int maxSize = 10 * 1024 * 1024, // 10 MiB
+  }) {
+    return open(MemoryFileSystem(), '/', maxSize: maxSize);
+  }
+
+  static Future<LruCacheStore> local(
+    String directory, {
+    int maxSize = 10 * 1024 * 1024, // 10 MiB
+  }) {
+    return open(const LocalFileSystem(), directory, maxSize: maxSize);
   }
 
   int get maxSize => _maxSize;
@@ -171,7 +188,7 @@ class DiskLruCacheStore implements CacheStore {
     var entry = _lruEntries[key];
 
     if (entry == null) {
-      entry = _Entry(_directory, key, valueCount);
+      entry = _Entry(fileSystem, directory, key, valueCount);
       _lruEntries[key] = entry;
     }
 
@@ -314,7 +331,7 @@ class DiskLruCacheStore implements CacheStore {
     }
 
     if (entry == null) {
-      entry = _Entry(_directory, key, valueCount);
+      entry = _Entry(fileSystem, directory, key, valueCount);
       _lruEntries[key] = entry;
     }
     // Another edit is in progress.
@@ -539,12 +556,12 @@ class _Entry {
   _Editor editor;
   var sequenceNumber = 0;
 
-  _Entry(Directory directory, this.key, this.valueCount)
+  _Entry(FileSystem fileSystem, String directory, this.key, this.valueCount)
       : lengths = List.filled(valueCount, 0),
-        _cleanFiles = List.generate(
-            valueCount, (i) => File(path.join(directory.path, '$key.$i'))),
-        _dirtyFiles = List.generate(
-            valueCount, (i) => File(path.join(directory.path, '$key.$i.tmp')));
+        _cleanFiles = List.generate(valueCount,
+            (i) => fileSystem.file(path.join(directory, '$key.$i'))),
+        _dirtyFiles = List.generate(valueCount,
+            (i) => fileSystem.file(path.join(directory, '$key.$i.tmp')));
 
   void setLengths(List<String> lengths) {
     if (lengths.length != valueCount) {
@@ -589,7 +606,7 @@ class _Editor implements Editor {
   final List<bool> written;
   bool hasErrors = false;
   bool committed = false;
-  final DiskLruCacheStore cache;
+  final LruCacheStore cache;
 
   _Editor(this.cache, this.entry, int valueCount)
       : written = entry.readable ? null : List.filled(valueCount, false);

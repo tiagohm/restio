@@ -21,6 +21,7 @@ dependencies:
   brotli: ^0.2.2
   hex: ^0.1.2
   charcode: ^1.1.3
+  file: ^5.1.0
 
 dev_dependencies:
   test: ^1.14.2

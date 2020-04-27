@@ -20,15 +20,11 @@ void main() {
     cacheDir.listSync(recursive: true).forEach((i) => i.deleteSync());
   });
 
-  group('Cache With MemoryCacheStore', () {
-    testCache(client, () async => MemoryCacheStore());
+  group('LruCacheStore In Memory', () {
+    testCache(client, () async => LruCacheStore.memory());
   });
 
-  group('Cache With DiskCacheStore', () {
-    testCache(client, () async => DiskCacheStore(cacheDir));
-  });
-
-  group('Cache With DiskLruCacheStore', () {
-    testCache(client, () async => DiskLruCacheStore.open(cacheDir));
+  group('Local LruCacheStore', () {
+    testCache(client, () async => LruCacheStore.local(cacheDir.path));
   });
 }

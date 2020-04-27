@@ -144,7 +144,7 @@ final response = await call.execute();
 
 #### Listening for download progress:
 ```dart
-final ProgressCallback onProgress = (sent, total, done) {
+final ProgressCallback onProgress = (Response res, int sent, int total, bool done) {
   print('sent: $sent, total: $total, done: $done');
 };
 
@@ -162,7 +162,7 @@ await response.close();
 
 #### Listening for upload progress:
 ```dart
-final ProgressCallback onProgress = (sent, total, done) {
+final ProgressCallback onProgress = (Request req, int sent, int total, bool done) {
   print('sent: $sent, total: $total, done: $done');
 };
 
@@ -352,7 +352,7 @@ print(response.dnsIp); // Prints the resolved IP.
 #### Caching
 
 ```dart
-final store = await DiskLruCacheStore.open(Directory('./cache'));
+final store = await LruCacheStore.local('./cache');
 final cache = Cache(store: store);
 final client = Restio(cache: cache);
 
@@ -364,7 +364,7 @@ final networkResponse = response.networkResponse; // From network validation.
 final cacheResponse = response.cacheResponse; // From cache.
 ```
 
-> Supports MemoryCacheStore and DiskCacheStore too.
+> Supports LruCacheStore.memory() too.
 
 ### Projects using this library
 

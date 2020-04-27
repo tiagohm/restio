@@ -7,11 +7,11 @@ import 'package:path/path.dart' as path;
 
 final cacheDir = io.Directory('./.cache');
 final journalFile =
-    io.File(path.join(cacheDir.path, DiskLruCacheStore.journalFile));
+    io.File(path.join(cacheDir.path, LruCacheStore.journalFile));
 final journalFileBackup =
-    io.File(path.join(cacheDir.path, DiskLruCacheStore.journalFileBackup));
+    io.File(path.join(cacheDir.path, LruCacheStore.journalFileBackup));
 final journalFileTmp =
-    io.File(path.join(cacheDir.path, DiskLruCacheStore.journalFileTmp));
+    io.File(path.join(cacheDir.path, LruCacheStore.journalFileTmp));
 
 const a = [65];
 const b = [66];
@@ -22,7 +22,10 @@ const d = [68];
 Future<CacheStore> openCache({
   int maxSize = 1000000000,
 }) {
-  return DiskLruCacheStore.open(cacheDir, maxSize: maxSize);
+  return LruCacheStore.local(
+    './.cache',
+    maxSize: maxSize,
+  );
 }
 
 void main() {
@@ -385,7 +388,7 @@ void main() {
     await set(editor, 1, 'bbbb'.codeUnits); // 4
     await editor.commit();
 
-    await (cache as DiskLruCacheStore).increaseMaxSize(12);
+    await (cache as LruCacheStore).increaseMaxSize(12);
 
     editor = await cache.edit('c');
     await set(editor, 0, 'c'.codeUnits); // 1
@@ -417,7 +420,7 @@ void main() {
 
     expect(await cache.size(), 12);
 
-    await (cache as DiskLruCacheStore).increaseMaxSize(10);
+    await (cache as LruCacheStore).increaseMaxSize(10);
 
     expect(await cache.size(), lessThanOrEqualTo(10));
   });
@@ -882,7 +885,7 @@ Future<void> expectJournalEquals(List<String> lines) async {
       .toList();
 
   expect(lines.length, greaterThanOrEqualTo(5));
-  expect(lines[0], DiskLruCacheStore.magic);
+  expect(lines[0], LruCacheStore.magic);
   expect(lines[1], '1');
   expect(lines[2], '1');
   expect(lines[3], '2');
@@ -891,7 +894,7 @@ Future<void> expectJournalEquals(List<String> lines) async {
 
 Future<void> createJournal(
   List<String> lines, {
-  String magic = DiskLruCacheStore.magic,
+  String magic = LruCacheStore.magic,
   String version = '1',
   int appVersion = 1,
   int valueCount = 2,

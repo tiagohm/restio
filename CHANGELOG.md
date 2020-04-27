@@ -7,6 +7,7 @@
  - [Breaking]: `await response.body.close();` -> `await response.close();`.
  - [Breaking]: Dropped `cookies` parameter from `save` method in `CookieJar`. Use `response.cookies` instead.
  - [Breaking]: Dropped `data` attribute from `response.body`.
+ - [Breaking]: Added (Request/Response) parameter to `ProgressCallback`.
 
 ## 0.5.2
  - Fixed Request Query duplication bug.

@@ -713,7 +713,7 @@ void main() {
   });
 
   test('Cache', () async {
-    final cacheStore = DiskCacheStore(Directory('./.cache'));
+    final cacheStore = await LruCacheStore.local('./.cache');
     final cache = Cache(store: cacheStore);
     await cache.clear();
 
@@ -862,7 +862,7 @@ void main() {
   });
 
   test('Fix Timestamp When Use Cache', () async {
-    final store = MemoryCacheStore();
+    final store = await LruCacheStore.memory();
     final cacheClient = client.copyWith(cache: Cache(store: store));
     final request = Request.get('https://httpbin.org/redirect/5');
     final call = cacheClient.newCall(request);
