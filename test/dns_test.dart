@@ -17,7 +17,7 @@ void main() {
 
     test('Lookup', () async {
       final dns = Dns.system;
-      final response = await dns.lookup('tiagohm.xyz');
+      final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
@@ -38,35 +38,35 @@ void main() {
 
     test('Google Lookup', () async {
       final dns = DnsOverUdp.google();
-      final response = await dns.lookup('tiagohm.xyz');
+      final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
 
     test('Cloudflare Lookup', () async {
       final dns = DnsOverUdp.cloudflare();
-      final response = await dns.lookup('tiagohm.xyz');
+      final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
 
     test('OpenDNS Lookup', () async {
       final dns = DnsOverUdp.openDns();
-      final response = await dns.lookup('tiagohm.xyz');
+      final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
 
     test('Norton Lookup', () async {
       final dns = DnsOverUdp.norton();
-      final response = await dns.lookup('tiagohm.xyz');
+      final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
 
     test('Comodo Lookup', () async {
       final dns = DnsOverUdp.comodo();
-      final response = await dns.lookup('tiagohm.xyz');
+      final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
@@ -85,21 +85,21 @@ void main() {
 
     test('Google Lookup', () async {
       final dns = DnsOverHttps.google();
-      final response = await dns.lookup('tiagohm.xyz');
+      final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
 
     test('Cloudflare Lookup', () async {
       final dns = DnsOverHttps.cloudflare();
-      final response = await dns.lookup('tiagohm.xyz');
+      final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
 
     test('Mozilla Lookup', () async {
       final dns = DnsOverHttps.mozilla();
-      final response = await dns.lookup('tiagohm.xyz');
+      final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });

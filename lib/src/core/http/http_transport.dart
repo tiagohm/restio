@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:ip/ip.dart';
+import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/common/output_buffer.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/exceptions.dart';
@@ -10,9 +11,7 @@ import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
-import 'package:restio/src/core/response/compression_type.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/helpers.dart';
 
 class HttpTransport implements Transport {
   @override
@@ -224,20 +223,11 @@ class HttpTransport implements Transport {
           response.cast<List<int>>(),
           contentType: MediaType.fromContentType(response.headers.contentType),
           contentLength: response.headers.contentLength,
-          compressionType: _obtainCompressType(response),
-          onProgress: client.onDownloadProgress,
         ),
       );
     } on TimeoutException {
       throw const TimedOutException(''); // connect time out
     }
-  }
-
-  static CompressionType _obtainCompressType(HttpClientResponse response) {
-    final contentEncoding = response.headers[HttpHeaders.contentEncodingHeader];
-    return contentEncoding != null && contentEncoding.isNotEmpty
-        ? obtainCompressionType(contentEncoding[0])
-        : CompressionType.notCompressed;
   }
 
   static Headers _obtainHeadersfromHttpHeaders(
@@ -255,7 +245,6 @@ class HttpTransport implements Transport {
   ) async {
     final sink = OutputBuffer();
     final completer = Completer<int>();
-    const totalBytes = -1;
     var progressBytes = 0;
 
     request.body.write().listen(
@@ -264,12 +253,13 @@ class HttpTransport implements Transport {
 
         progressBytes += chunk.length;
 
-        client.onUploadProgress?.call(progressBytes, totalBytes, false);
+        client.onUploadProgress?.call(request, progressBytes, -1, false);
       },
       onDone: () {
         sink.close();
 
-        client.onUploadProgress?.call(progressBytes, sink.length, true);
+        client.onUploadProgress
+            ?.call(request, progressBytes, sink.length, true);
 
         clientRequest.contentLength = sink.length;
         clientRequest.add(sink.bytes);

@@ -1,5 +1,5 @@
 import 'package:http_parser/http_parser.dart';
-import 'package:restio/src/helpers.dart';
+import 'package:restio/src/common/helpers.dart';
 import 'package:test/test.dart';
 
 void main() {

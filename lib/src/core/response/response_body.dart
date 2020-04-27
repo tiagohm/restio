@@ -1,33 +1,29 @@
 part of 'response.dart';
 
-class ResponseBody {
-  final Stream<List<int>> _data;
+class ResponseBody implements Pauseable {
+  final Stream<List<int>> data;
   final MediaType contentType;
   final int contentLength;
-  final CompressionType compressionType;
-  final void Function(int sent, int total, bool done) onProgress;
+  final Decompressor decompressor;
 
   const ResponseBody(
-    this._data, {
+    this.data, {
     this.contentType,
     this.contentLength,
-    this.compressionType,
-    this.onProgress,
+    this.decompressor,
   });
 
   factory ResponseBody.bytes(
     List<int> data, {
     MediaType contentType,
     int contentLength = -1,
-    CompressionType compressionType = CompressionType.notCompressed,
-    void Function(int sent, int total, bool done) onProgress,
+    Decompressor decompressor,
   }) {
     return ResponseBody.stream(
       Stream.fromIterable([data]),
       contentType: contentType,
       contentLength: contentLength == -1 ? data.length : contentLength,
-      compressionType: compressionType,
-      onProgress: onProgress,
+      decompressor: decompressor,
     );
   }
 
@@ -35,14 +31,14 @@ class ResponseBody {
     String text, {
     MediaType contentType,
     int contentLength = -1,
-    void Function(int sent, int total, bool done) onProgress,
+    Decompressor decompressor,
   }) {
     final encoding = contentType?.encoding ?? convert.utf8;
     return ResponseBody.stream(
       Stream.fromFuture(Future(() => encoding.encode(text))),
       contentType: contentType,
       contentLength: contentLength,
-      onProgress: onProgress,
+      decompressor: decompressor,
     );
   }
 
@@ -50,101 +46,80 @@ class ResponseBody {
     Stream<List<int>> data, {
     MediaType contentType,
     int contentLength = -1,
-    CompressionType compressionType = CompressionType.notCompressed,
-    void Function(int sent, int total, bool done) onProgress,
+    Decompressor decompressor,
   }) {
     return ResponseBody(
-      data is CloseableStream ? data : CloseableStream(data),
+      data,
       contentType: contentType,
       contentLength: contentLength,
-      compressionType: compressionType,
-      onProgress: onProgress,
+      decompressor: decompressor,
     );
   }
 
   factory ResponseBody.empty() {
     return ResponseBody.bytes(
-      const [],
-      compressionType: CompressionType.notCompressed,
+      const <int>[],
       contentLength: 0,
       contentType: MediaType.octetStream,
     );
   }
 
-  ResponseBodyData get data {
-    return _ResponseBodyData(this);
-  }
-
-  @override
-  String toString() {
-    return 'ResponseBody { contentType: $contentType, contentLength: $contentLength, compressionType: $compressionType }';
-  }
-}
-
-class _ResponseBodyData extends ResponseBodyData {
-  final ResponseBody body;
-  Decompressor _decompressor;
-
-  _ResponseBodyData(this.body);
-
-  @override
-  bool get isPaused => _decompressor != null || _decompressor.isPaused;
-
-  @override
-  bool get isStopped => _decompressor == null;
-
-  @override
-  Stream<List<int>> get stream => body._data;
-
   @override
   void pause() {
-    _decompressor?.pause();
+    if (data is Pauseable) {
+      (data as Pauseable).pause();
+    }
   }
 
   @override
   void resume() {
-    _decompressor?.resume();
-  }
-
-  Future<List<int>> _raw({
-    bool decompress = false,
-  }) {
-    var sent = 0;
-
-    _decompressor = Decompressor(
-      compressionType:
-          decompress ? body.compressionType : CompressionType.notCompressed,
-      data: body._data,
-      onChunkReceived: (chunk) {
-        sent += chunk.length;
-        body.onProgress?.call(sent, body.contentLength, false);
-      },
-      onDone: () {
-        body.onProgress?.call(sent, body.contentLength, true);
-        _decompressor = null;
-      },
-    );
-
-    return _decompressor.decompress();
+    if (data is Pauseable) {
+      (data as Pauseable).resume();
+    }
   }
 
   @override
-  Future<List<int>> raw() => _raw();
+  bool get isPaused => data is Pauseable && (data as Pauseable).isPaused;
 
-  @override
-  Future<List<int>> decompressed() => _raw(decompress: true);
+  Future<List<int>> raw() {
+    return readStream(
+        data.transform(Decompressor(null, decompressor?.onChunkReceived)));
+  }
 
-  @override
+  Future<List<int>> decompressed() {
+    return decompressor == null
+        ? raw()
+        : readStream(data.transform(decompressor));
+  }
+
   Future<String> string() async {
     final encoded = await decompressed();
 
-    return body.contentType?.encoding != null
-        ? body.contentType.encoding.decode(encoded)
+    return contentType?.encoding != null
+        ? contentType.encoding.decode(encoded)
         : convert.utf8.decode(encoded);
   }
 
-  @override
   Future<dynamic> json() async {
     return convert.json.decode(await string());
+  }
+
+  ResponseBody copyWith({
+    Stream<List<int>> data,
+    MediaType contentType,
+    int contentLength,
+    Decompressor decompressor,
+  }) {
+    return ResponseBody(
+      data ?? this.data,
+      contentType: contentType ?? this.contentType,
+      contentLength: contentLength ?? this.contentLength,
+      decompressor: decompressor ?? this.decompressor,
+    );
+  }
+
+  @override
+  String toString() {
+    return 'ResponseBody { contentType: $contentType, contentLength: $contentLength }';
   }
 }

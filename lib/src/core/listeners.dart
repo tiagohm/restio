@@ -1,7 +1,8 @@
 import 'dart:io';
 
-typedef ProgressCallback = void Function(
-  int sent,
+typedef ProgressCallback<T> = void Function(
+  T entity,
+  int length,
   int total,
   bool done,
 );

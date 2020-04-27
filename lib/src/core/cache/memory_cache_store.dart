@@ -6,7 +6,7 @@ import 'package:restio/src/core/cache/cache_store.dart';
 import 'package:restio/src/core/cache/editor.dart';
 import 'package:restio/src/core/cache/snapshot.dart';
 
-class MemoryCacheStore extends CacheStore {
+class MemoryCacheStore implements CacheStore {
   static final _keyPattern = RegExp(r'^[a-z0-9_-]{1,120}$');
 
   int _maxSize;

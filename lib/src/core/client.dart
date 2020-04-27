@@ -13,6 +13,7 @@ import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/http/client_adapter.dart';
 import 'package:restio/src/core/interceptor_chain.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
+import 'package:restio/src/core/internal/bridge_interceptor.dart';
 import 'package:restio/src/core/internal/connect_interceptor.dart';
 import 'package:restio/src/core/internal/cookie_interceptor.dart';
 import 'package:restio/src/core/internal/follow_up_interceptor.dart';
@@ -42,8 +43,8 @@ class Restio {
   final String userAgent;
   final Proxy proxy;
   final bool withTrustedRoots;
-  final ProgressCallback onUploadProgress;
-  final ProgressCallback onDownloadProgress;
+  final ProgressCallback<Request> onUploadProgress;
+  final ProgressCallback<Response> onDownloadProgress;
   final BadCertificateCallback onBadCertificate;
   final bool http2;
   final ClientCertificateJar clientCertificateJar;
@@ -115,8 +116,8 @@ class Restio {
     Proxy proxy,
     io.SecurityContext securityContext,
     bool withTrustedRoots,
-    ProgressCallback onUploadProgress,
-    ProgressCallback onDownloadProgress,
+    ProgressCallback<Request> onUploadProgress,
+    ProgressCallback<Response> onDownloadProgress,
     BadCertificateCallback onBadCertificate,
     bool http2,
     ClientCertificateJar clientCertificateJar,
@@ -299,7 +300,7 @@ class _Sse implements Sse {
           final response = await call.execute();
 
           if (response.code == 200) {
-            response.body.data.stream.transform(_transformer).listen((event) {
+            response.body.data.transform(_transformer).listen((event) {
               if (incomingController.hasListener &&
                   !incomingController.isClosed &&
                   !incomingController.isPaused) {
@@ -360,10 +361,11 @@ class DefaultClientAdapter extends ClientAdapter {
         ...client.interceptors,
       // Redirects.
       FollowUpInterceptor(client),
-      // Cache.
-      CacheInterceptor(client),
       // Cookies.
       CookieInterceptor(client.cookieJar),
+      BridgeInterceptor(client),
+      // Cache.
+      CacheInterceptor(client),
       // Network Interceptors.
       if (client.networkInterceptors != null)
         ...client.networkInterceptors,

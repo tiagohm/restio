@@ -7,7 +7,7 @@ import 'package:restio/src/core/cache/cache_store.dart';
 import 'package:restio/src/core/cache/editor.dart';
 import 'package:restio/src/core/cache/snapshot.dart';
 
-class DiskCacheStore extends CacheStore {
+class DiskCacheStore implements CacheStore {
   static final _keyPattern = RegExp(r'^[a-z0-9_-]{1,120}$');
 
   int _maxSize;
@@ -179,7 +179,8 @@ class DiskCacheStore extends CacheStore {
 
     for (var i = 0; i < valueCount; i++) {
       try {
-        final s = Stream.value(entry.getCleanFile(i).readAsBytesSync());
+        final s = Stream.value(entry.getCleanFile(i).readAsBytesSync())
+            .cast<List<int>>();
         streams.add(s);
       } catch (e, stackTrace) {
         print(e);
@@ -359,6 +360,6 @@ class _Editor implements Editor {
 
     final dirtyFile = entry.getDirtyFile(index);
 
-    return Stream.value(dirtyFile.readAsBytesSync());
+    return Stream.value(dirtyFile.readAsBytesSync()).cast<List<int>>();
   }
 }

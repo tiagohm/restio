@@ -1,5 +1,4 @@
-@Timeout(Duration(days: 1))
-
+import 'dart:async';
 import 'dart:io';
 
 import 'package:pubspec/pubspec.dart';
@@ -47,7 +46,7 @@ void main() {
     final call = client.newCall(request);
     final response = await call.execute();
     expect(response.code, 200);
-    final json = await response.body.data.json();
+    final json = await response.body.json();
     await response.close();
     expect(json['headers']['content-length'], '58');
     expect(json['json'], null);
@@ -138,7 +137,7 @@ void main() {
   test('Posting Binary File', () async {
     var isDone = false;
 
-    void onProgress(sent, total, done) {
+    void onProgress(Request entity, int sent, int total, bool done) {
       print('sent: $sent, total: $total, done: $done');
       isDone = done;
     }
@@ -204,25 +203,7 @@ void main() {
         '<h1>\n<a id="user-content-restio" class="anchor" href="#restio" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Restio</h1>\n');
   });
 
-  test('Basic Auth 1', () async {
-    final authClient = client.copyWith(
-      auth: const BasicAuthenticator(
-        username: 'postman',
-        password: 'password',
-      ),
-    );
-
-    final request = Request.get('https://postman-echo.com/basic-auth');
-    final response = await requestResponse(authClient, request);
-
-    expect(response.code, 200);
-
-    final data = await response.body.data.json();
-    await response.close();
-    expect(data['authenticated'], true);
-  });
-
-  test('Basic Auth 2', () async {
+  test('Basic Auth', () async {
     final authClient = client.copyWith(
       auth: const BasicAuthenticator(
         username: 'a',
@@ -235,7 +216,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final data = await response.body.data.json();
+    final data = await response.body.json();
     await response.close();
     expect(data['authenticated'], true);
   });
@@ -252,7 +233,7 @@ void main() {
     final response = await requestResponse(authClient, request);
     expect(response.code, 200);
 
-    final data = await response.body.data.json();
+    final data = await response.body.json();
     await response.close();
     expect(data['authenticated'], true);
     expect(data['token'], '123');
@@ -271,7 +252,7 @@ void main() {
     final response = await requestResponse(authClient, request);
     expect(response.code, 200);
 
-    final data = await response.body.data.json();
+    final data = await response.body.json();
     await response.close();
     expect(data['authenticated'], true);
   });
@@ -289,7 +270,7 @@ void main() {
     final response = await requestResponse(authClient, request);
     expect(response.code, 200);
 
-    final data = await response.body.data.json();
+    final data = await response.body.json();
     await response.close();
     expect(data['message'], 'Hawk Authentication Successful');
   });
@@ -345,7 +326,7 @@ void main() {
     final response = await requestResponse(client, request);
     expect(response.code, 200);
 
-    final data = await response.body.data.json();
+    final data = await response.body.json();
     await response.close();
     expect(data['items'].length, 2);
     expect(data['items'][0]['full_name'], 'flutter/flutter');
@@ -356,35 +337,27 @@ void main() {
 
     final call = client.newCall(request);
     final response = await call.execute();
-    final data = await response.body.data.raw();
+    final data = await response.body.raw();
     await response.close();
-
-    print(data);
 
     expect(data.length, 30);
   });
 
   test('Gzip', () async {
     final request = Request.get('https://httpbin.org/gzip');
-
     final data = await requestJson(client, request);
-
     expect(data['gzipped'], true);
   });
 
   test('Deflate', () async {
     final request = Request.get('https://httpbin.org/deflate');
-
     final data = await requestJson(client, request);
-
     expect(data['deflated'], true);
   });
 
   test('Brotli', () async {
     final request = Request.get('https://httpbin.org/brotli');
-
     final data = await requestJson(client, request);
-
     expect(data['brotli'], true);
   });
 
@@ -476,8 +449,9 @@ void main() {
   test('Chunked', () async {
     var isDone = false;
 
-    void onProgress(sent, total, done) {
-      print('sent: $sent, total: $total, done: $done');
+    void onProgress(Response entity, int rcv, int total, bool done) {
+      final pc = total / entity.headers.contentLength * 100;
+      print('received: $rcv, total: $total, done: $done, %: $pc');
       isDone = done;
     }
 
@@ -489,12 +463,43 @@ void main() {
 
     final call = progressClient.newCall(request);
     final response = await call.execute();
-    final data = await response.body.data.raw();
+    final data = await response.body.raw();
 
     expect(data.length, 36001);
     expect(isDone, true);
 
     await response.close();
+  });
+
+  test('Pause & Resume', () async {
+    Response response;
+    final startTime = DateTime.now().millisecondsSinceEpoch;
+
+    void onProgress(Response entity, int rcv, int total, bool done) async {
+      print('received: $rcv, total: $total, done: $done');
+
+      if (total > 18000 && total < 19000) {
+        print('paused');
+        response.body.pause();
+        Timer(const Duration(seconds: 5), response.body.resume);
+      }
+    }
+
+    final progressClient = client.copyWith(
+      onDownloadProgress: onProgress,
+    );
+
+    final request = Request.get('https://httpbin.org/stream-bytes/36001');
+
+    final call = progressClient.newCall(request);
+    response = await call.execute();
+    final raw = await response.body.raw();
+    await response.close();
+
+    final endTime = DateTime.now().millisecondsSinceEpoch;
+
+    expect(raw.length, isNonZero);
+    expect(endTime - startTime, greaterThan(5000));
   });
 
   test('Retry after', () async {
@@ -518,7 +523,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final json = await response.body.data.json();
+    final json = await response.body.json();
     await response.close();
 
     expect(json['http2'], 1);
@@ -538,7 +543,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final json = await response.body.data.string();
+    final json = await response.body.string();
     await response.close();
 
     expect(json, 'Olá Tiago!');
@@ -562,7 +567,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final json = await response.body.data.json();
+    final json = await response.body.json();
     await response.close();
 
     print(json);
@@ -593,7 +598,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final json = await response.body.data.json();
+    final json = await response.body.json();
     await response.close();
 
     expect(json['authenticated'], true);
@@ -608,7 +613,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final json = await response.body.data.json();
+    final json = await response.body.json();
     await response.close();
 
     expect(json['url'], 'https://httpbin.org/get?a=b');
@@ -625,7 +630,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final json = await response.body.data.json();
+    final json = await response.body.json();
     await response.close();
 
     expect(json['url'], 'https://httpbin.org/get?a=b');
@@ -648,7 +653,7 @@ void main() {
 
     expect(response.code, 200);
 
-    final json = await response.body.data.json();
+    final json = await response.body.json();
     await response.close();
 
     expect(json['url'], 'https://google.com/get');
@@ -696,7 +701,7 @@ void main() {
     final request = Request.get('https://httpbin.org/get');
     final call = client.newCall(request);
     final response = await call.execute();
-    final json = await response.body.data.json();
+    final json = await response.body.json();
     await response.close();
 
     print(json);
@@ -720,7 +725,7 @@ void main() {
 
     var call = cacheClient.newCall(request);
     var response = await call.execute();
-    var text = await response.body.data.string();
+    var text = await response.body.string();
     expect(text, 'Restio Caching test!');
     await response.close();
 
@@ -736,10 +741,10 @@ void main() {
 
     call = cacheClient.newCall(request);
     response = await call.execute();
-    text = await response.body.data.string();
-    expect(text, 'Restio Caching test!');
+    text = await response.body.string();
     await response.close();
 
+    expect(text, 'Restio Caching test!');
     expect(response.code, 200);
     expect(response.spentMilliseconds, isZero);
     expect(response.totalMilliseconds, isZero);
@@ -750,7 +755,7 @@ void main() {
 
     call = cacheClient.newCall(request);
     response = await call.execute();
-    text = await response.body.data.string();
+    text = await response.body.string();
     expect(text, 'Restio Caching test!');
     await response.close();
 
@@ -764,7 +769,7 @@ void main() {
 
     call = cacheClient.newCall(request);
     response = await call.execute();
-    text = await response.body.data.string();
+    text = await response.body.string();
     await response.close();
 
     expect(response.code, 504);
@@ -774,7 +779,7 @@ void main() {
 
     call = cacheClient.newCall(request);
     response = await call.execute();
-    text = await response.body.data.string();
+    text = await response.body.string();
     expect(text, 'Restio Caching test!');
     await response.close();
 
@@ -790,7 +795,7 @@ void main() {
 
     call = cacheClient.newCall(request);
     response = await call.execute();
-    text = await response.body.data.string();
+    text = await response.body.string();
     expect(text, 'Restio Caching test!');
     await response.close();
 
@@ -830,7 +835,7 @@ void main() {
     final call = client.newCall(request);
     final response = await call.execute();
 
-    final json = await response.body.data.json();
+    final json = await response.body.json();
 
     await response.close();
 
@@ -848,7 +853,7 @@ void main() {
         Request.get('http://www.mocky.io/v2/5e2d86473000005000e77d19');
     final call = client.newCall(request);
     final response = await call.execute();
-    final json = await response.body.data.json();
+    final json = await response.body.json();
     await response.close();
 
     expect(response.code, 200);
@@ -862,7 +867,7 @@ void main() {
     final request = Request.get('https://httpbin.org/redirect/5');
     final call = cacheClient.newCall(request);
     final response = await call.execute();
-    await response.body.data.json();
+    await response.body.json();
     await response.close();
 
     expect(response.code, 200);

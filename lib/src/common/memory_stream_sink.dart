@@ -1,8 +1,8 @@
 import 'dart:async';
 
 import 'package:restio/src/common/closeable.dart';
+import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/common/memory_file.dart';
-import 'package:restio/src/helpers.dart';
 
 class MemoryStreamSink implements StreamSink<List<int>>, Closeable {
   final MemoryFile _data;
@@ -32,7 +32,7 @@ class MemoryStreamSink implements StreamSink<List<int>>, Closeable {
 
   @override
   Future addStream(Stream<List<int>> stream) async {
-    _temp.addAll(await readAsBytes(stream));
+    _temp.addAll(await readStream(stream));
   }
 
   @override

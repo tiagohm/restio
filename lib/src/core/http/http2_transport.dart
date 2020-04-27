@@ -11,7 +11,6 @@ import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
-import 'package:restio/src/core/response/compression_type.dart';
 import 'package:restio/src/core/response/response.dart';
 
 class Http2Transport implements Transport {
@@ -142,7 +141,6 @@ class Http2Transport implements Transport {
   ) async {
     final sink = OutputBuffer();
     final completer = Completer<ClientTransportStream>();
-    const totalBytes = -1;
     var progressBytes = 0;
 
     if (request.body != null) {
@@ -152,12 +150,13 @@ class Http2Transport implements Transport {
 
           progressBytes += chunk.length;
 
-          client.onUploadProgress?.call(progressBytes, totalBytes, false);
+          client.onUploadProgress?.call(request, progressBytes, -1, false);
         },
         onDone: () {
           sink.close();
 
-          client.onUploadProgress?.call(progressBytes, sink.length, true);
+          client.onUploadProgress
+              ?.call(request, progressBytes, sink.length, true);
 
           headers.add(
             Header.ascii(HttpHeaders.contentLengthHeader, '${sink.length}'),
@@ -232,8 +231,6 @@ class Http2Transport implements Transport {
             data.stream,
             contentType: _obtainMediaType(res.headers),
             contentLength: _obtainContentLength(res.headers),
-            compressionType: _obtainCompressType(res.headers),
-            onProgress: client.onDownloadProgress,
           ),
         );
 
@@ -272,10 +269,5 @@ class Http2Transport implements Transport {
     } catch (e) {
       return -1;
     }
-  }
-
-  static CompressionType _obtainCompressType(Headers headers) {
-    final contentEncoding = headers.value(HttpHeaders.contentEncodingHeader);
-    return obtainCompressionType(contentEncoding);
   }
 }

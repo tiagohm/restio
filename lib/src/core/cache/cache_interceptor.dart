@@ -190,11 +190,11 @@ class CacheInterceptor implements Interceptor {
       return response;
     }
 
-    final cacheStream = CloseableStream(
-      response.body.data.stream,
+    final cacheStream = ResponseStream(
+      response.body.data,
       onData: cacheSink.add,
       onError: (e, stackTrace) async {
-        await cacheRequest.abort();
+        // await cacheRequest.abort();
         cacheSink.addError(e, stackTrace);
       },
       onClose: () async {
@@ -205,10 +205,8 @@ class CacheInterceptor implements Interceptor {
     return response.copyWith(
       body: ResponseBody(
         cacheStream,
-        compressionType: response.body.compressionType,
         contentLength: response.body.contentLength,
         contentType: response.body.contentType,
-        onProgress: response.body.onProgress,
       ),
     );
   }

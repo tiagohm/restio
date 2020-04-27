@@ -1,11 +1,11 @@
 import 'dart:convert';
 
+import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/common/item_list.dart';
 import 'package:restio/src/core/request/form/form_builder.dart';
 import 'package:restio/src/core/request/form/form_item.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request_body.dart';
-import 'package:restio/src/helpers.dart';
 
 class FormBody extends ItemList<FormItem> implements RequestBody {
   @override

@@ -893,7 +893,7 @@ Future<void> createJournal(
   List<String> lines, {
   String magic = DiskLruCacheStore.magic,
   String version = '1',
-  int appVersion = 100,
+  int appVersion = 1,
   int valueCount = 2,
   bool noTrailingNewLine = false,
 }) async {

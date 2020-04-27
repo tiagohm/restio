@@ -138,7 +138,7 @@ class DnsOverHttps extends PacketBasedDns {
     }
 
     // Decode JSON.
-    final data = await response.body.data.json();
+    final data = await response.body.json();
     // Decode DNS packet from JSON.
     return _decodeDnsPacket(data);
   }

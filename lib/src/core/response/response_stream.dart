@@ -1,17 +1,19 @@
 import 'dart:async';
 
 import 'package:restio/src/common/closeable.dart';
+import 'package:restio/src/common/pausable.dart';
 
-class CloseableStream<T> extends Stream<T> implements Closeable {
-  StreamSubscription<T> _subscription;
+class ResponseStream extends Stream<List<int>> implements Closeable, Pauseable {
+  StreamSubscription<List<int>> _subscription;
+  var _isPaused = false;
 
-  final Stream<T> stream;
-  final void Function(T event) onData;
+  final Stream<List<int>> stream;
+  final void Function(List<int> event) onData;
   final void Function() onDone;
   final Function onError;
   final FutureOr<void> Function() onClose;
 
-  CloseableStream(
+  ResponseStream(
     this.stream, {
     this.onData,
     this.onDone,
@@ -20,15 +22,15 @@ class CloseableStream<T> extends Stream<T> implements Closeable {
   });
 
   @override
-  StreamSubscription<T> listen(
-    void Function(T event) onData, {
+  StreamSubscription<List<int>> listen(
+    void Function(List<int> event) onData, {
     Function onError,
     void Function() onDone,
     bool cancelOnError,
   }) {
     assert(onData != null);
 
-    void Function(T event) _onData;
+    void Function(List<int> event) _onData;
     Function _onError;
     void Function() _onDone;
 
@@ -42,9 +44,9 @@ class CloseableStream<T> extends Stream<T> implements Closeable {
     }
 
     if (this.onError != null && onError != null) {
-      _onError = (e) {
-        this.onError(e);
-        onError(e);
+      _onError = (e, stackTrace) {
+        this.onError(e, stackTrace);
+        onError(e, stackTrace);
       };
     } else {
       _onError = onError ?? this.onError;
@@ -72,11 +74,30 @@ class CloseableStream<T> extends Stream<T> implements Closeable {
       }
 
       return s;
-    } catch (e) {
-      _onError(e);
+    } catch (e, stackTrace) {
+      _onError(e, stackTrace);
       rethrow;
     }
   }
+
+  @override
+  void pause() {
+    if (!_isPaused) {
+      _isPaused = true;
+      _subscription?.pause();
+    }
+  }
+
+  @override
+  void resume() {
+    if (_isPaused) {
+      _subscription?.resume();
+      _isPaused = false;
+    }
+  }
+
+  @override
+  bool get isPaused => _isPaused;
 
   @override
   Future<void> close() async {

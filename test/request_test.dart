@@ -17,7 +17,7 @@ void main() {
     final call = restio.newCall(req);
     final response = await call.execute();
 
-    final data = await response.body.data.json();
+    final data = await response.body.json();
 
     expect(data['args']['a'], 'b');
     expect(data['args']['c'], 'd');

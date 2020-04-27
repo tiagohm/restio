@@ -64,10 +64,6 @@ class Entry {
         ? (int.tryParse(contentLengthString) ?? -1)
         : -1;
 
-    final compressionType = obtainCompressionType(
-      responseHeaders.value(HttpHeaders.contentEncodingHeader),
-    );
-
     final cacheRequest = Request(
       uri: RequestUri.parse(url),
       method: method,
@@ -90,7 +86,6 @@ class Entry {
         snapshot,
         contentType: contentType,
         contentLength: contentLength,
-        compressionType: compressionType,
       ),
     );
   }
@@ -118,7 +113,7 @@ class Entry {
   }
 
   static Future<Entry> sourceEntry(Stream<List<int>> source) async {
-    final lines = await readAsBytes(source).then((bytes) {
+    final lines = await readStream(source).then((bytes) {
       return utf8.decode(bytes);
     }).then(const LineSplitter().convert);
 
@@ -228,13 +223,30 @@ class _SnapshotableResponseBody extends ResponseBody implements Snapshotable {
     this.snapshot, {
     MediaType contentType,
     int contentLength,
-    CompressionType compressionType,
-    void Function(int sent, int total, bool done) onProgress,
+    Decompressor decompressor,
   }) : super(
           snapshot.source(Cache.entryBody),
           contentType: contentType,
           contentLength: contentLength,
-          compressionType: compressionType,
-          onProgress: onProgress,
+          decompressor: decompressor,
         );
+
+  @override
+  ResponseBody copyWith({
+    Stream<List<int>> data,
+    MediaType contentType,
+    int contentLength,
+    Decompressor decompressor,
+  }) {
+    if (data != null) {
+      throw ArgumentError('Snapshot can not copy data');
+    }
+
+    return _SnapshotableResponseBody(
+      snapshot,
+      contentType: contentType ?? this.contentType,
+      contentLength: contentLength ?? this.contentLength,
+      decompressor: decompressor ?? this.decompressor,
+    );
+  }
 }

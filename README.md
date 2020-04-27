@@ -68,31 +68,31 @@ final response = await call.execute();
 
 #### Get response stream:
 ```dart
-final stream = response.body.data.stream;
+final stream = response.body.stream;
 await response.close();
 ```
 
 #### Get raw response bytes:
 ```dart
-final bytes = await response.body.data.raw();
+final bytes = await response.body.raw();
 await response.close();
 ```
 
 #### Get decompressed response bytes (gzip, deflate or brotli):
 ```dart
-final bytes = await response.body.data.decompressed();
+final bytes = await response.body.decompressed();
 await response.close();
 ```
 
 #### Get response string:
 ```dart
-final string = await response.body.data.string();
+final string = await response.body.string();
 await response.close();
 ```
 
 #### Get response JSON:
 ```dart
-final json = await response.body.data.json();
+final json = await response.body.json();
 await response.close();
 ```
 

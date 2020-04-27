@@ -11,7 +11,7 @@ import 'package:restio/src/core/cache/snapshot.dart';
 
 // https://github.com/JakeWharton/DiskLruCache/blob/master/src/main/java/com/jakewharton/disklrucache/DiskLruCache.java
 
-class DiskLruCacheStore extends CacheStore {
+class DiskLruCacheStore implements CacheStore {
   static const journalFile = 'journal';
   static const journalFileTmp = 'journal.tmp';
   static const journalFileBackup = 'journal.bkp';
@@ -75,7 +75,7 @@ class DiskLruCacheStore extends CacheStore {
       } catch (e, stackTrace) {
         print(e);
         print(stackTrace);
-        await store.clear();
+        directory.listSync().forEach((i) => i.deleteSync());
       }
     }
 
@@ -437,7 +437,8 @@ class DiskLruCacheStore extends CacheStore {
 
     for (var i = 0; i < valueCount; i++) {
       try {
-        final s = Stream.value(entry.getCleanFile(i).readAsBytesSync());
+        final s = Stream.value(entry.getCleanFile(i).readAsBytesSync())
+            .cast<List<int>>();
         streams.add(s);
       } catch (e, stackTrace) {
         print(e);
@@ -507,8 +508,6 @@ class DiskLruCacheStore extends CacheStore {
     if (_journalWriter == null) {
       return;
     }
-
-    await clear();
 
     await _journalWriter.flush();
     await _journalWriter.close();

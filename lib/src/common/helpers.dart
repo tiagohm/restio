@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:brotli/brotli.dart';
 import 'package:ip/ip.dart';
 
-Future<List<int>> readAsBytes(Stream<List<int>> source) {
+Future<List<int>> readStream(Stream<List<int>> source) {
   final completer = Completer<List<int>>();
 
   final sink = ByteConversionSink.withCallback(completer.complete);
@@ -35,22 +37,8 @@ const fragmentEncodeSet = '';
 const queryComponentEncodeSet = " !\"#\$&'(),/:;<=>?@[]\\^`{|}~";
 
 const _hexDigits = [
-  48,
-  49,
-  50,
-  51,
-  52,
-  53,
-  54,
-  55,
-  56,
-  57,
-  65,
-  66,
-  67,
-  68,
-  69,
-  70
+  48, 49, 50, 51, 52, 53, 54, 55, //
+  56, 57, 65, 66, 67, 68, 69, 70, //
 ];
 
 List<int> canonicalize(
@@ -125,4 +113,22 @@ String canonicalizeToString(
       encoding: encoding,
     ),
   );
+}
+
+Converter<List<int>, List<int>> decoderByContentEncoding(
+  String contentEncoding,
+) {
+  switch (contentEncoding) {
+    case 'gzip':
+      return gzip.decoder;
+    case 'deflate':
+      return zlib.decoder;
+      break;
+    case 'br':
+    case 'brotli':
+      return brotli.decoder;
+      break;
+    default:
+      return null;
+  }
 }

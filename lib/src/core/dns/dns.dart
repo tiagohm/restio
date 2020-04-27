@@ -19,7 +19,7 @@ import 'package:ip/ip.dart';
 import 'package:restio/src/core/dns/dns_packet.dart';
 
 abstract class Dns {
-  static const Duration defaultTimeout = Duration(seconds: 5);
+  static const Duration defaultTimeout = Duration(seconds: 15);
   static const Dns system = _SystemDns();
 
   const Dns();

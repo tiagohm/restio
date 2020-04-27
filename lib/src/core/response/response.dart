@@ -3,8 +3,11 @@ import 'dart:io';
 
 import 'package:ip/ip.dart';
 import 'package:meta/meta.dart';
+import 'package:restio/restio.dart';
+import 'package:restio/src/common/decompressor.dart';
 import 'package:restio/src/common/closeable.dart';
-import 'package:restio/src/common/closeable_stream.dart';
+import 'package:restio/src/common/helpers.dart';
+import 'package:restio/src/common/pausable.dart';
 import 'package:restio/src/core/redirect.dart';
 import 'package:restio/src/core/request/header/cache_control.dart';
 import 'package:restio/src/core/request/header/headers.dart';
@@ -13,9 +16,6 @@ import 'package:restio/src/core/request/http_method.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/challenge.dart';
-import 'package:restio/src/core/response/compression_type.dart';
-import 'package:restio/src/core/response/decompressor.dart';
-import 'package:restio/src/core/response/response_body_data.dart';
 
 part 'response_body.dart';
 
@@ -254,10 +254,8 @@ class Response implements Closeable {
       await redirect.response?.close();
     }
 
-    final data = body?._data;
-
-    if (data is Closeable) {
-      await (data as Closeable).close();
+    if (body?.data is Closeable) {
+      await (body.data as Closeable).close();
     }
   }
 
