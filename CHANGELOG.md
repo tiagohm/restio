@@ -1,3 +1,13 @@
+## 0.6.0
+ - Code refactoring.
+ - Added DiskLruCacheStore class.
+ - Fixed Hawk Auth bug.
+ - Fixed DNS bug.
+ - [Breaking]: `Restio(isHttp2: true)` -> `Restio(http2: true)`.
+ - [Breaking]: `await response.body.close();` -> `await response.close();`.
+ - [Breaking]: Dropped `cookies` parameter from `save` method in `CookieJar`. Use `response.cookies` instead.
+ - [Breaking]: Dropped `data` attribute from `response.body`.
+
 ## 0.5.2
  - Fixed Request Query duplication bug.
 
