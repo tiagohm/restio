@@ -68,7 +68,7 @@ final response = await call.execute();
 
 #### Get response stream:
 ```dart
-final stream = response.body.stream;
+final stream = response.body.data;
 await response.close();
 ```
 
@@ -144,8 +144,8 @@ final response = await call.execute();
 
 #### Listening for download progress:
 ```dart
-final ProgressCallback onProgress = (Response res, int sent, int total, bool done) {
-  print('sent: $sent, total: $total, done: $done');
+final ProgressCallback onProgress = (Response res, int length, int total, bool done) {
+  print('length: $length, total: $total, done: $done');
 };
 
 final progressClient = client.copyWith(
@@ -162,8 +162,8 @@ await response.close();
 
 #### Listening for upload progress:
 ```dart
-final ProgressCallback onProgress = (Request req, int sent, int total, bool done) {
-  print('sent: $sent, total: $total, done: $done');
+final ProgressCallback onProgress = (Request req, int length, int total, bool done) {
+  print('length: $length, total: $total, done: $done');
 };
 
 final progressClient = client.copyWith(
@@ -178,8 +178,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-
-#### Pause & Resume retrieving response body data
+#### Pause & Resume retrieving response data
 ```dart
 final response = await call.execute();
 final responseBody = response.body;
@@ -195,10 +194,10 @@ responseBody.resume();
 #### Interceptors
 ```dart
 final client = Restio(
-  interceptors: [MyLogInterceptor()],
+  interceptors: [MyInterceptor()],
 );
 
-class MyLogInterceptor implements Interceptor {
+class MyInterceptor implements Interceptor {
   @override
   Future<Response> intercept(Chain chain) async {
     final request = chain.request;
@@ -225,7 +224,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-> Supports Bearer, Digest and Hawk authorization method too.
+> Supports Bearer, Digest and Hawk Authorization Method too.
 
 #### Cookie Manager
 ```dart
@@ -326,7 +325,7 @@ final sse = client.newSse(
 final conn = await sse.open();
 
 // Listen.
-conn.stream.listen((Event event) {
+conn.stream.listen((SseEvent event) {
   print(event.id);
   print(event.event);
   print(event.data);
