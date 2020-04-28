@@ -40,6 +40,7 @@ class RealSse implements Sse {
     var retry = false;
     var error = false;
     var listened = false;
+    var closed = false;
 
     incomingController = StreamController<SseEvent>.broadcast(
       // Ao escutar.
@@ -52,7 +53,7 @@ class RealSse implements Sse {
         listened = true;
 
         // Tenta conectar várias e várias vezes se for necessário.
-        while (!error) {
+        while (!closed && !error) {
           // Aguarda um tempo antes de reconectar.
           if (retry) {
             // Incrementa a contagem de tentativas.
@@ -135,8 +136,10 @@ class RealSse implements Sse {
           error = true;
         }
 
-        incomingController
-            .addError(RestioException('Failed to connect to ${request.uri}'));
+        if (!closed) {
+          incomingController
+              .addError(RestioException('Failed to connect to ${request.uri}'));
+        }
       },
       onCancel: () {
         // nada.
@@ -144,6 +147,7 @@ class RealSse implements Sse {
     );
 
     return _SseConnection(incomingController, onClose: () async {
+      closed = true;
       await response?.close();
     });
   }

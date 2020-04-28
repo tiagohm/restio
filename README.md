@@ -319,9 +319,9 @@ final client = Restio();
 final request = Request(uri: RequestUri.parse('https://my.sse.com'));
 final sse = client.newSse(
   request,
-  lastEventId: '0',
-  retryInterval: const Duration(seconds: 1),
-  maxRetries: 1,
+  lastEventId: '0', // Optional. Specifies the value of the event source’s last event ID
+  retryInterval: const Duration(seconds: 1), // Optional. Enables auto reconnect and specifies the interval between retry attempts.
+  maxRetries: 1, // Optional. The maximum amount of retries for auto reconnect. Use null or -1 for infinite.
 );
 final conn = await sse.open();
 

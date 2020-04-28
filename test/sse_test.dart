@@ -109,4 +109,32 @@ void main() {
 
     expect(conn.isClosed, true);
   });
+
+  test('Close', () async {
+    final request = Request.get('http://localhost:3000/');
+    final sse = client.newSse(request);
+    final conn = await sse.open();
+
+    Timer(const Duration(seconds: 10), conn.close);
+
+    await for (final _ in conn.stream) {}
+
+    expect(conn.isClosed, true);
+  });
+
+  test('Close Stops Retry Attempts', () async {
+    final request = Request.get('http://localhost:3000/closed-by-server');
+    final sse = client.newSse(
+      request,
+      retryInterval: const Duration(seconds: 1),
+      maxRetries: -1, // infinite.
+    );
+    final conn = await sse.open();
+
+    Timer(const Duration(seconds: 15), conn.close);
+
+    await for (final _ in conn.stream) {}
+
+    expect(conn.isClosed, true);
+  });
 }
