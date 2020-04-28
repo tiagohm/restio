@@ -17,7 +17,7 @@ class FormBody extends ItemList<FormItem> implements RequestBody {
     List<FormItem> items,
     String charset,
   })  : contentType = MediaType.formUrlEncoded.copyWith(charset: charset),
-        contentLength = null,
+        contentLength = -1,
         super(items ?? const []);
 
   factory FormBody.fromMap(

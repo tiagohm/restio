@@ -20,7 +20,7 @@ class MultipartBody implements RequestBody {
   })  : assert(boundary == null || boundary.isNotEmpty),
         assert(type != null && type.type == 'multipart'),
         assert(parts != null),
-        contentLength = null {
+        contentLength = -1 {
     _boundary = boundary ?? _generateBoundary();
     _contentType = type.copyWith(boundary: _boundary);
   }

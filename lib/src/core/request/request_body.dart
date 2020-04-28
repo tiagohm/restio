@@ -83,9 +83,10 @@ class _StreamRequestBody implements RequestBody {
   _StreamRequestBody({
     @required this.data,
     this.contentType,
-    this.contentLength,
+    int contentLength,
   })  : assert(data != null),
-        assert(contentLength == null || contentLength > 0);
+        assert(contentLength == null || contentLength >= -1),
+        contentLength = contentLength ?? -1;
 
   @override
   Stream<List<int>> write() async* {
@@ -108,9 +109,10 @@ class _StringRequestBody implements RequestBody {
   _StringRequestBody({
     @required this.text,
     this.contentType,
-    this.contentLength,
+    int contentLength,
   })  : assert(text != null),
-        assert(contentLength == null || contentLength > 0);
+        assert(contentLength == null || contentLength >= -1),
+        contentLength = contentLength ?? -1;
 
   @override
   Stream<List<int>> write() async* {
@@ -167,8 +169,8 @@ class _FileRequestBody implements RequestBody {
     this.contentType,
     int contentLength,
   })  : assert(file != null),
-        assert(contentLength == null || contentLength > 0),
-        contentLength = contentLength ?? file?.lengthSync() ?? 0;
+        assert(contentLength == null || contentLength >= -1),
+        contentLength = contentLength ?? file.lengthSync();
 
   @override
   Stream<List<int>> write() async* {
