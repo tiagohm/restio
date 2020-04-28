@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:restio/src/core/push/sse/event.dart';
-import 'package:restio/src/core/push/sse/retry.dart';
 
 final _lineRegex = RegExp(r'^([^:]*)(?::)?(?: )?(.*)?$');
 
 class SseTransformer implements StreamTransformer<List<int>, SseEvent> {
-  final Retry retry;
+  final void Function(Duration reconnectInterval) retry;
 
   const SseTransformer({
     this.retry,
@@ -16,6 +15,7 @@ class SseTransformer implements StreamTransformer<List<int>, SseEvent> {
   @override
   Stream<SseEvent> bind(Stream<List<int>> stream) {
     StreamController<SseEvent> controller;
+    StreamSubscription<String> subscription;
 
     controller = StreamController(
       onListen: () {
@@ -26,7 +26,7 @@ class SseTransformer implements StreamTransformer<List<int>, SseEvent> {
         // This stream will receive chunks of data that is not necessarily a
         // single event. So we build events on the fly and broadcast the event as
         // soon as we encounter a double newline, then we start a new one.
-        stream
+        subscription = stream
             .transform(const Utf8Decoder())
             .transform(const LineSplitter())
             .listen((line) {
@@ -79,8 +79,9 @@ class SseTransformer implements StreamTransformer<List<int>, SseEvent> {
           controller.addError(e, stackTrace);
         });
       },
-      onCancel: () {
-        controller.close();
+      onCancel: () async {
+        await subscription?.cancel();
+        await controller.close();
       },
     );
 

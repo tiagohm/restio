@@ -85,8 +85,19 @@ class Restio {
     );
   }
 
-  Sse newSse(Request request) {
-    return RealSse(this, request);
+  Sse newSse(
+    Request request, {
+    String lastEventId,
+    Duration retryInterval,
+    int maxRetries,
+  }) {
+    return RealSse(
+      this,
+      request,
+      lastEventId: lastEventId,
+      retryInterval: retryInterval,
+      maxRetries: maxRetries,
+    );
   }
 
   Restio copyWith({

@@ -317,7 +317,12 @@ await conn.close();
 ```dart
 final client = Restio();
 final request = Request(uri: RequestUri.parse('https://my.sse.com'));
-final sse = client.newSse(request);
+final sse = client.newSse(
+  request,
+  lastEventId: '0',
+  retryInterval: const Duration(seconds: 1),
+  maxRetries: 1,
+);
 final conn = await sse.open();
 
 // Listen.

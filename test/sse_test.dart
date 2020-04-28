@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:restio/restio.dart';
@@ -22,60 +23,87 @@ void main() {
     final sse = client.newSse(request);
     final conn = await sse.open();
 
-    int counter;
-    int lastId;
     var n = 0;
+    int lastData;
 
     await for (final event in conn.stream) {
-      final id = int.parse(event.id);
+      final data = int.parse(event.data);
 
-      if (lastId != null && lastId != id - 1) {
-        continue;
-      }
-
-      lastId = id;
-
-      if (counter == null) {
-        counter = int.parse(event.data);
+      if (lastData == null) {
+        lastData = data;
       } else {
-        expect(int.parse(event.data), counter);
+        expect(data, lastData + 1);
+        lastData = data;
       }
 
-      counter++;
-
-      if (++n >= 3) {
+      if (++n >= 10) {
         break;
       }
     }
 
-    expect(n, 3);
-
-    counter = null;
     n = 0;
+    lastData = null;
 
     await for (final event in conn.stream) {
-      final id = int.parse(event.id);
+      final data = int.parse(event.data);
 
-      if (lastId != null && lastId != id - 1) {
-        continue;
-      }
-
-      lastId = id;
-
-      if (counter == null) {
-        counter = int.parse(event.data);
+      if (lastData == null) {
+        lastData = data;
       } else {
-        expect(int.parse(event.data), counter);
+        expect(data, lastData + 1);
+        lastData = data;
       }
 
-      counter++;
-
-      if (++n >= 3) {
+      if (++n >= 10) {
         break;
       }
     }
 
-    expect(n, 3);
+    await conn.close();
+
+    expect(conn.isClosed, true);
+  });
+
+  test('Auto Reconnect', () async {
+    final request = Request.get('http://localhost:3000/closed-by-server');
+    final sse = client.newSse(
+      request,
+      retryInterval: const Duration(seconds: 1),
+      maxRetries: 3,
+    );
+    final conn = await sse.open();
+
+    final expectedData = <int>[];
+
+    try {
+      await for (final event in conn.stream) {
+        final data = int.parse(event.data);
+        expectedData.add(data);
+      }
+    } catch (e) {
+      // nada.
+    }
+
+    expect(expectedData, const [1, 2, 3, 1, 2, 3, 1, 2, 3, 1, 2, 3]);
+
+    await conn.close();
+
+    expect(conn.isClosed, true);
+  });
+
+  test('TooManyRetriesException', () async {
+    final request = Request.get('http://localhost:3000/closed-by-server');
+    final sse = client.newSse(
+      request,
+      lastEventId: '0',
+      retryInterval: const Duration(seconds: 1),
+      maxRetries: 1,
+    );
+    final conn = await sse.open();
+
+    await expectLater(() async {
+      await for (final _ in conn.stream) {}
+    }, throwsA(isA<TooManyRetriesException>()));
 
     await conn.close();
 

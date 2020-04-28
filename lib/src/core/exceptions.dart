@@ -25,3 +25,7 @@ class TimedOutException extends RestioException {
 class CancelledException extends RestioException {
   const CancelledException(String message) : super(message);
 }
+
+class TooManyRetriesException extends RestioException {
+  const TooManyRetriesException(String message) : super(message);
+}
