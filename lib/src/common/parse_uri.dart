@@ -1,4 +1,3 @@
-
 final _schemeRegex = RegExp(r'^([^:]*):');
 final _authorityRegex = RegExp(
     r'^//(?:(?<userinfo>.*)@)?(?<host>(?:(?!\[)[^:/]+)|\[.*\])(?::(?<port>[^/?#]*))?');

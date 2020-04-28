@@ -4,12 +4,12 @@ import 'package:meta/meta.dart';
 import 'package:restio/src/core/cancellable.dart';
 import 'package:restio/src/core/chain.dart';
 import 'package:restio/src/core/client.dart';
-import 'package:restio/src/core/http/http2_transport.dart';
-import 'package:restio/src/core/http/http_transport.dart';
-import 'package:restio/src/core/http/transport.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
+import 'package:restio/src/core/transport/http2_transport.dart';
+import 'package:restio/src/core/transport/http_transport.dart';
+import 'package:restio/src/core/transport/transport.dart';
 
 class ConnectInterceptor implements Interceptor {
   final Restio client;
@@ -53,7 +53,7 @@ class ConnectInterceptor implements Interceptor {
       }
     });
 
-    try {     
+    try {
       final response = await transport.send(request);
 
       final receivedAt = DateTime.now();

@@ -6,12 +6,12 @@ import 'package:http2/http2.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/exceptions.dart';
-import 'package:restio/src/core/http/transport.dart';
 import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
+import 'package:restio/src/core/transport/transport.dart';
 
 class Http2Transport implements Transport {
   @override

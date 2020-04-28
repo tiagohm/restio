@@ -1,13 +1,12 @@
 part of 'client.dart';
 
-class _Sse implements Sse {
+class RealSse implements Sse {
   final Restio _client;
   @override
   final Request request;
-
   final SseTransformer _transformer;
 
-  _Sse(
+  RealSse(
     this._client,
     this.request, [
     Retry retry,

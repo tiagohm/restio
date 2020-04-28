@@ -1,26 +1,19 @@
 import 'dart:async';
 import 'dart:io' as io;
 
-import 'package:meta/meta.dart';
 import 'package:restio/src/core/auth/authenticator.dart';
 import 'package:restio/src/core/cache/cache.dart';
 import 'package:restio/src/core/call.dart';
-import 'package:restio/src/core/cancellable.dart';
 import 'package:restio/src/core/client_certificate_jar.dart';
 import 'package:restio/src/core/cookie_jar.dart';
 import 'package:restio/src/core/dns/dns.dart';
 import 'package:restio/src/core/exceptions.dart';
-import 'package:restio/src/core/http/client_adapter.dart';
-import 'package:restio/src/core/interceptor_chain.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
-import 'package:restio/src/core/internal/bridge_interceptor.dart';
-import 'package:restio/src/core/internal/connect_interceptor.dart';
-import 'package:restio/src/core/internal/cookie_interceptor.dart';
-import 'package:restio/src/core/internal/follow_up_interceptor.dart';
 import 'package:restio/src/core/listeners.dart';
 import 'package:restio/src/core/proxy.dart';
 import 'package:restio/src/core/push/sse/sse.dart';
 import 'package:restio/src/core/push/ws/ws.dart';
+import 'package:restio/src/core/real_call.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
 
@@ -34,7 +27,6 @@ class Restio {
   final List<Interceptor> interceptors;
   final List<Interceptor> networkInterceptors;
   final CookieJar cookieJar;
-  final ClientAdapter adapter;
   final Authenticator auth;
   final bool followRedirects;
   final int maxRedirects;
@@ -57,7 +49,6 @@ class Restio {
     this.interceptors = const [],
     this.networkInterceptors = const [],
     this.cookieJar,
-    ClientAdapter adapter,
     this.auth,
     this.followRedirects = true,
     this.maxRedirects = 5,
@@ -74,13 +65,12 @@ class Restio {
     this.cache,
   })  : assert(interceptors != null),
         assert(maxRedirects != null),
-        assert(followRedirects != null),
-        adapter = adapter ?? DefaultClientAdapter();
+        assert(followRedirects != null);
 
   static const version = '0.6.0';
 
   Call newCall(Request request) {
-    return _Call(client: this, request: request);
+    return RealCall(client: this, request: request);
   }
 
   WebSocket newWebSocket(
@@ -88,7 +78,7 @@ class Restio {
     List<String> protocols,
     Duration pingInterval,
   }) {
-    return _WebSocket(
+    return RealWebSocket(
       request,
       protocols: protocols,
       pingInterval: pingInterval,
@@ -96,7 +86,7 @@ class Restio {
   }
 
   Sse newSse(Request request) {
-    return _Sse(this, request);
+    return RealSse(this, request);
   }
 
   Restio copyWith({
@@ -106,7 +96,6 @@ class Restio {
     List<Interceptor> interceptors,
     List<Interceptor> networkInterceptors,
     CookieJar cookieJar,
-    ClientAdapter adapter,
     Authenticator auth,
     bool followRedirects,
     int maxRedirects,
@@ -130,7 +119,6 @@ class Restio {
       interceptors: interceptors ?? this.interceptors,
       networkInterceptors: networkInterceptors ?? this.networkInterceptors,
       cookieJar: cookieJar ?? this.cookieJar,
-      adapter: adapter ?? this.adapter,
       auth: auth ?? this.auth,
       followRedirects: followRedirects ?? this.followRedirects,
       maxRedirects: maxRedirects ?? this.maxRedirects,
@@ -146,87 +134,5 @@ class Restio {
       dns: dns ?? this.dns,
       cache: cache ?? this.cache,
     );
-  }
-}
-
-class _Call implements Call {
-  final Restio client;
-  @override
-  final Request request;
-  final _cancellable = Cancellable();
-  var _executed = false;
-  var _executing = false;
-
-  _Call({
-    this.client,
-    this.request,
-  });
-
-  @override
-  void cancel(String message) {
-    _cancellable.cancel(message);
-  }
-
-  @override
-  Future<Response> execute() async {
-    if (!_executing && !isCancelled) {
-      _executing = true;
-
-      final adapter = client.adapter;
-
-      try {
-        return await adapter.execute(client, this, _cancellable);
-      } finally {
-        _executed = true;
-      }
-    } else {
-      throw const RestioException('Call has already been executed');
-    }
-  }
-
-  @override
-  bool get isExecuted => _executed;
-
-  @override
-  bool get isCancelled => _cancellable.isCancelled;
-}
-
-class DefaultClientAdapter extends ClientAdapter {
-  @override
-  @mustCallSuper
-  Future<Response> execute(
-    Restio client,
-    Call call, [
-    Cancellable cancellable,
-  ]) async {
-    final interceptors = [
-      // Interceptors.
-      if (client.interceptors != null)
-        ...client.interceptors,
-      // Redirects.
-      FollowUpInterceptor(client),
-      // Cookies.
-      CookieInterceptor(client.cookieJar),
-      BridgeInterceptor(client),
-      // Cache.
-      CacheInterceptor(client),
-      // Network Interceptors.
-      if (client.networkInterceptors != null)
-        ...client.networkInterceptors,
-      // Connection.
-      ConnectInterceptor(
-        client: client,
-        cancellable: cancellable,
-      ),
-    ];
-
-    final chain = InterceptorChain(
-      call: call,
-      request: call.request,
-      interceptors: interceptors,
-      index: 0,
-    );
-
-    return chain.proceed(call.request);
   }
 }
