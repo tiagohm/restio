@@ -1,3 +1,10 @@
+## 0.7.0
+ - SSE Automatic Reconnect supported.
+ - Added some extension methods to help you.
+ - [Breaking]: Removed `MemoryCacheStore`, `DiskCacheStore` and `DiskLruCacheStore`. Use `LruCacheStore.memory()` or `LruCacheStore.local()`.
+ - [Breaking]: Renamed `Event` to `SseEvent`.
+ - [Breaking]: Removed `ClientAdapter` class.
+
 ## 0.6.0
  - Code refactoring.
  - Added DiskLruCacheStore class.
@@ -8,6 +15,7 @@
  - [Breaking]: Dropped `cookies` parameter from `save` method in `CookieJar`. Use `response.cookies` instead.
  - [Breaking]: Dropped `data` attribute from `response.body`.
  - [Breaking]: Added (Request/Response) parameter to `ProgressCallback`.
+ - [Breaking]: Use `response.body.data` to get data stream.
 
 ## 0.5.2
  - Fixed Request Query duplication bug.

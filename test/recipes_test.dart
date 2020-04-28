@@ -28,7 +28,7 @@ void main() {
   });
 
   test('Performing a GET request', () async {
-    final request = Request.get('https://postman-echo.com/get');
+    final request = get('https://postman-echo.com/get');
     final call = client.newCall(request);
     final response = await call.execute();
     expect(response.code, 200);
@@ -36,12 +36,10 @@ void main() {
   });
 
   test('Performing a POST request', () async {
-    final request = Request.post(
+    final request = post(
       'https://postman-echo.com/post',
-      body: RequestBody.string(
-        'This is expected to be sent back as part of response body.',
-        contentType: MediaType.text,
-      ),
+      body:
+          'This is expected to be sent back as part of response body.'.asBody(),
     );
     final call = client.newCall(request);
     final response = await call.execute();
@@ -53,7 +51,7 @@ void main() {
   });
 
   test('Simple Get', () async {
-    final request = Request.get('https://httpbin.org/json');
+    final request = get('https://httpbin.org/json');
     final call = client.newCall(request);
     final response = await call.execute();
 
@@ -68,25 +66,22 @@ void main() {
   });
 
   test('Cancelling a Call', () async {
-    final request = Request.get('https://httpbin.org/delay/10');
+    final request = get('https://httpbin.org/delay/10');
 
     final call = client.newCall(request);
-    Future.delayed(const Duration(seconds: 5), () => call.cancel('Cancelado!'));
+    Timer(const Duration(seconds: 5), () => call.cancel('Cancelado!'));
 
-    try {
+    expect(() async {
       final response = await call.execute();
       await response.close();
-    } on CancelledException catch (e) {
-      expect(e.message, 'Cancelado!');
-    }
+    }, throwsA(isA<CancelledException>()));
   });
 
   test('Posting a String', () async {
-    final request = Request.post(
+    final request = post(
       'https://postman-echo.com/post',
-      body: RequestBody.string('Olá!', contentType: MediaType.text),
-      headers:
-          (HeadersBuilder()..add('content-type', 'application/json')).build(),
+      body: 'Olá!'.asBody(),
+      headers: {'content-type': 'application/json'}.asHeaders(),
     );
 
     final data = await requestJson(client, request);
@@ -97,9 +92,9 @@ void main() {
   });
 
   test('Posting Form Parameters', () async {
-    final request = Request.post(
+    final request = post(
       'https://postman-echo.com/post',
-      body: (FormBuilder()..add('a', 'b')..add('c', 'd')).build(),
+      body: {'a': 'b', 'c': 'd'}.asForm(),
     );
 
     final data = await requestJson(client, request);
@@ -109,21 +104,13 @@ void main() {
   });
 
   test('Posting a Multipart Request', () async {
-    final request = Request.post(
+    final request = post(
       'https://postman-echo.com/post',
-      body: MultipartBody(
-        parts: [
-          Part.form('a', 'b'),
-          Part.form('c', 'd'),
-          Part.file(
-            'e',
-            'text.txt',
-            RequestBody.file(
-              File('./test/assets/text.txt'),
-            ),
-          ),
-        ],
-      ),
+      body: {
+        'a': 'b',
+        'c': 'd',
+        'e': File('./test/assets/text.txt'),
+      }.asMultipart(),
     );
 
     final data = await requestJson(client, request);
@@ -146,9 +133,9 @@ void main() {
       onUploadProgress: onProgress,
     );
 
-    final request = Request.post(
+    final request = post(
       'https://postman-echo.com/post',
-      body: RequestBody.file(File('./test/assets/binary.dat')),
+      body: File('./test/assets/binary.dat').asBody(),
     );
 
     final data = await requestJson(progressClient, request);
@@ -174,9 +161,9 @@ void main() {
       http2: true,
     );
 
-    final request = Request.post(
+    final request = post(
       'https://httpbin.org/post',
-      body: RequestBody.file(File('./test/assets/binary.dat')),
+      body: File('./test/assets/binary.dat').asBody(),
     );
 
     final data = await requestJson(progressClient, request);
@@ -189,14 +176,14 @@ void main() {
   test('User-Agent', () async {
     final userAgentClient = client.copyWith(userAgent: 'Restio (Dart)');
 
-    var request = Request.get('https://postman-echo.com/get');
+    var request = get('https://postman-echo.com/get');
     var data = await requestJson(userAgentClient, request);
 
     expect(data['headers']['user-agent'], 'Restio (Dart)');
 
-    request = Request.get(
+    request = get(
       'https://postman-echo.com/get',
-      headers: Headers.fromMap({HttpHeaders.userAgentHeader: 'jrit549ytyh549'}),
+      headers: {HttpHeaders.userAgentHeader: 'jrit549ytyh549'}.asHeaders(),
     );
 
     data = await requestJson(client, request);
@@ -205,15 +192,9 @@ void main() {
   });
 
   test('Posting a File', () async {
-    final request = Request.post(
+    final request = post(
       'https://api.github.com/markdown/raw',
-      body: RequestBody.string(
-        '# Restio',
-        contentType: MediaType(
-          type: 'text',
-          subType: 'x-markdown',
-        ),
-      ),
+      body: '# Restio'.asBody(MediaType(type: 'text', subType: 'x-markdown')),
     );
 
     final data = await requestString(client, request);
@@ -229,7 +210,7 @@ void main() {
       ),
     );
 
-    final request = Request.get('https://httpbin.org/basic-auth/a/b');
+    final request = get('https://httpbin.org/basic-auth/a/b');
     final response = await requestResponse(authClient, request);
 
     expect(response.code, 200);
@@ -246,7 +227,7 @@ void main() {
       ),
     );
 
-    final request = Request.get('https://httpbin.org/bearer');
+    final request = get('https://httpbin.org/bearer');
 
     final response = await requestResponse(authClient, request);
     expect(response.code, 200);
@@ -265,7 +246,7 @@ void main() {
       ),
     );
 
-    final request = Request.get('https://postman-echo.com/digest-auth');
+    final request = get('https://postman-echo.com/digest-auth');
 
     final response = await requestResponse(authClient, request);
     expect(response.code, 200);
@@ -283,7 +264,7 @@ void main() {
       ),
     );
 
-    final request = Request.get('https://postman-echo.com/auth/hawk');
+    final request = get('https://postman-echo.com/auth/hawk');
 
     final response = await requestResponse(authClient, request);
     expect(response.code, 200);
@@ -301,11 +282,11 @@ void main() {
       ),
     );
 
-    var request = Request.get('https://postman-echo.com/auth/hawk?a=b');
+    var request = get('https://postman-echo.com/auth/hawk?a=b');
     var response = await requestResponse(authClient, request);
     expect(response.code, 200);
 
-    request = Request.get('https://postman-echo.com/auth/hawk/?a=b');
+    request = get('https://postman-echo.com/auth/hawk/?a=b');
     response = await requestResponse(authClient, request);
     expect(response.code, 200);
   });
@@ -317,7 +298,7 @@ void main() {
       receiveTimeout: const Duration(seconds: 2),
     );
 
-    final request = Request.get('https://httpbin.org/delay/10');
+    final request = get('https://httpbin.org/delay/10');
 
     final call = timeoutClient.newCall(request);
 
@@ -330,10 +311,9 @@ void main() {
   });
 
   test('Queries', () async {
-    final request = Request.get(
+    final request = get(
       'https://api.github.com/search/repositories?q=flutter&sort=stars',
-      queries: (QueriesBuilder()..add('order', 'desc')..add('per_page', '2'))
-          .build(),
+      queries: {'order': 'desc', 'per_page': '2'}.asQueries(),
     );
 
     expect(request.queries.value('q'), 'flutter');
@@ -351,7 +331,7 @@ void main() {
   });
 
   test('Raw Data', () async {
-    final request = Request.get('https://httpbin.org/robots.txt');
+    final request = get('https://httpbin.org/robots.txt');
 
     final call = client.newCall(request);
     final response = await call.execute();
@@ -362,19 +342,19 @@ void main() {
   });
 
   test('Gzip', () async {
-    final request = Request.get('https://httpbin.org/gzip');
+    final request = get('https://httpbin.org/gzip');
     final data = await requestJson(client, request);
     expect(data['gzipped'], true);
   });
 
   test('Deflate', () async {
-    final request = Request.get('https://httpbin.org/deflate');
+    final request = get('https://httpbin.org/deflate');
     final data = await requestJson(client, request);
     expect(data['deflated'], true);
   });
 
   test('Brotli', () async {
-    final request = Request.get('https://httpbin.org/brotli');
+    final request = get('https://httpbin.org/brotli');
     final data = await requestJson(client, request);
     expect(data['brotli'], true);
   });
@@ -383,7 +363,7 @@ void main() {
     final redirectClient = client.copyWith(maxRedirects: 9);
 
     test('Absolute redirects n times', () async {
-      final request = Request.get('https://httpbin.org/absolute-redirect/7');
+      final request = get('https://httpbin.org/absolute-redirect/7');
       final call = redirectClient.newCall(request);
       final response = await call.execute();
 
@@ -394,7 +374,7 @@ void main() {
     });
 
     test('Relative redirects n times', () async {
-      final request = Request.get('https://httpbin.org/relative-redirect/7');
+      final request = get('https://httpbin.org/relative-redirect/7');
       final call = redirectClient.newCall(request);
       final response = await call.execute();
 
@@ -406,7 +386,7 @@ void main() {
     });
 
     test('Too many redirects exception', () async {
-      final request = Request.get('https://httpbin.org/absolute-redirect/10');
+      final request = get('https://httpbin.org/absolute-redirect/10');
       final call = redirectClient.newCall(request);
 
       try {
@@ -427,7 +407,7 @@ void main() {
     );
 
     test('Absolute redirects n times', () async {
-      final request = Request.get('https://httpbin.org/absolute-redirect/7');
+      final request = get('https://httpbin.org/absolute-redirect/7');
       final call = redirectClient.newCall(request);
       final response = await call.execute();
 
@@ -438,7 +418,7 @@ void main() {
     });
 
     test('Relative redirects n times', () async {
-      final request = Request.get('https://httpbin.org/relative-redirect/7');
+      final request = get('https://httpbin.org/relative-redirect/7');
       final call = redirectClient.newCall(request);
       final response = await call.execute();
 
@@ -450,7 +430,7 @@ void main() {
     });
 
     test('Too many redirects exception', () async {
-      final request = Request.get('https://httpbin.org/absolute-redirect/10');
+      final request = get('https://httpbin.org/absolute-redirect/10');
       final call = redirectClient.newCall(request);
 
       try {
@@ -477,7 +457,7 @@ void main() {
       onDownloadProgress: onProgress,
     );
 
-    final request = Request.get('https://httpbin.org/stream-bytes/36001');
+    final request = get('https://httpbin.org/stream-bytes/36001');
 
     final call = progressClient.newCall(request);
     final response = await call.execute();
@@ -507,7 +487,7 @@ void main() {
       onDownloadProgress: onProgress,
     );
 
-    final request = Request.get('https://httpbin.org/stream-bytes/36001');
+    final request = get('https://httpbin.org/stream-bytes/36001');
 
     final call = progressClient.newCall(request);
     response = await call.execute();
@@ -525,7 +505,7 @@ void main() {
       _RetryAfterInterceptor(15),
     ]);
 
-    final request = Request.get('https://httpbin.org/absolute-redirect/1');
+    final request = get('https://httpbin.org/absolute-redirect/1');
     final call = retryAfterClient.newCall(request);
     final response = await call.execute();
     await response.close();
@@ -535,7 +515,7 @@ void main() {
   test('HTTP2', () async {
     final http2Client = client.copyWith(http2: true);
 
-    final request = Request.get('https://http2.pro/api/v1');
+    final request = get('https://http2.pro/api/v1');
     final call = http2Client.newCall(request);
     final response = await call.execute();
 
@@ -555,7 +535,7 @@ void main() {
       clientCertificateJar: MyClientCertificateJar(),
     );
 
-    final request = Request.get('https://localhost:3002');
+    final request = get('https://localhost:3002');
     final call = certificateClient.newCall(request);
     final response = await call.execute();
 
@@ -579,7 +559,7 @@ void main() {
       ),
     );
 
-    final request = Request.get('http://httpbin.org/basic-auth/c/d');
+    final request = get('http://httpbin.org/basic-auth/c/d');
     final call = proxyClient.newCall(request);
     final response = await call.execute();
 
@@ -610,7 +590,7 @@ void main() {
       ),
     );
 
-    final request = Request.get('http://httpbin.org/basic-auth/c/d');
+    final request = get('http://httpbin.org/basic-auth/c/d');
     final call = proxyClient.newCall(request);
     final response = await call.execute();
 
@@ -625,7 +605,7 @@ void main() {
   test('DNS-Over-UDP', () async {
     final dns = DnsOverUdp.google();
     final dnsClient = client.copyWith(dns: dns);
-    final request = Request.get('https://httpbin.org/get?a=b');
+    final request = get('https://httpbin.org/get?a=b');
     final call = dnsClient.newCall(request);
     final response = await call.execute();
 
@@ -642,7 +622,7 @@ void main() {
   test('DNS-Over-HTTPS', () async {
     final dns = DnsOverHttps.google();
     final dnsClient = client.copyWith(dns: dns);
-    final request = Request.get('https://httpbin.org/get?a=b');
+    final request = get('https://httpbin.org/get?a=b');
     final call = dnsClient.newCall(request);
     final response = await call.execute();
 
@@ -660,11 +640,9 @@ void main() {
     final dns = DnsOverHttps.google();
     final dnsClient = client.copyWith(dns: dns);
 
-    final request = Request.get(
+    final request = get(
       'https://httpbin.org/get',
-      headers: Headers.fromMap(
-        const {'Host': 'google.com'},
-      ),
+      headers: {'Host': 'google.com'}.asHeaders(),
     );
     final call = dnsClient.newCall(request);
     final response = await call.execute();
@@ -680,9 +658,9 @@ void main() {
   test('Force Accept-Encoding', () async {
     final http2Client = client.copyWith(http2: true);
 
-    final request = Request.get(
+    final request = get(
       'https://http2.pro/api/v1',
-      headers: Headers.fromMap({HttpHeaders.acceptEncodingHeader: 'gzip'}),
+      headers: {HttpHeaders.acceptEncodingHeader: 'gzip'}.asHeaders(),
     );
     final call = http2Client.newCall(request);
     final response = await call.execute();
@@ -696,7 +674,7 @@ void main() {
 
     final dnsClient = client.copyWith(dns: dns);
 
-    final request = Request.get('https://httpbin.org/absolute-redirect/5');
+    final request = get('https://httpbin.org/absolute-redirect/5');
     final call = dnsClient.newCall(request);
     final response = await call.execute();
     await response.close();
@@ -705,7 +683,7 @@ void main() {
   });
 
   test('Cookies', () async {
-    final request = Request.get('https://postman-echo.com/get');
+    final request = get('https://postman-echo.com/get');
     final call = client.newCall(request);
     final response = await call.execute();
     await response.close();
@@ -716,7 +694,7 @@ void main() {
   });
 
   test('Version', () async {
-    final request = Request.get('https://httpbin.org/get');
+    final request = get('https://httpbin.org/get');
     final call = client.newCall(request);
     final response = await call.execute();
     final json = await response.body.json();
@@ -738,8 +716,7 @@ void main() {
     final cacheClient = client.copyWith(cache: cache, interceptors: []);
 
     // cache-control: private, max-age=60
-    var request =
-        Request.get('http://www.mocky.io/v2/5e230fa42f00009a00222692');
+    var request = get('http://www.mocky.io/v2/5e230fa42f00009a00222692');
 
     var call = cacheClient.newCall(request);
     var response = await call.execute();
@@ -825,9 +802,9 @@ void main() {
   });
 
   test('Empty Cache-Control Value', () async {
-    final request = Request.get(
+    final request = get(
       'https://httpbin.org/get',
-      headers: (HeadersBuilder()..add('cache-control', '')).build(),
+      headers: {'cache-control': ''}.asHeaders(),
     );
     final call = client.newCall(request);
     final response = await call.execute();
@@ -845,7 +822,7 @@ void main() {
           ..add('text', 'text'))
         .build();
 
-    final request = Request.post(
+    final request = post(
       'https://httpbin.org/post',
       body: body,
     );
@@ -867,8 +844,7 @@ void main() {
   });
 
   test('Fix Default JSON Encoding', () async {
-    final request =
-        Request.get('http://www.mocky.io/v2/5e2d86473000005000e77d19');
+    final request = get('http://www.mocky.io/v2/5e2d86473000005000e77d19');
     final call = client.newCall(request);
     final response = await call.execute();
     final json = await response.body.json();
@@ -882,7 +858,7 @@ void main() {
   test('Fix Timestamp When Use Cache', () async {
     final store = await LruCacheStore.memory();
     final cacheClient = client.copyWith(cache: Cache(store: store));
-    final request = Request.get('https://httpbin.org/redirect/5');
+    final request = get('https://httpbin.org/redirect/5');
     final call = cacheClient.newCall(request);
     final response = await call.execute();
     await response.body.json();

@@ -21,7 +21,7 @@ final client = Restio();
 2. Create a `Request`:
 ```dart
 final request = Request(
-    uri: RequestUri.parse('https://httpbin.org/json'),
+    uri: RequestUri.parse('https://httpbin.org/get'),
     method: HttpMethod.get,
 );
 ```
@@ -29,7 +29,13 @@ final request = Request(
 or
 
 ```dart
-final request = Request.get('https://httpbin.org/json');
+final request = Request.get('https://httpbin.org/get');
+```
+
+or
+
+```dart
+final request = get('https://httpbin.org/get');
 ```
 
 3. Create a `Call` from `Request`:
@@ -42,25 +48,46 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
+5. At end close the response.
+```dart
+await response.close();
+```
+
 ### Recipes
+
+#### Adding Headers and Queries:
+```dart
+final request = Request.get(
+  'https://postman-echo.com/get?a=b',
+  headers: {'header-name':'header-value'}.asHeaders(),
+  queries: {'query-name':'query-value'}.asQueries(),
+);
+```
+
+You can use `HeadersBuilder` and `QueriesBuilder` too.
+
+```dart
+final builder = HeadersBuilder();
+builder.add('header-name', 'header-value');
+builder.set('header-name', 'header-value-2');
+builder.removeAll('header-name');
+final headers = builder.build();
+```
 
 #### Performing a GET request:
 
 ```dart
 final client = Restio();
-final request = Request.get('https://postman-echo.com/get');
+final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();
 ```
 
 #### Performing a POST request:
 ```dart
-final request = Request.post(
+final request = post(
   'https://postman-echo.com/post',
-  body: RequestBody.string(
-    'This is expected to be sent back as part of response body.',
-    contentType: MediaType.text,
-  ),
+  body: 'This is expected to be sent back as part of response body.'.asBody(),
 );
 final call = client.newCall(request);
 final response = await call.execute();
@@ -98,12 +125,12 @@ await response.close();
 
 #### Sending form data:
 ```dart
-final request = Request.post(
+final request = post(
   'https://postman-echo.com/post',
-  body: body: FormBody.fromMap({
+  body: {
     'foo1': 'bar1',
     'foo2': 'bar2',
-  }),
+  }.asForm(),
 );
 final call = client.newCall(request);
 final response = await call.execute();
@@ -111,32 +138,47 @@ final response = await call.execute();
 
 #### Sending multipart data:
 ```dart
+final request = post(
+  'https://postman-echo.com/post',
+  body: {'file1': File('./upload.txt')}.asMultipart(),
+);
+final call = client.newCall(request);
+final response = await call.execute();
+```
+
+or
+
+```dart
 final request = Request.post(
   'https://postman-echo.com/post',
   body: MultipartBody(
     parts: [
+      // File.
       Part.file(
-        'file1',
-        'upload.txt',
+        // field name.
+        'file1', 
+        // file name.
+        'upload.txt', 
+        // file content.
         RequestBody.file(
           File('./upload.txt'),
           contentType: MediaType.text,
         ),
       ),
+      // Text.
+      Part.form('a', 'b'),
     ],
   ),
 );
-final call = client.newCall(request);
-final response = await call.execute();
 ```
 
 #### Posting binary data:
 ```dart
 // Binary data.
 final postData = <int>[...];
-final request = Request.post(
+final request = post(
   'https://postman-echo.com/post',
-  body: RequestBody.bytes(postData, contentType: MediaType.octetStream),
+  body: postData.asBody(),
 );
 final call = client.newCall(request);
 final response = await call.execute();
@@ -152,7 +194,7 @@ final progressClient = client.copyWith(
   onDownloadProgress: onProgress,
 );
 
-final request = Request.get('https://httpbin.org/stream-bytes/36001');
+final request = get('https://httpbin.org/stream-bytes/36001');
 
 final call = client.newCall(request);
 final response = await call.execute();
@@ -170,8 +212,8 @@ final progressClient = client.copyWith(
   onUploadProgress: onProgress,
 );
 
-final request = Request.post('https://postman-echo.com/post',
-  body: RequestBody.file(File('./large_file.txt'));
+final request = post('https://postman-echo.com/post',
+  body: File('./large_file.txt').asBody(),
 );
 
 final call = client.newCall(request);
@@ -218,7 +260,7 @@ final client = Restio(
   ),
 );
 
-final request = Request.get('https://postman-echo.com/basic-auth');
+final request = get('https://postman-echo.com/basic-auth');
 
 final call = client.newCall(request);
 final response = await call.execute();
@@ -280,7 +322,7 @@ final client = Restio(
   ),
 );
 
-final request = Request.get('http://localhost:3000');
+final request = get('http://localhost:3000');
 final call = client.newCall(request);
 final response = await call.execute();
 ```
@@ -289,7 +331,7 @@ final response = await call.execute();
 
 ```dart
 final client = Restio(http2: true);
-final request = Request.get('https://www.google.com/');
+final request = get('https://www.google.com/');
 final call = client.newCall(request);
 final response = await call.execute();
 ```
@@ -307,7 +349,7 @@ conn.stream.listen((dynamic data) {
 });
 
 // Send.
-conn.addString('🎾');
+conn.addString('❤️ Larichan ❤️');
 
 await conn.close();
 ```
@@ -344,7 +386,7 @@ final client = Restio(
   dns: dns,
 );
 
-final request = Request.get('https://postman-echo.com/get');
+final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();
 
@@ -360,7 +402,7 @@ final store = await LruCacheStore.local('./cache');
 final cache = Cache(store: store);
 final client = Restio(cache: cache);
 
-final request = Request.get('https://postman-echo.com/get');
+final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();
 

@@ -56,3 +56,4 @@ export 'package:restio/src/core/request/request_body.dart';
 export 'package:restio/src/core/request/request_uri.dart';
 export 'package:restio/src/core/response/challenge.dart';
 export 'package:restio/src/core/response/response.dart';
+export 'package:restio/src/extensions.dart';
