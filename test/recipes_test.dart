@@ -148,24 +148,42 @@ void main() {
 
     final request = Request.post(
       'https://postman-echo.com/post',
-      body: MultipartBody(
-        parts: [
-          Part.file(
-            'binary',
-            'binary.dat',
-            RequestBody.file(
-              File('./test/assets/binary.dat'),
-            ),
-          ),
-        ],
-      ),
+      body: RequestBody.file(File('./test/assets/binary.dat')),
     );
 
     final data = await requestJson(progressClient, request);
 
     expect(isDone, true);
-    expect(data['files']['binary.dat'],
-        'data:application/octet-stream;base64,OY40KEa5vitQmQ==');
+    expect(data['data']['type'], 'Buffer');
+    expect(data['data']['data'], const [
+      57, 142, 52, 40, 70, //
+      185, 190, 43, 80, 153, //
+    ]);
+  });
+
+  test('Posting Binary File By HTTP2', () async {
+    var isDone = false;
+
+    void onProgress(Request entity, int sent, int total, bool done) {
+      print('sent: $sent, total: $total, done: $done');
+      isDone = done;
+    }
+
+    final progressClient = client.copyWith(
+      onUploadProgress: onProgress,
+      http2: true,
+    );
+
+    final request = Request.post(
+      'https://httpbin.org/post',
+      body: RequestBody.file(File('./test/assets/binary.dat')),
+    );
+
+    final data = await requestJson(progressClient, request);
+
+    expect(isDone, true);
+    expect(
+        data['data'], 'data:application/octet-stream;base64,OY40KEa5vitQmQ==');
   });
 
   test('User-Agent', () async {

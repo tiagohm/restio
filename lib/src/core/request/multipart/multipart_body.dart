@@ -7,6 +7,8 @@ import 'package:restio/src/core/request/request_body.dart';
 final _random = Random();
 
 class MultipartBody implements RequestBody {
+  @override
+  final int contentLength;
   final List<Part> parts;
   MediaType _contentType;
   String _boundary;
@@ -17,7 +19,8 @@ class MultipartBody implements RequestBody {
     String boundary,
   })  : assert(boundary == null || boundary.isNotEmpty),
         assert(type != null && type.type == 'multipart'),
-        assert(parts != null) {
+        assert(parts != null),
+        contentLength = null {
     _boundary = boundary ?? _generateBoundary();
     _contentType = type.copyWith(boundary: _boundary);
   }

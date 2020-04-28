@@ -1,44 +1,62 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 
 abstract class RequestBody {
   MediaType get contentType;
+  int get contentLength;
 
   Stream<List<int>> write();
 
   factory RequestBody.empty() => RequestBody.bytes(const []);
 
+  factory RequestBody.stream(
+    Stream<List<int>> data, {
+    MediaType contentType,
+    int contentLength,
+  }) {
+    return _StreamRequestBody(
+      data: data,
+      contentType: contentType ?? MediaType.octetStream,
+      contentLength: contentLength,
+    );
+  }
+
   factory RequestBody.bytes(
     List<int> data, {
     MediaType contentType,
+    int contentLength,
   }) {
     return _BytesRequestBody(
-      contentType: contentType ?? MediaType.octetStream,
       data: data,
+      contentType: contentType ?? MediaType.octetStream,
+      contentLength: contentLength,
     );
   }
 
   factory RequestBody.string(
     String text, {
     MediaType contentType,
+    int contentLength,
   }) {
     return _StringRequestBody(
-      contentType: contentType ?? MediaType.text,
       text: text,
+      contentType: contentType ?? MediaType.text,
+      contentLength: contentLength,
     );
   }
 
   factory RequestBody.file(
     File file, {
     MediaType contentType,
+    int contentLength,
   }) {
-    assert(file != null);
-
     return _FileRequestBody(
-      contentType: contentType ?? MediaType.fromFile(file.path),
       file: file,
+      contentType: contentType ?? MediaType.fromFile(file.path),
+      contentLength: contentLength,
     );
   }
 
@@ -55,15 +73,44 @@ abstract class RequestBody {
   }
 }
 
+class _StreamRequestBody implements RequestBody {
+  @override
+  final MediaType contentType;
+  @override
+  final int contentLength;
+  final Stream<List<int>> data;
+
+  _StreamRequestBody({
+    @required this.data,
+    this.contentType,
+    this.contentLength,
+  })  : assert(data != null),
+        assert(contentLength == null || contentLength > 0);
+
+  @override
+  Stream<List<int>> write() async* {
+    yield* data;
+  }
+
+  @override
+  String toString() {
+    return 'StreamRequestBody { contentType: $contentType, contentLength: $contentLength }';
+  }
+}
+
 class _StringRequestBody implements RequestBody {
   @override
   final MediaType contentType;
+  @override
+  final int contentLength;
   final String text;
 
-  const _StringRequestBody({
+  _StringRequestBody({
+    @required this.text,
     this.contentType,
-    this.text,
-  });
+    this.contentLength,
+  })  : assert(text != null),
+        assert(contentLength == null || contentLength > 0);
 
   @override
   Stream<List<int>> write() async* {
@@ -78,19 +125,24 @@ class _StringRequestBody implements RequestBody {
 
   @override
   String toString() {
-    return 'StringRequestBody { text: $text, contentType: $contentType }';
+    return 'StringRequestBody { text: $text, contentType: $contentType, contentLength: $contentLength }';
   }
 }
 
 class _BytesRequestBody implements RequestBody {
   @override
   final MediaType contentType;
+  @override
+  final int contentLength;
   final List<int> data;
 
-  const _BytesRequestBody({
+  _BytesRequestBody({
+    @required this.data,
     this.contentType,
-    this.data,
-  });
+    int contentLength,
+  })  : assert(data != null),
+        assert(contentLength == null || contentLength > 0),
+        contentLength = contentLength ?? data?.length ?? 0;
 
   @override
   Stream<List<int>> write() async* {
@@ -99,19 +151,24 @@ class _BytesRequestBody implements RequestBody {
 
   @override
   String toString() {
-    return 'BytesRequestBody { data: $data, contentType: $contentType }';
+    return 'BytesRequestBody { data: $data, contentType: $contentType, contentLength: $contentLength }';
   }
 }
 
 class _FileRequestBody implements RequestBody {
   @override
   final MediaType contentType;
+  @override
+  final int contentLength;
   final File file;
 
-  const _FileRequestBody({
+  _FileRequestBody({
+    @required this.file,
     this.contentType,
-    this.file,
-  });
+    int contentLength,
+  })  : assert(file != null),
+        assert(contentLength == null || contentLength > 0),
+        contentLength = contentLength ?? file?.lengthSync() ?? 0;
 
   @override
   Stream<List<int>> write() async* {
@@ -120,6 +177,6 @@ class _FileRequestBody implements RequestBody {
 
   @override
   String toString() {
-    return 'FileRequestBody { file: $file, contentType: $contentType }';
+    return 'FileRequestBody { file: $file, contentType: $contentType, contentLength: $contentLength }';
   }
 }

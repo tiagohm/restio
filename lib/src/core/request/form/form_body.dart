@@ -10,11 +10,14 @@ import 'package:restio/src/core/request/request_body.dart';
 class FormBody extends ItemList<FormItem> implements RequestBody {
   @override
   final MediaType contentType;
+  @override
+  final int contentLength;
 
   FormBody({
     List<FormItem> items,
     String charset,
   })  : contentType = MediaType.formUrlEncoded.copyWith(charset: charset),
+        contentLength = null,
         super(items ?? const []);
 
   factory FormBody.fromMap(

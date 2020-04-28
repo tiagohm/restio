@@ -3,7 +3,6 @@ import 'dart:io';
 
 import 'package:ip/ip.dart';
 import 'package:restio/src/common/helpers.dart';
-import 'package:restio/src/common/output_buffer.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/http/transport.dart';
@@ -189,7 +188,7 @@ class HttpTransport implements Transport {
 
       // Body.
       if (connectRequest.body != null) {
-        final future = _send(clientRequest, connectRequest, client);
+        final future = _writeBody(clientRequest, connectRequest, client);
         // Escreve os dados.
         if (client.writeTimeout != null && !client.writeTimeout.isNegative) {
           await future.timeout(client.writeTimeout);
@@ -238,38 +237,34 @@ class HttpTransport implements Transport {
     return headers.build();
   }
 
-  static Future<int> _send(
+  static Future<void> _writeBody(
     HttpClientRequest clientRequest,
     Request request,
     Restio client,
   ) async {
-    final sink = OutputBuffer();
-    final completer = Completer<int>();
-    var progressBytes = 0;
+    var total = 0;
 
-    request.body.write().listen(
-      (chunk) {
+    final listener = StreamTransformer<List<int>, List<int>>.fromHandlers(
+      handleData: (chunk, sink) {
         sink.add(chunk);
-
-        progressBytes += chunk.length;
-
-        client.onUploadProgress?.call(request, progressBytes, -1, false);
+        total += chunk.length;
+        client.onUploadProgress?.call(request, chunk.length, total, false);
       },
-      onDone: () {
+      handleDone: (sink) {
+        client.onUploadProgress?.call(request, 0, total, true);
         sink.close();
-
-        client.onUploadProgress
-            ?.call(request, progressBytes, sink.length, true);
-
-        clientRequest.contentLength = sink.length;
-        clientRequest.add(sink.bytes);
-
-        completer.complete(sink.length);
       },
-      onError: completer.completeError,
-      cancelOnError: true,
     );
 
-    return completer.future;
+    final stream = request.body.write().transform(listener);
+
+    if (request.body.contentLength == null || request.body.contentLength <= 0) {
+      final data = await readStream(stream);
+      clientRequest.contentLength = data.length;
+      clientRequest.add(data);
+    } else {
+      clientRequest.contentLength = request.body.contentLength;
+      await clientRequest.addStream(stream);
+    }
   }
 }

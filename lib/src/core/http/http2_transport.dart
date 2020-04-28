@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http2/http2.dart';
-import 'package:restio/src/common/output_buffer.dart';
+import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/http/transport.dart';
@@ -139,53 +139,38 @@ class Http2Transport implements Transport {
     ClientTransportConnection transport,
     List<Header> headers,
   ) async {
-    final sink = OutputBuffer();
-    final completer = Completer<ClientTransportStream>();
-    var progressBytes = 0;
+    var total = 0;
+
+    final listener = StreamTransformer<List<int>, List<int>>.fromHandlers(
+      handleData: (chunk, sink) {
+        sink.add(chunk);
+        total += chunk.length;
+        client.onUploadProgress?.call(request, chunk.length, total, false);
+      },
+      handleDone: (sink) {
+        client.onUploadProgress?.call(request, 0, total, true);
+        sink.close();
+      },
+    );
+
+    final transportStream = transport.makeRequest(
+      headers,
+      endStream: request.body == null,
+    );
 
     if (request.body != null) {
-      request.body.write().listen(
-        (chunk) {
-          sink.add(chunk);
+      final stream = request.body.write().transform(listener);
+      final data = await readStream(stream);
+      headers
+          .add(Header.ascii(HttpHeaders.contentLengthHeader, '${data.length}'));
 
-          progressBytes += chunk.length;
-
-          client.onUploadProgress?.call(request, progressBytes, -1, false);
-        },
-        onDone: () {
-          sink.close();
-
-          client.onUploadProgress
-              ?.call(request, progressBytes, sink.length, true);
-
-          headers.add(
-            Header.ascii(HttpHeaders.contentLengthHeader, '${sink.length}'),
-          );
-
-          final stream = transport.makeRequest(
-            headers,
-            endStream: false,
-          );
-
-          stream.outgoingMessages.add(DataStreamMessage(
-            sink.bytes,
-            endStream: true,
-          ));
-
-          completer.complete(stream);
-        },
-        onError: completer.completeError,
-        cancelOnError: true,
-      );
-    } else {
-      final stream = transport.makeRequest(
-        headers,
+      transportStream.outgoingMessages.add(DataStreamMessage(
+        data,
         endStream: true,
-      );
-      completer.complete(stream);
+      ));
     }
 
-    return completer.future;
+    return transportStream;
   }
 
   static Future<Response> _makeResponse(
