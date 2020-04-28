@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
 
-class Event extends Equatable implements Comparable<Event> {
+class SseEvent extends Equatable implements Comparable<SseEvent> {
   /// An identifier that can be used to allow a client to replay
   /// missed Events by returning the Last-Event-Id header.
   /// Returns empty string if not required.
@@ -12,19 +12,19 @@ class Event extends Equatable implements Comparable<Event> {
   /// The payload of the event.
   final String data;
 
-  const Event({
+  const SseEvent({
     this.id,
     this.event,
     this.data,
   });
 
-  const Event.message({
+  const SseEvent.message({
     this.id,
     this.data,
   }) : event = 'message';
 
   @override
-  int compareTo(Event other) => id.compareTo(other.id);
+  int compareTo(SseEvent other) => id.compareTo(other.id);
 
   @override
   List<Object> get props => [id, event, data];

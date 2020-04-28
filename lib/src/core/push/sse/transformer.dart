@@ -2,12 +2,11 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:restio/src/core/push/sse/event.dart';
-
-typedef Retry = void Function(Duration retry);
+import 'package:restio/src/core/push/sse/retry.dart';
 
 final _lineRegex = RegExp(r'^([^:]*)(?::)?(?: )?(.*)?$');
 
-class SseTransformer implements StreamTransformer<List<int>, Event> {
+class SseTransformer implements StreamTransformer<List<int>, SseEvent> {
   final Retry retry;
 
   const SseTransformer({
@@ -15,8 +14,8 @@ class SseTransformer implements StreamTransformer<List<int>, Event> {
   });
 
   @override
-  Stream<Event> bind(Stream<List<int>> stream) {
-    StreamController<Event> controller;
+  Stream<SseEvent> bind(Stream<List<int>> stream) {
+    StreamController<SseEvent> controller;
 
     controller = StreamController(
       onListen: () {
@@ -39,7 +38,7 @@ class SseTransformer implements StreamTransformer<List<int>, Event> {
               data = dataBuffer.join('\n');
             }
 
-            controller.add(Event(id: id, data: data, event: event));
+            controller.add(SseEvent(id: id, data: data, event: event));
 
             dataBuffer.clear();
             id = null;
@@ -90,6 +89,6 @@ class SseTransformer implements StreamTransformer<List<int>, Event> {
 
   @override
   StreamTransformer<RS, RT> cast<RS, RT>() {
-    return StreamTransformer.castFrom<List<int>, Event, RS, RT>(this);
+    return StreamTransformer.castFrom<List<int>, SseEvent, RS, RT>(this);
   }
 }
