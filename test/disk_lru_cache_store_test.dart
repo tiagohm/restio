@@ -388,7 +388,7 @@ void main() {
     await set(editor, 1, 'bbbb'.codeUnits); // 4
     await editor.commit();
 
-    await (cache as LruCacheStore).increaseMaxSize(12);
+    await cache.increaseMaxSize(12);
 
     editor = await cache.edit('c');
     await set(editor, 0, 'c'.codeUnits); // 1
@@ -420,7 +420,7 @@ void main() {
 
     expect(await cache.size(), 12);
 
-    await (cache as LruCacheStore).increaseMaxSize(10);
+    await cache.increaseMaxSize(10);
 
     expect(await cache.size(), lessThanOrEqualTo(10));
   });

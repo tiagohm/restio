@@ -103,6 +103,7 @@ class LruCacheStore implements CacheStore {
 
   int get maxSize => _maxSize;
 
+  @override
   Future<void> increaseMaxSize(int value) async {
     _maxSize = value;
     await cleanup();
