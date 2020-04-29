@@ -202,6 +202,16 @@ void main() {
         '<h1>\n<a id="user-content-restio" class="anchor" href="#restio" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Restio</h1>\n');
   });
 
+  test('Content-Type Auto Detect', () async {
+    final request = post(
+      'https://httpbin.org/post',
+      body: File('./test/assets/css.css').asBody(),
+    );
+
+    final data = await requestJson(client, request);
+    expect(data['headers']['Content-Type'], 'text/css');
+  });
+
   test('Basic Auth', () async {
     final authClient = client.copyWith(
       auth: const BasicAuthenticator(

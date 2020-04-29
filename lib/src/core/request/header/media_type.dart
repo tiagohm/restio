@@ -1,7 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:mime/mime.dart';
+import 'package:mime_type/mime_type.dart';
+import 'package:path/path.dart';
 import 'package:restio/src/common/encoding.dart';
 import 'package:restio/src/common/item.dart';
 
@@ -102,7 +103,8 @@ class MediaType extends Item {
     String path, [
     String charset,
   ]) {
-    final mimeType = lookupMimeType(path);
+    final ext = extension(path)?.replaceAll('.', '');
+    final mimeType = mimeFromExtension(ext);
     return mimeType != null
         ? MediaType.parse(mimeType).copyWith(charset: charset)
         : MediaType.octetStream;
