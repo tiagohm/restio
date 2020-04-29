@@ -6,6 +6,7 @@ import 'package:restio/src/common/pausable.dart';
 class ResponseStream extends Stream<List<int>> implements Closeable, Pauseable {
   StreamSubscription<List<int>> _subscription;
   var _isPaused = false;
+  var _isClosed = false;
 
   final Stream<List<int>> stream;
   final void Function(List<int> event) onData;
@@ -101,6 +102,12 @@ class ResponseStream extends Stream<List<int>> implements Closeable, Pauseable {
 
   @override
   Future<void> close() async {
+    if (isClosed) {
+      return;
+    }
+
+    _isClosed = true;
+
     if (_subscription != null) {
       await _subscription.cancel();
       _subscription = null;
@@ -112,4 +119,7 @@ class ResponseStream extends Stream<List<int>> implements Closeable, Pauseable {
 
     await onClose?.call();
   }
+
+  @override
+  bool get isClosed => _isClosed;
 }

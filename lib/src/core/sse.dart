@@ -167,6 +167,10 @@ class _SseConnection implements SseConnection {
 
   @override
   Future<void> close() async {
+    if (isClosed) {
+      return;
+    }
+
     await onClose?.call();
     await controller.close();
   }

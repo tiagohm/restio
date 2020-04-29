@@ -6,6 +6,7 @@ abstract class Snapshot implements Closeable {
   final int sequenceNumber;
   final List<Stream<List<int>>> _sources;
   final List<int> _lengths;
+  var _isClosed = false;
 
   Snapshot(
     this.key,
@@ -30,10 +31,19 @@ abstract class Snapshot implements Closeable {
 
   @override
   Future<void> close() async {
+    if (isClosed) {
+      return;
+    }
+
+    _isClosed = true;
+
     for (final stream in _sources) {
       if (stream is Closeable) {
         await (stream as Closeable).close();
       }
     }
   }
+
+  @override
+  bool get isClosed => _isClosed;
 }

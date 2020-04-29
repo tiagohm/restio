@@ -16,6 +16,7 @@ class HttpTransport implements Transport {
   @override
   final Restio client;
   HttpClient _httpClient;
+  var _isClosed = false;
 
   HttpTransport(this.client) : assert(client != null);
 
@@ -73,13 +74,28 @@ class HttpTransport implements Transport {
 
   @override
   Future<void> cancel() async {
+    if (isClosed) {
+      return;
+    }
+
+    _isClosed = true;
+
     _httpClient?.close(force: true);
   }
 
   @override
   Future<void> close() async {
+    if (isClosed) {
+      return;
+    }
+
+    _isClosed = true;
+
     _httpClient?.close();
   }
+
+  @override
+  bool get isClosed => _isClosed;
 
   @override
   Future<Response> send(final Request request) async {

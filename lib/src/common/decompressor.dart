@@ -44,6 +44,10 @@ class _ChunkReceivedSink extends ByteConversionSinkBase {
 
   @override
   void close() {
+    if (_isClosed) {
+      return;
+    }
+
     if (!_isClosed) {
       _isClosed = true;
       onChunkReceived?.call(null);

@@ -5,16 +5,12 @@ import 'package:restio/src/common/closeable.dart';
 class SourceSink extends StreamSink<List<int>> implements Closeable {
   final List<int> data;
   final _completer = Completer<List<int>>();
-  var _closed = false;
+  var _isClosed = false;
 
   SourceSink(this.data);
 
   @override
   void add(List<int> event) {
-    if (_closed) {
-      throw StateError('Sink is closed');
-    }
-
     data.addAll(event);
   }
 
@@ -23,33 +19,27 @@ class SourceSink extends StreamSink<List<int>> implements Closeable {
     Object error, [
     StackTrace stackTrace,
   ]) {
-    if (_closed) {
-      throw StateError('Sink is closed');
-    }
-
-    _closed = true;
+    _isClosed = true;
     _completer.completeError(error, stackTrace);
   }
 
   @override
   Future addStream(Stream<List<int>> stream) {
-    if (_closed) {
-      throw StateError('Sink is closed');
-    }
-
     return stream.listen(data.addAll).asFuture();
   }
 
   @override
   Future close() async {
-    if (_closed) {
-      throw StateError('Sink is closed');
+    if (isClosed) {
+      return;
     }
 
-    _closed = true;
-
+    _isClosed = true;
     _completer.complete(data);
   }
+
+  @override
+  bool get isClosed => _isClosed;
 
   @override
   Future get done => _completer.future;

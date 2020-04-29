@@ -114,6 +114,7 @@ class LruCacheStore implements CacheStore {
 
     final lines = await _journalFile
         .openRead()
+        .cast<List<int>>()
         .transform(utf8.decoder)
         .transform(splitter)
         .toList();
@@ -553,9 +554,9 @@ class _Entry {
   final List<File> _cleanFiles;
   final List<File> _dirtyFiles;
 
-  var readable = false;
+  bool readable = false;
   _Editor editor;
-  var sequenceNumber = 0;
+  int sequenceNumber = 0;
 
   _Entry(FileSystem fileSystem, String directory, this.key, this.valueCount)
       : lengths = List.filled(valueCount, 0),

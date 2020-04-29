@@ -49,6 +49,8 @@ class Response implements Closeable {
   final Response networkResponse;
   final Response cacheResponse;
 
+  var _isClosed = false;
+
   Response({
     this.request,
     this.message = '',
@@ -127,7 +129,8 @@ class Response implements Closeable {
         break;
       // These codes can only be cached with the right response headers.
       // http://tools.ietf.org/html/rfc7234#section-3
-      // s-maxage is not checked because OkHttp is a private cache that should ignore s-maxage.
+      // s-maxage is not checked because OkHttp is a private cache
+      // that should ignore s-maxage.
       case HttpStatus.movedTemporarily:
       case HttpStatus.temporaryRedirect:
         if (headers.has(HttpHeaders.expiresHeader) ||
@@ -250,6 +253,12 @@ class Response implements Closeable {
 
   @override
   Future<void> close() async {
+    if (isClosed) {
+      return;
+    }
+
+    _isClosed = true;
+
     for (final redirect in redirects) {
       await redirect.response?.close();
     }
@@ -258,6 +267,9 @@ class Response implements Closeable {
       await (body.data as Closeable).close();
     }
   }
+
+  @override
+  bool get isClosed => _isClosed;
 
   @override
   String toString() {

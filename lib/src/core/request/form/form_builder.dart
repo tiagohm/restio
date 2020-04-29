@@ -3,7 +3,7 @@ import 'package:restio/src/core/request/form/form_body.dart';
 import 'package:restio/src/core/request/form/form_item.dart';
 
 class FormBuilder extends ItemListBuilder<FormItem> {
-  var charset = 'utf-8';
+  String charset = 'utf-8';
 
   FormBuilder([List<FormItem> items]) : super(items);
 

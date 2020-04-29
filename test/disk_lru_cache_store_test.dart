@@ -880,6 +880,7 @@ Future<void> expectJournalEquals(List<String> lines) async {
 
   final lines = await journalFile
       .openRead()
+      .cast<List<int>>()
       .transform(utf8.decoder)
       .transform(const LineSplitter())
       .toList();

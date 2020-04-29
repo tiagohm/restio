@@ -93,7 +93,7 @@ class RequestUri extends Equatable {
     String fragment,
     String host,
     List<String> paths,
-    port,
+    dynamic port,
     Queries queries,
     String scheme,
     String username,

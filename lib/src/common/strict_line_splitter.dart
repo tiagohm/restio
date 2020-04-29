@@ -1,8 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:charcode/ascii.dart';
-
 class StrictLineSplitter extends StreamTransformerBase<String, String> {
   final bool includeUnterminatedLine;
 
@@ -63,8 +61,9 @@ class _StrictLineSplitterSink extends StringConversionSinkBase {
     for (var i = start; i < end; i++) {
       final c = str.codeUnitAt(i);
 
-      if (c == $lf) {
-        final lineEnd = (i > start && str.codeUnitAt(i - 1) == $cr) ? i - 1 : i;
+      if (c == 0x0A) {
+        final lineEnd =
+            (i > start && str.codeUnitAt(i - 1) == 0x0D) ? i - 1 : i;
         _sink.add(str.substring(pos, lineEnd));
         pos = i + 1;
       }
@@ -72,7 +71,7 @@ class _StrictLineSplitterSink extends StringConversionSinkBase {
 
     if (pos != end) {
       if (includeUnterminatedLine) {
-        final lineEnd = (str.codeUnitAt(end - 1) == $cr) ? end - 1 : end;
+        final lineEnd = (str.codeUnitAt(end - 1) == 0x0D) ? end - 1 : end;
         _sink.add(str.substring(pos, lineEnd));
       }
 

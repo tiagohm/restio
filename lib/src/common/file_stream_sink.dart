@@ -7,6 +7,7 @@ import 'package:restio/src/common/closeable.dart';
 class FileStreamSink implements StreamSink<List<int>>, Closeable {
   final IOSink _sink;
   final void Function() onError;
+  var _isClosed = false;
 
   FileStreamSink(
     File file, {
@@ -36,6 +37,12 @@ class FileStreamSink implements StreamSink<List<int>>, Closeable {
 
   @override
   Future<void> close() async {
+    if (isClosed) {
+      return;
+    }
+
+    _isClosed = true;
+
     try {
       await _sink.flush();
     } catch (e) {
@@ -44,6 +51,9 @@ class FileStreamSink implements StreamSink<List<int>>, Closeable {
       await _sink.close();
     }
   }
+
+  @override
+  bool get isClosed => _isClosed;
 
   @override
   Future get done => _sink.done;
