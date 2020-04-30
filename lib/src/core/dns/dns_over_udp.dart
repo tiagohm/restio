@@ -14,7 +14,6 @@
 // limitations under the License.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
 
@@ -33,7 +32,7 @@ class DnsOverUdp extends PacketBasedDns {
   final Duration timeout;
   Future<RawDatagramSocket> _socket;
 
-  final _responseWaiters = LinkedList<_DnsResponseWaiter>();
+  final _responseWaiters = <String, _DnsResponseWaiter>{};
 
   DnsOverUdp({
     @required this.remoteAddress,
@@ -83,9 +82,12 @@ class DnsOverUdp extends PacketBasedDns {
     final dnsPacket = DnsPacket();
     dnsPacket.questions = [DnsQuestion(host: name)];
 
-    // Add query to list of unfinished queries.
-    final responseWaiter = _DnsResponseWaiter(name);
-    _responseWaiters.add(responseWaiter);
+    if (_responseWaiters.containsKey(name)) {
+      return _responseWaiters[name].completer.future;
+    }
+
+    _responseWaiters[name] = _DnsResponseWaiter(name);
+    final responseWaiter = _responseWaiters[name];
 
     // Send query.
     socket.send(
@@ -105,7 +107,7 @@ class DnsOverUdp extends PacketBasedDns {
       }
 
       // Remove from the list of response waiters.
-      responseWaiter.unlink();
+      _responseWaiters.remove(name);
 
       // Complete the future.
       responseWaiter.completer.completeError(
@@ -148,19 +150,18 @@ class DnsOverUdp extends PacketBasedDns {
     // Read answers.
     for (final answer in dnsPacket.answers) {
       final host = answer.name;
-      final removedResponseWaiters = <_DnsResponseWaiter>[];
 
-      for (final query in _responseWaiters) {
+      final names = _responseWaiters.keys;
+
+      for (final name in names) {
+        final query = _responseWaiters[name];
+
         if (query.completer.isCompleted == false && query.host == host) {
-          removedResponseWaiters.add(query);
           query.timer.cancel();
           query.completer.complete(dnsPacket);
+          _responseWaiters.remove(name);
           break;
         }
-      }
-
-      for (final removed in removedResponseWaiters) {
-        removed.unlink();
       }
     }
   }
@@ -191,7 +192,7 @@ class DnsOverUdp extends PacketBasedDns {
   }
 }
 
-class _DnsResponseWaiter extends LinkedListEntry<_DnsResponseWaiter> {
+class _DnsResponseWaiter {
   final String host;
   final Completer<DnsPacket> completer = Completer<DnsPacket>();
   Timer timer;

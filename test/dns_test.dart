@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 void main() {
   group('System Dns', () {
     test('Lookup packet', () async {
-      final dns = Dns.system;
+      const dns = Dns.system;
       final packet = await dns.lookupPacket('google.com');
       expect(packet, isNotNull);
       expect(packet.isResponse, isTrue);
@@ -16,7 +16,7 @@ void main() {
     });
 
     test('Lookup', () async {
-      final dns = Dns.system;
+      const dns = Dns.system;
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
