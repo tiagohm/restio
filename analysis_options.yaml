@@ -12,3 +12,8 @@ linter:
     unnecessary_overrides: true
     annotate_overrides: true
     type_annotate_public_apis: false
+    prefer_const_constructors: true
+    prefer_const_constructors_in_immutables: true
+    prefer_const_declarations: true
+    prefer_const_literals_to_create_immutables: false
+    prefer_constructors_over_static_methods: true

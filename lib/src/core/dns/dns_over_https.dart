@@ -41,7 +41,8 @@ class DnsOverHttps extends PacketBasedDns {
     this.maximalPrivacy = false,
     this.dns,
     this.queries,
-  }) : _client = client ?? Restio(connectTimeout: timeout);
+  }) : _client = client?.copyWith(connectTimeout: timeout) ??
+            Restio(connectTimeout: timeout);
 
   DnsOverHttps.google({
     Restio client,

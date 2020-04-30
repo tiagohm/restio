@@ -3,6 +3,8 @@ import 'package:restio/src/core/interceptors/interceptor.dart';
 import 'package:restio/src/core/response/response.dart';
 
 class LogInterceptor implements Interceptor {
+  const LogInterceptor();
+
   @override
   Future<Response> intercept(Chain chain) async {
     final request = chain.request;

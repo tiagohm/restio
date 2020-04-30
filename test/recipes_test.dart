@@ -8,7 +8,7 @@ import 'package:test/test.dart';
 import 'utils.dart';
 
 void main() {
-  final client = Restio(
+  const client = Restio(
     interceptors: [
       LogInterceptor(),
     ],

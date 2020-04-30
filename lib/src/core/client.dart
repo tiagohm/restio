@@ -42,7 +42,7 @@ class Restio {
   final Dns dns;
   final Cache cache;
 
-  Restio({
+  const Restio({
     this.connectTimeout,
     this.writeTimeout,
     this.receiveTimeout,
