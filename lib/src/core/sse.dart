@@ -1,6 +1,6 @@
 part of 'client.dart';
 
-class RealSse implements Sse {
+class _Sse implements Sse {
   final Restio _client;
   @override
   final Request request;
@@ -10,7 +10,7 @@ class RealSse implements Sse {
   final int maxRetries;
   var _retries = 0;
 
-  RealSse(
+  _Sse(
     this._client,
     this.request, {
     Duration retryInterval,

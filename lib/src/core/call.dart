@@ -1,14 +1,69 @@
-import 'package:restio/src/core/request/request.dart';
-import 'package:restio/src/core/response/response.dart';
+part of 'client.dart';
 
-abstract class Call {
-  Request get request;
+class _Call implements Call {
+  final Restio client;
+  @override
+  final Request request;
+  final _cancellable = Cancellable();
+  var _executed = false;
+  var _executing = false;
 
-  Future<Response> execute();
+  _Call({
+    this.client,
+    this.request,
+  });
 
-  void cancel(String message);
+  @override
+  void cancel(String message) {
+    _cancellable.cancel(message);
+  }
 
-  bool get isExecuted;
+  @override
+  Future<Response> execute() async {
+    if (!_executing && !isCancelled) {
+      _executing = true;
 
-  bool get isCancelled;
+      try {
+        final interceptors = [
+          // Interceptors.
+          if (client.interceptors != null)
+            ...client.interceptors,
+          // Redirects.
+          FollowUpInterceptor(client),
+          // Cookies.
+          CookieInterceptor(client.cookieJar),
+          BridgeInterceptor(client),
+          // Cache.
+          CacheInterceptor(client),
+          // Network Interceptors.
+          if (client.networkInterceptors != null)
+            ...client.networkInterceptors,
+          // Connection.
+          ConnectInterceptor(
+            client: client,
+            cancellable: _cancellable,
+          ),
+        ];
+
+        final chain = InterceptorChain(
+          call: this,
+          request: request,
+          interceptors: interceptors,
+          index: 0,
+        );
+
+        return chain.proceed(request);
+      } finally {
+        _executed = true;
+      }
+    } else {
+      throw const RestioException('Call has already been executed');
+    }
+  }
+
+  @override
+  bool get isExecuted => _executed;
+
+  @override
+  bool get isCancelled => _cancellable.isCancelled;
 }

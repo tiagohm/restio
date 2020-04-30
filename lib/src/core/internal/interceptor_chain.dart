@@ -1,4 +1,4 @@
-import 'package:restio/src/core/call.dart';
+import 'package:restio/src/core/call/call.dart';
 import 'package:restio/src/core/chain.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
 import 'package:restio/src/core/request/request.dart';

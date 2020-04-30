@@ -3,22 +3,28 @@ import 'dart:io' as io;
 
 import 'package:restio/src/core/auth/authenticator.dart';
 import 'package:restio/src/core/cache/cache.dart';
-import 'package:restio/src/core/call.dart';
-import 'package:restio/src/core/client_certificate_jar.dart';
-import 'package:restio/src/core/cookie_jar.dart';
+import 'package:restio/src/core/call/call.dart';
+import 'package:restio/src/core/call/cancellable.dart';
+import 'package:restio/src/core/certificate/client_certificate_jar.dart';
+import 'package:restio/src/core/cookie/cookie_jar.dart';
 import 'package:restio/src/core/dns/dns.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
+import 'package:restio/src/core/internal/bridge_interceptor.dart';
+import 'package:restio/src/core/internal/connect_interceptor.dart';
+import 'package:restio/src/core/internal/cookie_interceptor.dart';
+import 'package:restio/src/core/internal/follow_up_interceptor.dart';
+import 'package:restio/src/core/internal/interceptor_chain.dart';
 import 'package:restio/src/core/listeners.dart';
-import 'package:restio/src/core/proxy.dart';
+import 'package:restio/src/core/proxy/proxy.dart';
 import 'package:restio/src/core/push/sse/sse.dart';
 import 'package:restio/src/core/push/ws/ws.dart';
-import 'package:restio/src/core/real_call.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
 
-part 'ws.dart';
+part 'call.dart';
 part 'sse.dart';
+part 'ws.dart';
 
 class Restio {
   final Duration connectTimeout;
@@ -70,7 +76,7 @@ class Restio {
   static const version = '0.6.0';
 
   Call newCall(Request request) {
-    return RealCall(client: this, request: request);
+    return _Call(client: this, request: request);
   }
 
   WebSocket newWebSocket(
@@ -78,7 +84,7 @@ class Restio {
     List<String> protocols,
     Duration pingInterval,
   }) {
-    return RealWebSocket(
+    return _WebSocket(
       request,
       protocols: protocols,
       pingInterval: pingInterval,
@@ -91,7 +97,7 @@ class Restio {
     Duration retryInterval,
     int maxRetries,
   }) {
-    return RealSse(
+    return _Sse(
       this,
       request,
       lastEventId: lastEventId,

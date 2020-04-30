@@ -1,11 +1,14 @@
-import 'package:restio/src/core/call/call.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
 
-abstract class Chain {
+abstract class Call {
   Request get request;
 
-  Call get call;
+  Future<Response> execute();
 
-  Future<Response> proceed(Request request);
+  void cancel(String message);
+
+  bool get isExecuted;
+
+  bool get isCancelled;
 }

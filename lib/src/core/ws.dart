@@ -1,12 +1,12 @@
 part of 'client.dart';
 
-class RealWebSocket implements WebSocket {
+class _WebSocket implements WebSocket {
   @override
   final Request request;
   final List<String> protocols;
   final Duration pingInterval;
 
-  RealWebSocket(
+  _WebSocket(
     this.request, {
     this.protocols,
     this.pingInterval,

@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:restio/src/core/cancellable.dart';
+import 'package:restio/src/core/call/cancellable.dart';
 import 'package:restio/src/core/chain.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';

@@ -5,7 +5,7 @@ import 'package:restio/src/core/chain.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
-import 'package:restio/src/core/redirect.dart';
+import 'package:restio/src/core/redirect/redirect.dart';
 import 'package:restio/src/core/request/query/queries.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_uri.dart';

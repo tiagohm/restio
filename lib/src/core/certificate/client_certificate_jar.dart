@@ -1,4 +1,4 @@
-import 'package:restio/src/core/client_certificate.dart';
+import 'package:restio/src/core/certificate/client_certificate.dart';
 
 abstract class ClientCertificateJar {
   Future<ClientCertificate> get(
