@@ -2,6 +2,7 @@
  - SSE Automatic Reconnect supported.
  - Add RedirectPolicy support.
  - Added some extension methods to help you.
+ - Minor bug fixes and performance improvements.
  - [Breaking]: Removed `MemoryCacheStore`, `DiskCacheStore` and `DiskLruCacheStore`. Use `LruCacheStore.memory()` or `LruCacheStore.local()`.
  - [Breaking]: Renamed `Event` to `SseEvent`.
  - [Breaking]: Removed `ClientAdapter` class.
