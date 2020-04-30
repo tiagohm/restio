@@ -879,6 +879,31 @@ void main() {
     expect(response.totalMilliseconds,
         greaterThanOrEqualTo(response.redirects.last.elapsedMilliseconds));
   });
+
+  test('Redirect Policy', () async {
+    var redirectPolicyClient = client.copyWith(
+      redirectPolicies: const [
+        DomainCheckRedirectPolicy(['goo.gle', 'www.blog.google']),
+      ],
+    );
+
+    final request = Request.get('https://t.co/fsjV0tgRSa');
+    var response = await requestResponse(redirectPolicyClient, request);
+
+    expect(response.code, 200);
+    expect(response.redirects.last.request.uri.host, 'www.blog.google');
+
+    redirectPolicyClient = client.copyWith(
+      redirectPolicies: const [
+        DomainCheckRedirectPolicy(['goo.gle']),
+      ],
+    );
+
+    response = await requestResponse(redirectPolicyClient, request);
+
+    expect(response.code, 301);
+    expect(response.redirects.last.request.uri.host, 'goo.gle');
+  });
 }
 
 class _RetryAfterInterceptor implements Interceptor {

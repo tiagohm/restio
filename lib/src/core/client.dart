@@ -19,6 +19,7 @@ import 'package:restio/src/core/listeners.dart';
 import 'package:restio/src/core/proxy/proxy.dart';
 import 'package:restio/src/core/push/sse/sse.dart';
 import 'package:restio/src/core/push/ws/ws.dart';
+import 'package:restio/src/core/redirect/redirect_policy.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
 
@@ -47,13 +48,14 @@ class Restio {
   final ClientCertificateJar clientCertificateJar;
   final Dns dns;
   final Cache cache;
+  final List<RedirectPolicy> redirectPolicies;
 
   const Restio({
     this.connectTimeout,
     this.writeTimeout,
     this.receiveTimeout,
-    this.interceptors = const [],
-    this.networkInterceptors = const [],
+    this.interceptors,
+    this.networkInterceptors,
     this.cookieJar,
     this.auth,
     this.followRedirects = true,
@@ -69,8 +71,8 @@ class Restio {
     this.clientCertificateJar,
     this.dns,
     this.cache,
-  })  : assert(interceptors != null),
-        assert(maxRedirects != null),
+    this.redirectPolicies,
+  })  : assert(maxRedirects != null),
         assert(followRedirects != null);
 
   static const version = '0.6.0';
@@ -128,6 +130,7 @@ class Restio {
     ClientCertificateJar clientCertificateJar,
     Dns dns,
     Cache cache,
+    List<RedirectPolicy> redirectPolicies,
   }) {
     return Restio(
       connectTimeout: connectTimeout ?? this.connectTimeout,
@@ -150,6 +153,7 @@ class Restio {
       clientCertificateJar: clientCertificateJar ?? this.clientCertificateJar,
       dns: dns ?? this.dns,
       cache: cache ?? this.cache,
+      redirectPolicies: redirectPolicies ?? this.redirectPolicies,
     );
   }
 }

@@ -100,6 +100,7 @@ class HttpTransport implements Transport {
   @override
   Future<Response> send(final Request request) async {
     HttpClientRequest clientRequest;
+    var uri = request.uri;
 
     _httpClient = await _buildHttpClient(client, request);
 
@@ -108,8 +109,8 @@ class HttpTransport implements Transport {
 
     // Proxy.
     if (proxy != null &&
-        (proxy.http && request.uri.scheme == 'http' ||
-            proxy.https && request.uri.scheme == 'https')) {
+        (proxy.http && uri.scheme == 'http' ||
+            proxy.https && uri.scheme == 'https')) {
       hasProxy = true;
       _httpClient.findProxy = (uri) {
         return 'PROXY ${proxy.host}:${proxy.port};';
@@ -118,31 +119,27 @@ class HttpTransport implements Transport {
 
     // Host.
     IpAddress dnsIp;
-    var connectRequest = request;
-
+    
     // Verificar se não é um IP.
     // Busca o real endereço (IP) do host através de um DNS.
-    if (client.dns != null && !isIp(request.uri.host)) {
-      final addresses = await client.dns.lookup(request.uri.host);
+    if (client.dns != null && !isIp(uri.host)) {
+      final addresses = await client.dns.lookup(uri.host);
 
       if (addresses != null && addresses.isNotEmpty) {
         dnsIp = addresses[0];
-
-        connectRequest = request.copyWith(
-          uri: request.uri.copyWith(host: dnsIp.toString()),
-        );
+        uri = uri.copyWith(host: dnsIp.toString());
       }
     }
 
     try {
       if (client.connectTimeout != null && !client.connectTimeout.isNegative) {
         clientRequest = await _httpClient
-            .openUrl(connectRequest.method, connectRequest.uri.toUri())
+            .openUrl(request.method, uri.toUri())
             .timeout(client.connectTimeout);
       } else {
         clientRequest = await _httpClient.openUrl(
-          connectRequest.method,
-          connectRequest.uri.toUri(),
+          request.method,
+          uri.toUri(),
         );
       }
 
@@ -157,7 +154,7 @@ class HttpTransport implements Transport {
       _httpClient.autoUncompress = false;
 
       // User-Agent.
-      if (!connectRequest.headers.has(HttpHeaders.userAgentHeader)) {
+      if (!request.headers.has(HttpHeaders.userAgentHeader)) {
         if (client.userAgent != null) {
           clientRequest.headers
               .set(HttpHeaders.userAgentHeader, client.userAgent);
@@ -168,25 +165,25 @@ class HttpTransport implements Transport {
       }
 
       // Content-Type.
-      if (!connectRequest.headers.has(HttpHeaders.contentTypeHeader) &&
-          connectRequest.body?.contentType != null) {
+      if (!request.headers.has(HttpHeaders.contentTypeHeader) &&
+          request.body?.contentType != null) {
         clientRequest.headers.contentType =
-            connectRequest.body.contentType.toContentType();
+            request.body.contentType.toContentType();
       }
 
       // Accept-Encoding.
-      if (!connectRequest.headers.has(HttpHeaders.acceptEncodingHeader)) {
+      if (!request.headers.has(HttpHeaders.acceptEncodingHeader)) {
         clientRequest.headers
             .set(HttpHeaders.acceptEncodingHeader, 'gzip, deflate, br');
       }
 
       // Connection.
-      if (!connectRequest.headers.has(HttpHeaders.connectionHeader)) {
+      if (!request.headers.has(HttpHeaders.connectionHeader)) {
         clientRequest.headers.set(HttpHeaders.connectionHeader, 'Keep-Alive');
       }
 
       // Headers.
-      connectRequest.headers?.forEach((item) {
+      request.headers?.forEach((item) {
         switch (item.name) {
           case HttpHeaders.userAgentHeader:
             clientRequest.headers.set(item.name, item.value);
@@ -197,14 +194,13 @@ class HttpTransport implements Transport {
       });
 
       // Host.
-      if (!connectRequest.headers.has(HttpHeaders.hostHeader) &&
-          dnsIp != null) {
-        clientRequest.headers.set('Host', request.uri.host);
+      if (!request.headers.has(HttpHeaders.hostHeader) && dnsIp != null) {
+        clientRequest.headers.set('Host', uri.host);
       }
 
       // Body.
-      if (connectRequest.body != null) {
-        final future = _writeBody(clientRequest, connectRequest, client);
+      if (request.body != null) {
+        final future = _writeBody(clientRequest, request, client);
         // Escreve os dados.
         if (client.writeTimeout != null && !client.writeTimeout.isNegative) {
           await future.timeout(client.writeTimeout);

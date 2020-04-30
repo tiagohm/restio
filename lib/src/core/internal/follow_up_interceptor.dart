@@ -31,7 +31,7 @@ class FollowUpInterceptor implements Interceptor {
       final elapsedMilliseconds = response.receivedAt.millisecondsSinceEpoch -
           startTime.millisecondsSinceEpoch;
 
-      final followUp = await _followUpRequest(response);
+      final followUp = await _followUpRequest(response, redirects);
 
       if (followUp == null) {
         final totalMilliseconds = max(
@@ -66,7 +66,10 @@ class FollowUpInterceptor implements Interceptor {
     }
   }
 
-  Future<Request> _followUpRequest(Response response) async {
+  Future<Request> _followUpRequest(
+    Response response,
+    List<Redirect> redirects,
+  ) async {
     final method = response.request.method;
 
     switch (response.code) {
@@ -78,24 +81,30 @@ class FollowUpInterceptor implements Interceptor {
       case HttpStatus.temporaryRedirect:
         return method != 'GET' && method != 'HEAD'
             ? null
-            : _buildRedirectRequest(response);
+            : _buildRedirectRequest(response, redirects);
       case HttpStatus.multipleChoices:
       case HttpStatus.movedPermanently:
       case HttpStatus.movedTemporarily:
       case HttpStatus.seeOther:
-        return _buildRedirectRequest(response);
+        return _buildRedirectRequest(response, redirects);
       default:
         return null;
     }
   }
 
-  Future<Request> _buildRedirectRequest(Response response) async {
+  Future<Request> _buildRedirectRequest(
+    Response response,
+    List<Redirect> redirects,
+  ) async {
     // Does the client allow redirects?
     if (!client.followRedirects) {
       return null;
     }
 
+    // Location.
     final location = response.headers.value(HttpHeaders.locationHeader);
+
+    Request request;
 
     if (location != null && location.isNotEmpty) {
       final uri = response.request.uri.toUri().resolve(location);
@@ -104,15 +113,25 @@ class FollowUpInterceptor implements Interceptor {
         return null;
       }
 
-      return _retryAfter(
+      // Retry-After Header.
+      request = await _retryAfter(
           response,
           response.request.copyWith(
             uri: RequestUri.fromUri(uri),
             queries: Queries.empty,
           ));
-    } else {
-      return null;
     }
+
+    // Redirect Policy.
+    if (request != null && client.redirectPolicies != null) {
+      for (final redirectPolicy in client.redirectPolicies) {
+        if (!redirectPolicy.apply(response, request, redirects)) {
+          return null;
+        }
+      }
+    }
+
+    return request;
   }
 
   Future<Request> _retryAfter(
