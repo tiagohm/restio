@@ -195,7 +195,7 @@ class HttpTransport implements Transport {
 
       // Host.
       if (!request.headers.has(HttpHeaders.hostHeader) && dnsIp != null) {
-        clientRequest.headers.set('Host', uri.host);
+        clientRequest.headers.set('Host', request.uri.host);
       }
 
       // Body.
