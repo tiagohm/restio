@@ -75,7 +75,7 @@ class Restio {
   })  : assert(maxRedirects != null),
         assert(followRedirects != null);
 
-  static const version = '0.7.0';
+  static const version = '0.7.1';
 
   Call newCall(Request request) {
     return _Call(client: this, request: request);
