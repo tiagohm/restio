@@ -7,6 +7,7 @@ Future<void> main() async {
   final call = client.newCall(request);
   final response = await call.execute();
   final data = await response.body.json();
+  await response.close();
 
   print(data['ip']);
 }

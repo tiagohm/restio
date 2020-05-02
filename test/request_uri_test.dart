@@ -163,4 +163,30 @@ void main() {
     uri = RequestUri.parse('https://example.com');
     expect(uri.path, '/');
   });
+
+  test('Empty', () {
+    final uri = RequestUri.parse('');
+    expect(uri.scheme, isNull);
+    expect(uri.username, isNull);
+    expect(uri.password, isNull);
+    expect(uri.host, isNull);
+    expect(uri.port, isNull);
+    expect(uri.path, isNull);
+    expect(uri.queries, isEmpty);
+    expect(uri.fragment, isNull);
+    expect(uri.toUriString(), isEmpty);
+  });
+
+  test('Null', () {
+    final uri = RequestUri.parse(null);
+    expect(uri.scheme, isNull);
+    expect(uri.username, isNull);
+    expect(uri.password, isNull);
+    expect(uri.host, isNull);
+    expect(uri.port, isNull);
+    expect(uri.path, isNull);
+    expect(uri.queries, isEmpty);
+    expect(uri.fragment, isNull);
+    expect(uri.toUriString(), isEmpty);
+  });
 }

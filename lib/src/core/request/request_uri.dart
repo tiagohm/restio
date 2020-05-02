@@ -41,7 +41,8 @@ class RequestUri extends Equatable {
   }
 
   factory RequestUri.parse(String uri) {
-    final p = parseUri(uri);
+    final p =
+        uri == null || uri.isEmpty ? const <String, dynamic>{} : parseUri(uri);
 
     return RequestUri(
       fragment: p['fragment'],
@@ -60,11 +61,13 @@ class RequestUri extends Equatable {
   ) {
     final builder = QueriesBuilder();
 
-    for (var i = 0; i < queries.length; i += 2) {
-      try {
-        builder.add(queries[i], queries[i + 1]);
-      } catch (e) {
-        // nada.
+    if (queries != null) {
+      for (var i = 0; i < queries.length; i += 2) {
+        try {
+          builder.add(queries[i], queries[i + 1]);
+        } catch (e) {
+          // nada.
+        }
       }
     }
 
@@ -114,8 +117,10 @@ class RequestUri extends Equatable {
   String toUriString() {
     final sb = StringBuffer();
 
-    sb.write(scheme);
-    sb.write(':');
+    if (scheme != null && scheme.isNotEmpty) {
+      sb.write(scheme);
+      sb.write(':');
+    }
 
     if (host != null) {
       if (scheme != null) {
@@ -220,7 +225,9 @@ class RequestUri extends Equatable {
   bool get hasQuery => queries != null && queries.isNotEmpty;
 
   String get path {
-    return paths.isNotEmpty ? '/${paths.join('/')}' : '/';
+    return (scheme == null || scheme.isEmpty) && paths.isEmpty
+        ? null
+        : paths.isNotEmpty ? '/${paths.join('/')}' : '/';
   }
 
   @override
