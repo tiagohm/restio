@@ -95,7 +95,8 @@ class _StreamRequestBody implements RequestBody {
 
   @override
   String toString() {
-    return 'StreamRequestBody { contentType: $contentType, contentLength: $contentLength }';
+    return 'StreamRequestBody { contentType: $contentType,'
+        ' contentLength: $contentLength }';
   }
 }
 
@@ -127,7 +128,8 @@ class _StringRequestBody implements RequestBody {
 
   @override
   String toString() {
-    return 'StringRequestBody { text: $text, contentType: $contentType, contentLength: $contentLength }';
+    return 'StringRequestBody { text: $text, contentType: $contentType,'
+        ' contentLength: $contentLength }';
   }
 }
 
@@ -153,7 +155,8 @@ class _BytesRequestBody implements RequestBody {
 
   @override
   String toString() {
-    return 'BytesRequestBody { data: $data, contentType: $contentType, contentLength: $contentLength }';
+    return 'BytesRequestBody { data: $data, contentType: $contentType,'
+        ' contentLength: $contentLength }';
   }
 }
 
@@ -179,6 +182,7 @@ class _FileRequestBody implements RequestBody {
 
   @override
   String toString() {
-    return 'FileRequestBody { file: $file, contentType: $contentType, contentLength: $contentLength }';
+    return 'FileRequestBody { file: $file, contentType: $contentType,'
+        ' contentLength: $contentLength }';
   }
 }

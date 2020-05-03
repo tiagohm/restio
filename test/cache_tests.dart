@@ -273,10 +273,6 @@ void testCache(
       ],
     );
 
-    // At least three request/response pairs are required because after the first request is cached
-    // a different execution path might be taken. Thus modifications to the cache applied during
-    // the second request might not be visible until another request is performed.
-
     final request = Request.get(url);
     var call = cacheClient.newCall(request);
     var response = await call.execute();
@@ -537,10 +533,10 @@ void testCache(
       networkInterceptors: [
         MockResponseInterceptor(
           [
-            //      last modified: 105 seconds ago
-            //             served:   5 seconds ago
-            //   default lifetime: (105 - 5) / 10 = 10 seconds
-            //            expires:  10 seconds from served date = 5 seconds from now
+            //  last modified: 105 seconds ago
+            //         served:   5 seconds ago
+            //default lifetime: (105 - 5) / 10 = 10 seconds
+            //        expires:  10 seconds from served date = 5 seconds from now
             MockResponse(
               body: 'A',
               headers: {
@@ -1042,8 +1038,8 @@ void testCache(
   });
 
   test(
-      'Previously Not Gzipped Content Is Not Modified And Specifies Gzip Encoding',
-      () async {
+      'Previously Not Gzipped Content Is Not Modified'
+      ' And Specifies Gzip Encoding', () async {
     final cache = Cache(store: await store());
     final cacheClient = client.copyWith(
       cache: cache,

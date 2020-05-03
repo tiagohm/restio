@@ -25,6 +25,7 @@ class Redirect implements RedirectInfo {
 
   @override
   String toString() {
-    return 'Redirect { request: $request, response: $response, elapsedMilliseconds: $elapsedMilliseconds }';
+    return 'Redirect { request: $request, response: $response,'
+        ' elapsedMilliseconds: $elapsedMilliseconds }';
   }
 }

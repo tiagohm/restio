@@ -5,7 +5,8 @@ import 'package:test/test.dart';
 void main() {
   test('Parsing www-authenticate header', () {
     var challenges = AuthenticationChallenge.parseHeader(
-      'Bearer realm="service", error="invalid_token", error_description="The access token is invalid or has expired"',
+      'Bearer realm="service", error="invalid_token",'
+      ' error_description="The access token is invalid or has expired"',
     );
 
     expect(challenges[0].scheme, 'bearer');
@@ -51,7 +52,8 @@ void main() {
     );
     expect(
       res,
-      '%20%22%27%3A%3B%3C%3D%3E%2B%40%5B%5D%5E%60%7B%7D%7C%2F%5C%3F%23%26%21%24%28%29%2C%7E',
+      '%20%22%27%3A%3B%3C%3D%3E%2B%40%5B%5D%5E%60'
+      '%7B%7D%7C%2F%5C%3F%23%26%21%24%28%29%2C%7E',
     );
 
     res = canonicalizeToString('円', formEncodeSet, plusIsSpace: true);

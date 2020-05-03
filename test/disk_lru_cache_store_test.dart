@@ -558,8 +558,6 @@ void main() {
       await snapshot.close();
 
       if (journalLength < lastJournalLength) {
-        print(
-            'Journal compacted from $lastJournalLength bytes to $journalLength bytes');
         break;
       }
 
@@ -588,8 +586,6 @@ void main() {
       await editor.commit();
 
       if (journalLength < lastJournalLength) {
-        print(
-            'Journal compacted from $lastJournalLength bytes to $journalLength bytes');
         break;
       }
 
@@ -643,8 +639,6 @@ void main() {
       cache = await openCache();
 
       if (journalLength < lastJournalLength) {
-        print(
-            'Journal compacted from $lastJournalLength bytes to $journalLength bytes');
         break;
       }
 
@@ -677,8 +671,6 @@ void main() {
       cache = await openCache();
 
       if (journalLength < lastJournalLength) {
-        print(
-            'Journal compacted from $lastJournalLength bytes to $journalLength bytes');
         break;
       }
 

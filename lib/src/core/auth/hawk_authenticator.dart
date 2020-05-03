@@ -67,7 +67,7 @@ class HawkAuthenticator extends Authenticator {
       uri: uri,
       id: id,
       key: key,
-      ext: ext,
+      ext: ext ?? '',
       algorithm: algorithm,
     );
 
@@ -98,15 +98,12 @@ class HawkAuthenticator extends Authenticator {
       resource: resource,
       host: uri.host,
       port: uri.effectivePort,
-      ext: ext ?? '',
+      ext: ext,
       isSha256: algorithm == HawkAlgorithm.sha256,
     );
 
-    if (ext != null && ext.isNotEmpty) {
-      return 'Hawk id="$id", ts="$timestamp", nonce="$nonce", ext="$ext", mac="$mac"';
-    } else {
-      return 'Hawk id="$id", ts="$timestamp", nonce="$nonce", mac="$mac"';
-    }
+    return 'Hawk id="$id", ts="$timestamp",'
+        ' nonce="$nonce"${ext.isNotEmpty ? ', ext="$ext"' : ''}, mac="$mac"';
   }
 
   static String _encodeToHawkHash({
@@ -121,8 +118,8 @@ class HawkAuthenticator extends Authenticator {
     String ext = '',
     bool isSha256,
   }) {
-    final normalizedReqStr =
-        'hawk.1.header\n$timestamp\n$nonce\n$method\n$resource\n$host\n$port\n$hash\n$ext\n';
+    final normalizedReqStr = 'hawk.1.header\n$timestamp\n$nonce\n$method\n'
+        '$resource\n$host\n$port\n$hash\n$ext\n';
     final hmac = Hmac(isSha256 ? sha256 : sha1, utf8.encode(key));
     final bytes = hmac.convert(encodeUtf8(normalizedReqStr)).bytes;
     return base64.encode(bytes);

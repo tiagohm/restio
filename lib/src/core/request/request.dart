@@ -162,6 +162,7 @@ class Request {
 
   @override
   String toString() {
-    return 'Request { uri: $uri, method: $method, headers: $headers, body: $body, extra: $extra, cacheControl: $cacheControl }';
+    return 'Request { uri: $uri, method: $method, headers: $headers,'
+        ' body: $body, extra: $extra, cacheControl: $cacheControl }';
   }
 }

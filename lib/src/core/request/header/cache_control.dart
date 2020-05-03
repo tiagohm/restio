@@ -286,9 +286,11 @@ class CacheControl extends Item {
 
   @override
   String toString() {
-    return 'CacheControl { noCache: $noCache, noStore: $noStore, maxAge: $maxAge, '
-        ' maxStale: $maxStale, minFresh: $minFresh, isPrivate: $isPrivate, isPublic: $isPublic, '
-        ' noTransform: $noTransform, immutable: $immutable, mustRevalidate: $mustRevalidate, '
+    return 'CacheControl { noCache: $noCache, noStore: $noStore,'
+        ' maxAge: $maxAge, maxStale: $maxStale, minFresh: $minFresh,'
+        ' isPrivate: $isPrivate, isPublic: $isPublic, '
+        ' noTransform: $noTransform, immutable: $immutable,'
+        ' mustRevalidate: $mustRevalidate, '
         ' onlyIfCached: $onlyIfCached }';
   }
 

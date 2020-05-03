@@ -175,7 +175,8 @@ class MediaType extends Item {
 
   @override
   String toString() {
-    return 'MediaType { type: $type, subType: $subType, parameters: $parameters }';
+    return 'MediaType { type: $type, subType: $subType,'
+        ' parameters: $parameters }';
   }
 
   @override

@@ -66,7 +66,9 @@ void main() {
 
   test('Parse All Parameters', () {
     final cacheControl = CacheControl.parse(
-        'private, public,max-age="12345678", max-stale="12345678", min-fresh=12345678, must-revalidate,no-cache,no-transform, no-store, immutable, s-maxage=60');
+        'private, public,max-age="12345678", max-stale="12345678",'
+        ' min-fresh=12345678, must-revalidate,no-cache,no-transform,'
+        ' no-store, immutable, s-maxage=60');
     expect(cacheControl.isPrivate, true);
     expect(cacheControl.isPublic, true);
     expect(cacheControl.maxAge, const Duration(seconds: 12345678));

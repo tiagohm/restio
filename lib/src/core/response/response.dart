@@ -164,8 +164,9 @@ class Response implements Closeable {
       return true;
     }
 
-    // If the Content-Length or Transfer-Encoding headers disagree with the response code, the
-    // response is malformed. For best compatibility, we honor the headers.
+    // If the Content-Length or Transfer-Encoding headers disagree
+    // with the response code, the response is malformed.
+    // For best compatibility, we honor the headers.
     if (body.contentLength != -1 ||
         headers.value(HttpHeaders.transferEncodingHeader) == 'chunked') {
       return true;
@@ -273,9 +274,14 @@ class Response implements Closeable {
 
   @override
   String toString() {
-    return 'Response { body: $body, code: $code, totalMilliseconds: $totalMilliseconds, spentMilliseconds: $spentMilliseconds, sentAt: $sentAt, receivedAt: $receivedAt,'
-        ' headers: $headers, cookies: $cookies, message: $message, request: $request,'
-        ' connectionInfo: $connectionInfo, redirects: $redirects, originalRequest: $originalRequest,'
-        ' dnsIp: $dnsIp, cacheControl: $cacheControl, networkResponse: $networkResponse, cacheResponse: $cacheResponse }';
+    return 'Response { body: $body, code: $code,'
+        ' totalMilliseconds: $totalMilliseconds,'
+        ' spentMilliseconds: $spentMilliseconds,'
+        ' sentAt: $sentAt, receivedAt: $receivedAt,'
+        ' headers: $headers, cookies: $cookies, message: $message,'
+        ' request: $request, connectionInfo: $connectionInfo,'
+        ' redirects: $redirects, originalRequest: $originalRequest,'
+        ' dnsIp: $dnsIp, cacheControl: $cacheControl,'
+        ' networkResponse: $networkResponse, cacheResponse: $cacheResponse }';
   }
 }

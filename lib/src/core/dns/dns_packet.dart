@@ -92,7 +92,9 @@ List<String> _readDnsName(
           reader.bufferAsByteData.getUint8(pointedIndex) >= 64) {
         final index = reader.index - 2;
         throw StateError(
-          'invalid pointer from index 0x${index.toRadixString(16)} (decimal: $index) to index 0x${pointedIndex.toRadixString(16)} ($pointedIndex)',
+          'Invalid pointer from index 0x${index.toRadixString(16)}'
+          ' (decimal: $index) to index 0x${pointedIndex.toRadixString(16)}'
+          ' ($pointedIndex)',
         );
       }
 

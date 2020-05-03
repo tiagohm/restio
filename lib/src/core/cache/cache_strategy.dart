@@ -135,7 +135,8 @@ class CacheStrategyFactory {
       );
     }
 
-    // Find a condition to add to the request. If the condition is satisfied, the response body
+    // Find a condition to add to the request.
+    // If the condition is satisfied, the response body
     // will not be transmitted.
     String conditionName;
     String conditionValue;

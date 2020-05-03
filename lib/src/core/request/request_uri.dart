@@ -232,8 +232,9 @@ class RequestUri extends Equatable {
 
   @override
   String toString() {
-    return 'RequestUri { scheme: $scheme, username: $username, password: $password,'
-        ' host: $host, port: $port, paths: $paths, queries: $queries, fragment: $fragment }';
+    return 'RequestUri { scheme: $scheme, username: $username,'
+        ' password: $password, host: $host, port: $port, paths: $paths,'
+        ' queries: $queries, fragment: $fragment }';
   }
 
   @override

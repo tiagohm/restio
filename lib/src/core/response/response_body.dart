@@ -120,6 +120,7 @@ class ResponseBody implements Pauseable {
 
   @override
   String toString() {
-    return 'ResponseBody { contentType: $contentType, contentLength: $contentLength }';
+    return 'ResponseBody { contentType: $contentType,'
+        ' contentLength: $contentLength }';
   }
 }

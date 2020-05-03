@@ -69,6 +69,7 @@ class MultipartBody implements RequestBody {
 
   @override
   String toString() {
-    return 'MultipartBody { contentType: $contentType, boundary: $boundary, parts: $parts }';
+    return 'MultipartBody { contentType: $contentType,'
+        ' boundary: $boundary, parts: $parts }';
   }
 }

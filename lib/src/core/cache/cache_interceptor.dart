@@ -37,7 +37,8 @@ class CacheInterceptor implements Interceptor {
       await cacheCandidate.close();
     }
 
-    // If we're forbidden from using the network and the cache is insufficient, fail.
+    // If we're forbidden from using the network and
+    // the cache is insufficient, fail.
     if (networkRequest == null && cacheResponse == null) {
       return Response(
         originalRequest: request,
