@@ -2,7 +2,28 @@
 
 An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 
-### Installation
+## Features
+
+* GET, POST, PUT, DELETE, HEAD, PATCH, OPTIONS, etc.
+* Request Body can be List&lt;int&gt;, String, Stream or File.
+  * Auto detects Content-Type.
+  * Buffer less processing for List&lt;int&gt;, String and File.
+* Response Body gives you access as raw or decompressed data (List&lt;int&gt;), String and JSON Object too.
+  * Supports Gzip, Deflate and Brotli.
+* Easy to upload one or more file(s) via multipart/form-data.
+  * Auto detects file content type.
+* Interceptors using [Chain of responsibility](https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern).
+* Basic, Digest, Bearer and Hawk authorization methods.
+* Send and save cookies for your request via CookieJar.
+* Allows GET request with payload.
+* Works fine with `HTTP/2` and `HTTP/1.1`.
+* Caching applying [RFC 7234](https://tools.ietf.org/html/rfc7234) and Lru Replacement Strategy.
+* Custom Client Certificates.
+* Proxy settings.
+* DNS-over-UDP and DNS-over-HTTPS.
+* WebSocket and SSE.
+
+## Installation
 
 In `pubspec.yaml` add the following dependency:
 
@@ -11,7 +32,7 @@ dependencies:
   restio: ^0.7.1
 ```
 
-### How to use
+## How to use
 
 1. Create a instance of `Restio`:
 ```dart
@@ -53,9 +74,9 @@ final response = await call.execute();
 await response.close();
 ```
 
-### Recipes
+## Recipes
 
-#### Adding Headers and Queries:
+### Adding Headers and Queries:
 ```dart
 final request = Request.get(
   'https://postman-echo.com/get?a=b',
@@ -74,7 +95,7 @@ builder.removeAll('header-name');
 final headers = builder.build();
 ```
 
-#### Performing a GET request:
+### Performing a GET request:
 
 ```dart
 final client = Restio();
@@ -83,7 +104,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-#### Performing a POST request:
+### Performing a POST request:
 ```dart
 final request = post(
   'https://postman-echo.com/post',
@@ -93,37 +114,37 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-#### Get response stream:
+### Get response stream:
 ```dart
 final stream = response.body.data;
 await response.close();
 ```
 
-#### Get raw response bytes:
+### Get raw response bytes:
 ```dart
 final bytes = await response.body.raw();
 await response.close();
 ```
 
-#### Get decompressed response bytes (gzip, deflate or brotli):
+### Get decompressed response bytes (gzip, deflate or brotli):
 ```dart
 final bytes = await response.body.decompressed();
 await response.close();
 ```
 
-#### Get response string:
+### Get response string:
 ```dart
 final string = await response.body.string();
 await response.close();
 ```
 
-#### Get response JSON:
+### Get response JSON:
 ```dart
 final json = await response.body.json();
 await response.close();
 ```
 
-#### Sending form data:
+### Sending form data:
 ```dart
 final request = post(
   'https://postman-echo.com/post',
@@ -136,7 +157,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-#### Sending multipart data:
+### Sending multipart data:
 ```dart
 final request = post(
   'https://postman-echo.com/post',
@@ -172,7 +193,7 @@ final request = Request.post(
 );
 ```
 
-#### Posting binary data:
+### Posting binary data:
 ```dart
 // Binary data.
 final postData = <int>[...];
@@ -184,7 +205,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-#### Listening for download progress:
+### Listening for download progress:
 ```dart
 final ProgressCallback onProgress = (Response res, int length, int total, bool done) {
   print('length: $length, total: $total, done: $done');
@@ -202,7 +223,7 @@ final data = await response.body.raw();
 await response.close();
 ```
 
-#### Listening for upload progress:
+### Listening for upload progress:
 ```dart
 final ProgressCallback onProgress = (Request req, int length, int total, bool done) {
   print('length: $length, total: $total, done: $done');
@@ -220,7 +241,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-#### Pause & Resume retrieving response data
+### Pause & Resume retrieving response data
 ```dart
 final response = await call.execute();
 final responseBody = response.body;
@@ -233,7 +254,7 @@ responseBody.pause();
 responseBody.resume();
 ```
 
-#### Interceptors
+### Interceptors
 ```dart
 final client = Restio(
   interceptors: [MyInterceptor()],
@@ -251,7 +272,7 @@ class MyInterceptor implements Interceptor {
 }
 ```
 
-#### Authentication
+### Authentication
 ```dart
 final client = Restio(
   authenticator: BasicAuthenticator(
@@ -268,7 +289,7 @@ final response = await call.execute();
 
 > Supports Bearer, Digest and Hawk Authorization Method too.
 
-#### Cookie Manager
+### Cookie Manager
 ```dart
 final client = Restio(
   cookieJar: MyCookieJar(),
@@ -289,7 +310,7 @@ class MyCookieJar extends CookieJar {
 }
 ```
 
-#### Handling Errors
+### Handling Errors
 ```dart
 try {
   final response = await call.execute();
@@ -304,7 +325,7 @@ try {
 }
 ```
 
-#### Cancellation
+### Cancellation
 ```dart
 final call = client.newCall(request);
 final response = await call.execute();
@@ -313,7 +334,7 @@ final response = await call.execute();
 call.cancel('cancelled');
 ```
 
-#### Proxy
+### Proxy
 ```dart
 final client = Restio(
   proxy: Proxy(
@@ -327,7 +348,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-#### HTTP2
+### HTTP2
 
 ```dart
 final client = Restio(http2: true);
@@ -336,7 +357,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-#### WebSocket
+### WebSocket
 ```dart
 final client = Restio();
 final request = Request(uri: RequestUri.parse('wss://echo.websocket.org'));
@@ -354,7 +375,7 @@ conn.addString('❤️ Larichan ❤️');
 await conn.close();
 ```
 
-#### SSE
+### SSE
 ```dart
 final client = Restio();
 final request = Request(uri: RequestUri.parse('https://my.sse.com'));
@@ -376,7 +397,7 @@ conn.stream.listen((SseEvent event) {
 await conn.close();
 ```
 
-#### DNS
+### DNS
 
 Thanks to [dart-protocol](https://github.com/dart-protocol) for this great [dns](https://github.com/dart-protocol/dns) library!
 
@@ -395,7 +416,7 @@ print(response.dnsIp); // Prints the resolved IP.
 
 > Supports DnsOverHttps too.
 
-#### Caching
+### Caching (RFC 7234)
 
 ```dart
 final store = await LruCacheStore.local('./cache');
@@ -412,6 +433,6 @@ final cacheResponse = response.cacheResponse; // From cache.
 
 > Supports LruCacheStore.memory() too.
 
-### Projects using this library
+## Projects using this library
 
 * [Restler](https://play.google.com/store/apps/details?id=br.tiagohm.restler): Restler is an Android app built with simplicity and ease of use in mind. It allows you send custom HTTP/HTTPS requests and test your REST API anywhere and anytime.
