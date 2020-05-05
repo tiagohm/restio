@@ -1,18 +1,21 @@
+import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/src/core/request/header/cache_control.dart';
 import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/query/queries.dart';
 import 'package:restio/src/core/request/query/queries_builder.dart';
 import 'package:restio/src/core/request/request_body.dart';
+import 'package:restio/src/core/request/request_options.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 
-class Request {
+class Request extends Equatable {
   final RequestUri uri;
   final String method;
   final Headers headers;
   final RequestBody body;
   final Map<String, dynamic> extra;
   final CacheControl cacheControl;
+  final RequestOptions options;
 
   Request({
     @required RequestUri uri,
@@ -22,12 +25,14 @@ class Request {
     this.body,
     this.extra,
     CacheControl cacheControl,
+    RequestOptions options,
   })  : assert(uri != null),
         uri = _obtainUri(uri, queries),
         headers = headers ?? Headers.empty,
         cacheControl = cacheControl ??
             CacheControl.fromHeaders(headers) ??
-            CacheControl.empty;
+            CacheControl.empty,
+        options = options ?? RequestOptions.empty;
 
   Request.get(
     String uri, {
@@ -35,12 +40,14 @@ class Request {
     Queries queries,
     Map<String, dynamic> extra,
     CacheControl cacheControl,
+    RequestOptions options,
   }) : this(
           uri: RequestUri.parse(uri),
           headers: headers,
           queries: queries,
           extra: extra,
           cacheControl: cacheControl,
+          options: options,
         );
 
   Request.post(
@@ -49,6 +56,7 @@ class Request {
     Queries queries,
     RequestBody body,
     Map<String, dynamic> extra,
+    RequestOptions options,
   }) : this(
           method: 'POST',
           uri: RequestUri.parse(uri),
@@ -56,6 +64,7 @@ class Request {
           queries: queries,
           body: body,
           extra: extra,
+          options: options,
         );
 
   Request.put(
@@ -64,6 +73,7 @@ class Request {
     Queries queries,
     RequestBody body,
     Map<String, dynamic> extra,
+    RequestOptions options,
   }) : this(
           method: 'PUT',
           uri: RequestUri.parse(uri),
@@ -71,6 +81,7 @@ class Request {
           queries: queries,
           body: body,
           extra: extra,
+          options: options,
         );
 
   Request.head(
@@ -79,6 +90,7 @@ class Request {
     Queries queries,
     Map<String, dynamic> extra,
     CacheControl cacheControl,
+    RequestOptions options,
   }) : this(
           method: 'HEAD',
           uri: RequestUri.parse(uri),
@@ -86,6 +98,7 @@ class Request {
           queries: queries,
           extra: extra,
           cacheControl: cacheControl,
+          options: options,
         );
 
   Request.delete(
@@ -94,6 +107,7 @@ class Request {
     Queries queries,
     RequestBody body,
     Map<String, dynamic> extra,
+    RequestOptions options,
   }) : this(
           method: 'DELETE',
           uri: RequestUri.parse(uri),
@@ -101,6 +115,7 @@ class Request {
           queries: queries,
           body: body,
           extra: extra,
+          options: options,
         );
 
   Request.patch(
@@ -109,6 +124,7 @@ class Request {
     Queries queries,
     RequestBody body,
     Map<String, dynamic> extra,
+    RequestOptions options,
   }) : this(
           method: 'PATCH',
           uri: RequestUri.parse(uri),
@@ -116,6 +132,7 @@ class Request {
           queries: queries,
           body: body,
           extra: extra,
+          options: options,
         );
 
   Queries get queries => uri.queries;
@@ -148,6 +165,7 @@ class Request {
     RequestBody body,
     Map<String, dynamic> extra,
     CacheControl cacheControl,
+    RequestOptions options,
   }) {
     return Request(
       uri: uri ?? this.uri,
@@ -157,8 +175,20 @@ class Request {
       body: body ?? this.body,
       extra: extra ?? this.extra,
       cacheControl: cacheControl ?? this.cacheControl,
+      options: options ?? this.options,
     );
   }
+
+  @override
+  List<Object> get props => [
+        uri,
+        method,
+        headers,
+        queries,
+        body,
+        extra,
+        options,
+      ];
 
   @override
   String toString() {

@@ -10,6 +10,7 @@ import 'package:restio/src/core/request/multipart/part.dart';
 import 'package:restio/src/core/request/query/queries.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_body.dart';
+import 'package:restio/src/core/request/request_options.dart';
 
 // Request.
 
@@ -19,6 +20,7 @@ Request get(
   Queries queries,
   Map<String, dynamic> extra,
   CacheControl cacheControl,
+  RequestOptions options,
 }) {
   return Request.get(
     uri,
@@ -26,6 +28,7 @@ Request get(
     queries: queries,
     extra: extra,
     cacheControl: cacheControl,
+    options: options,
   );
 }
 
@@ -35,6 +38,7 @@ Request post(
   Queries queries,
   Map<String, dynamic> extra,
   RequestBody body,
+  RequestOptions options,
 }) {
   return Request.post(
     uri,
@@ -42,6 +46,7 @@ Request post(
     queries: queries,
     extra: extra,
     body: body,
+    options: options,
   );
 }
 
@@ -51,6 +56,7 @@ Request put(
   Queries queries,
   Map<String, dynamic> extra,
   RequestBody body,
+  RequestOptions options,
 }) {
   return Request.put(
     uri,
@@ -58,6 +64,7 @@ Request put(
     queries: queries,
     extra: extra,
     body: body,
+    options: options,
   );
 }
 
@@ -67,6 +74,7 @@ Request delete(
   Queries queries,
   Map<String, dynamic> extra,
   RequestBody body,
+  RequestOptions options,
 }) {
   return Request.delete(
     uri,
@@ -74,6 +82,7 @@ Request delete(
     queries: queries,
     extra: extra,
     body: body,
+    options: options,
   );
 }
 
@@ -83,6 +92,7 @@ Request head(
   Queries queries,
   Map<String, dynamic> extra,
   CacheControl cacheControl,
+  RequestOptions options,
 }) {
   return Request.head(
     uri,
@@ -90,6 +100,23 @@ Request head(
     queries: queries,
     extra: extra,
     cacheControl: cacheControl,
+    options: options,
+  );
+}
+
+Request patch(
+  String uri, {
+  Headers headers,
+  Queries queries,
+  Map<String, dynamic> extra,
+  RequestOptions options,
+}) {
+  return Request.patch(
+    uri,
+    headers: headers,
+    queries: queries,
+    extra: extra,
+    options: options,
   );
 }
 

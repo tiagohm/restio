@@ -9,12 +9,14 @@ import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_options.dart';
 import 'package:restio/src/core/response/response.dart';
 import 'package:restio/src/core/transport/transport.dart';
 
 class HttpTransport implements Transport {
   @override
   final Restio client;
+
   HttpClient _httpClient;
   var _isClosed = false;
 
@@ -31,6 +33,8 @@ class HttpTransport implements Transport {
     Restio client,
     Request request,
   ) async {
+    final options = request.options;
+
     final securityContext =
         SecurityContext(withTrustedRoots: client.withTrustedRoots ?? true);
 
@@ -65,7 +69,7 @@ class HttpTransport implements Transport {
 
     httpClient.badCertificateCallback = (cert, host, port) {
       // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
-      return !client.verifySSLCertificate ||
+      return !options.verifySSLCertificate ||
           (client.onBadCertificate?.call(cert, host, port) ?? false);
     };
 
@@ -99,12 +103,16 @@ class HttpTransport implements Transport {
 
   @override
   Future<Response> send(final Request request) async {
+    final options = RequestOptions.default_
+        .mergeWith(client.options)
+        .mergeWith(request.options);
+
     HttpClientRequest clientRequest;
     var uri = request.uri;
 
     _httpClient = await _buildHttpClient(client, request);
 
-    final proxy = client.proxy;
+    final proxy = options.proxy;
     var hasProxy = false;
 
     // Proxy.
@@ -119,11 +127,11 @@ class HttpTransport implements Transport {
 
     // Host.
     IpAddress dnsIp;
-    
+
     // Verificar se não é um IP.
     // Busca o real endereço (IP) do host através de um DNS.
-    if (client.dns != null && !isIp(uri.host)) {
-      final addresses = await client.dns.lookup(uri.host);
+    if (options.dns != null && !isIp(uri.host)) {
+      final addresses = await options.dns.lookup(uri.host);
 
       if (addresses != null && addresses.isNotEmpty) {
         dnsIp = addresses[0];
@@ -132,10 +140,11 @@ class HttpTransport implements Transport {
     }
 
     try {
-      if (client.connectTimeout != null && !client.connectTimeout.isNegative) {
+      if (options.connectTimeout != null &&
+          !options.connectTimeout.isNegative) {
         clientRequest = await _httpClient
             .openUrl(request.method, uri.toUri())
-            .timeout(client.connectTimeout);
+            .timeout(options.connectTimeout);
       } else {
         clientRequest = await _httpClient.openUrl(
           request.method,
@@ -155,9 +164,9 @@ class HttpTransport implements Transport {
 
       // User-Agent.
       if (!request.headers.has(HttpHeaders.userAgentHeader)) {
-        if (client.userAgent != null) {
+        if (options.userAgent != null) {
           clientRequest.headers
-              .set(HttpHeaders.userAgentHeader, client.userAgent);
+              .set(HttpHeaders.userAgentHeader, options.userAgent);
         } else {
           clientRequest.headers
               .set(HttpHeaders.userAgentHeader, 'Restio/${Restio.version}');
@@ -202,8 +211,8 @@ class HttpTransport implements Transport {
       if (request.body != null) {
         final future = _writeBody(clientRequest, request, client);
         // Escreve os dados.
-        if (client.writeTimeout != null && !client.writeTimeout.isNegative) {
-          await future.timeout(client.writeTimeout);
+        if (options.writeTimeout != null && !options.writeTimeout.isNegative) {
+          await future.timeout(options.writeTimeout);
         } else {
           await future;
         }
@@ -212,8 +221,9 @@ class HttpTransport implements Transport {
       // Resposta.
       HttpClientResponse response;
 
-      if (client.receiveTimeout != null && !client.receiveTimeout.isNegative) {
-        response = await clientRequest.close().timeout(client.receiveTimeout);
+      if (options.receiveTimeout != null &&
+          !options.receiveTimeout.isNegative) {
+        response = await clientRequest.close().timeout(options.receiveTimeout);
       } else {
         response = await clientRequest.close();
       }

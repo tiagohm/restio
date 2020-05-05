@@ -23,6 +23,7 @@ import 'package:restio/src/core/dns/dns_packet.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/request/query/queries.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_options.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/response.dart';
 
@@ -41,8 +42,16 @@ class DnsOverHttps extends PacketBasedDns {
     this.maximalPrivacy = false,
     this.dns,
     this.queries,
-  }) : _client = client?.copyWith(connectTimeout: timeout) ??
-            Restio(connectTimeout: timeout);
+  }) : _client = _obtainRealClient(client, timeout);
+
+  static Restio _obtainRealClient(
+    Restio client,
+    Duration timeout,
+  ) {
+    final options = (client?.options ?? RequestOptions.default_)
+        .copyWith(connectTimeout: timeout);
+    return (client ?? const Restio()).copyWith(options: options);
+  }
 
   DnsOverHttps.google({
     Restio client,

@@ -8,6 +8,7 @@ import 'package:restio/src/core/interceptors/interceptor.dart';
 import 'package:restio/src/core/redirect/redirect.dart';
 import 'package:restio/src/core/request/query/queries.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_options.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/response.dart';
 
@@ -25,13 +26,19 @@ class FollowUpInterceptor implements Interceptor {
 
     final startTime = DateTime.now();
 
+    final options = RequestOptions.default_
+        .mergeWith(client.options)
+        .mergeWith(request.options);
+
     while (true) {
+      request = request.copyWith(options: options);
+
       final response = await chain.proceed(request);
 
       final elapsedMilliseconds = response.receivedAt.millisecondsSinceEpoch -
           startTime.millisecondsSinceEpoch;
 
-      final followUp = await _followUpRequest(response, redirects);
+      final followUp = await _followUpRequest(response, redirects, options);
 
       if (followUp == null) {
         final totalMilliseconds = max(
@@ -46,7 +53,7 @@ class FollowUpInterceptor implements Interceptor {
         );
       }
 
-      if (client.maxRedirects >= 0 && ++count > client.maxRedirects) {
+      if (options.maxRedirects >= 0 && ++count > options.maxRedirects) {
         throw TooManyRedirectsException(
           'Too many redirects: $count',
           originalRequest.uri,
@@ -69,24 +76,25 @@ class FollowUpInterceptor implements Interceptor {
   Future<Request> _followUpRequest(
     Response response,
     List<Redirect> redirects,
+    RequestOptions options,
   ) async {
     final method = response.request.method;
 
     switch (response.code) {
       case HttpStatus.proxyAuthenticationRequired:
-        return client.proxy?.auth?.authenticate(response);
+        return options.proxy?.auth?.authenticate(response);
       case HttpStatus.unauthorized:
-        return client.auth?.authenticate(response);
+        return options.auth?.authenticate(response);
       case HttpStatus.permanentRedirect:
       case HttpStatus.temporaryRedirect:
         return method != 'GET' && method != 'HEAD'
             ? null
-            : _buildRedirectRequest(response, redirects);
+            : _buildRedirectRequest(response, redirects, options);
       case HttpStatus.multipleChoices:
       case HttpStatus.movedPermanently:
       case HttpStatus.movedTemporarily:
       case HttpStatus.seeOther:
-        return _buildRedirectRequest(response, redirects);
+        return _buildRedirectRequest(response, redirects, options);
       default:
         return null;
     }
@@ -95,9 +103,10 @@ class FollowUpInterceptor implements Interceptor {
   Future<Request> _buildRedirectRequest(
     Response response,
     List<Redirect> redirects,
+    RequestOptions options,
   ) async {
     // Does the client allow redirects?
-    if (!client.followRedirects) {
+    if (!options.followRedirects) {
       return null;
     }
 

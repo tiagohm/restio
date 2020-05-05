@@ -17,12 +17,14 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * Send and save cookies for your request via CookieJar.
 * Allows GET request with payload.
 * Works fine with `HTTP/2` and `HTTP/1.1`.
+* Have Client level options and also override at Request level if you want to.
 * Caching applying [RFC 7234](https://tools.ietf.org/html/rfc7234) and Lru Replacement Strategy.
    * Supports encryption.
 * Custom Client Certificates.
 * Proxy settings.
 * DNS-over-UDP and DNS-over-HTTPS.
 * WebSocket and SSE.
+* Redirect Policy.
 
 ## Installation
 
@@ -37,7 +39,7 @@ dependencies:
 
 1. Create a instance of `Restio`:
 ```dart
-final client = Restio();
+const client = Restio();
 ```
 
 2. Create a `Request`:
@@ -77,6 +79,29 @@ await response.close();
 
 ## Recipes
 
+### Request Options:
+
+```dart
+const options = RequestOptions(
+  connectTimeout : Duration(...),  // default is null (no timeout)
+  writeTimeout : Duration(...),  // default is null (no timeout)
+  receiveTimeout : Duration(...),  // default is null (no timeout)
+  auth: BasicAuthenticator(...), // default is null (no auth)
+  followRedirects: true,
+  maxRedirects: 5,
+  verifySSLCertificate: false,
+  userAgent: 'Restio/0.7.1',
+  proxy: Proxy(...), // default is null
+  dns: DnsOverHttps(...), // default is null
+);
+
+// At Client level.
+const client = Restio(options: options);
+
+// Override at Request Level.
+final request = get('http://httpbin.org/get', options: options);
+```
+
 ### Adding Headers and Queries:
 
 ```dart
@@ -100,7 +125,7 @@ final headers = builder.build();
 ### Performing a GET request:
 
 ```dart
-final client = Restio();
+const client = Restio();
 final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();
@@ -178,7 +203,7 @@ final response = await call.execute();
 or
 
 ```dart
-final request = Request.post(
+final request = post(
   'https://postman-echo.com/post',
   body: MultipartBody(
     parts: [
@@ -205,10 +230,10 @@ final request = Request.post(
 
 ```dart
 // Binary data.
-final postData = <int>[...];
+final data = <int>[...];
 final request = post(
   'https://postman-echo.com/post',
-  body: postData.asBody(),
+  body: data.asBody(),
 );
 final call = client.newCall(request);
 final response = await call.execute();
@@ -217,7 +242,7 @@ final response = await call.execute();
 ### Listening for download progress:
 
 ```dart
-final ProgressCallback onProgress = (Response res, int length, int total, bool done) {
+void onProgress(Response res, int length, int total, bool done) {
   print('length: $length, total: $total, done: $done');
 };
 
@@ -236,13 +261,11 @@ await response.close();
 ### Listening for upload progress:
 
 ```dart
-final ProgressCallback onProgress = (Request req, int length, int total, bool done) {
+void onProgress(Request req, int length, int total, bool done) {
   print('length: $length, total: $total, done: $done');
 };
 
-final progressClient = client.copyWith(
-  onUploadProgress: onProgress,
-);
+final client = Restio(onUploadProgress: onProgress);
 
 final request = post('https://postman-echo.com/post',
   body: File('./large_file.txt').asBody(),
@@ -269,11 +292,13 @@ responseBody.resume();
 ### Interceptors
 
 ```dart
-final client = Restio(
+const client = Restio(
   interceptors: [MyInterceptor()],
 );
 
 class MyInterceptor implements Interceptor {
+  const MyInterceptor();
+
   @override
   Future<Response> intercept(Chain chain) async {
     final request = chain.request;
@@ -288,10 +313,12 @@ class MyInterceptor implements Interceptor {
 ### Authentication
 
 ```dart
-final client = Restio(
-  authenticator: BasicAuthenticator(
-    username: 'postman',
-    password: 'password',
+const client = Restio(
+  options: RequestOptions(
+    authenticator: BasicAuthenticator(
+      username: 'postman',
+      password: 'password',
+    ),
   ),
 );
 
@@ -306,11 +333,10 @@ final response = await call.execute();
 ### Cookie Manager
 
 ```dart
-final client = Restio(
-  cookieJar: MyCookieJar(),
-);
+const client = Restio(cookieJar: MyCookieJar());
 
-class MyCookieJar extends CookieJar {
+class MyCookieJar implements CookieJar {
+  const MyCookieJar();
 
   @override
   Future<List<Cookie>> load(Request request) async {
@@ -321,6 +347,29 @@ class MyCookieJar extends CookieJar {
   Future<void> save(Response response) async {
     final cookies = response.cookies;
     // TODO:
+  }
+}
+```
+
+### Custom Client Certificates
+
+```dart
+const client = Restio(clientCertificateJar: MyClientCertificateJar());
+
+class MyClientCertificateJar implements ClientCertificateJar {
+  const MyClientCertificateJar();
+
+  @override
+  Future<ClientCertificate> get(String host, int port) async {
+    if (host == 'localhost' && port == 3002) {
+      return ClientCertificate(
+        await File('./test/node/ca/certs/test.crt').readAsBytes(),
+        await File('./test/node/ca/certs/test.key').readAsBytes(),
+        password: 'password',
+      );
+    } else {
+      return null;
+    }
   }
 }
 ```
@@ -354,10 +403,12 @@ call.cancel('cancelled');
 ### Proxy
 
 ```dart
-final client = Restio(
-  proxy: Proxy(
-    host: 'localhost',
-    port: 3001,
+const client = Restio(
+  options: RequestOptions(
+    proxy: Proxy(
+      host: 'localhost',
+      port: 3001,
+    ),
   ),
 );
 
@@ -369,7 +420,7 @@ final response = await call.execute();
 ### HTTP2
 
 ```dart
-final client = Restio(http2: true);
+const client = Restio(http2: true);
 final request = get('https://www.google.com/');
 final call = client.newCall(request);
 final response = await call.execute();
@@ -378,7 +429,7 @@ final response = await call.execute();
 ### WebSocket
 
 ```dart
-final client = Restio();
+const client = Restio();
 final request = Request(uri: RequestUri.parse('wss://echo.websocket.org'));
 final ws = client.newWebSocket(request);
 final conn = await ws.open();
@@ -397,7 +448,7 @@ await conn.close();
 ### SSE
 
 ```dart
-final client = Restio();
+const client = Restio();
 final request = Request(uri: RequestUri.parse('https://my.sse.com'));
 final sse = client.newSse(
   request,
@@ -423,10 +474,7 @@ Thanks to [dart-protocol](https://github.com/dart-protocol) for this great [dns]
 
 ```dart
 final dns = DnsOverUdp.google();
-final client = Restio(
-  dns: dns,
-);
-
+final client = Restio(options: RequestOptions(dns: dns));
 final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();

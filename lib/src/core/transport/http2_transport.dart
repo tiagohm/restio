@@ -10,12 +10,14 @@ import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_options.dart';
 import 'package:restio/src/core/response/response.dart';
 import 'package:restio/src/core/transport/transport.dart';
 
 class Http2Transport implements Transport {
   @override
   final Restio client;
+
   ClientTransportStream _stream;
   ClientTransportConnection _transport;
   var _isClosed = false;
@@ -49,10 +51,12 @@ class Http2Transport implements Transport {
 
   @override
   Future<Response> send(final Request request) async {
+    final options = request.options;
+
     SecureSocket socket;
 
     try {
-      socket = await _createSocket(request);
+      socket = await _createSocket(request, options);
       _transport = ClientTransportConnection.viaSocket(socket);
 
       final uri = request.uri.toUri();
@@ -76,9 +80,9 @@ class Http2Transport implements Transport {
 
       // User-Agent.
       if (!request.headers.has(HttpHeaders.userAgentHeader)) {
-        if (client.userAgent != null) {
-          headers
-              .add(Header.ascii(HttpHeaders.userAgentHeader, client.userAgent));
+        if (options.userAgent != null) {
+          headers.add(
+              Header.ascii(HttpHeaders.userAgentHeader, options.userAgent));
         } else {
           headers.add(Header.ascii(
               HttpHeaders.userAgentHeader, 'Restio/${Restio.version}'));
@@ -113,8 +117,8 @@ class Http2Transport implements Transport {
 
       // Body.
       final future = _makeRequest(request, client, _transport, headers);
-      if (client.writeTimeout != null && !client.writeTimeout.isNegative) {
-        _stream = await future.timeout(client.writeTimeout);
+      if (options.writeTimeout != null && !options.writeTimeout.isNegative) {
+        _stream = await future.timeout(options.writeTimeout);
       } else {
         _stream = await future;
       }
@@ -128,17 +132,20 @@ class Http2Transport implements Transport {
     return _makeResponse(client, _stream, socket);
   }
 
-  Future<SecureSocket> _createSocket(Request request) async {
+  Future<SecureSocket> _createSocket(
+    Request request,
+    RequestOptions options,
+  ) async {
     final port = request.uri.effectivePort;
 
     return SecureSocket.connect(
       request.uri.host,
       port,
-      timeout: client.connectTimeout,
+      timeout: options.connectTimeout,
       context: SecurityContext(withTrustedRoots: client.withTrustedRoots),
       supportedProtocols: ['h2'],
       onBadCertificate: (cert) {
-        return !client.verifySSLCertificate ||
+        return !options.verifySSLCertificate ||
             (client?.onBadCertificate?.call(
                   cert,
                   request.uri.host,
