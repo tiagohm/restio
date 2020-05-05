@@ -18,6 +18,7 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * Allows GET request with payload.
 * Works fine with `HTTP/2` and `HTTP/1.1`.
 * Caching applying [RFC 7234](https://tools.ietf.org/html/rfc7234) and Lru Replacement Strategy.
+   * Supports encryption.
 * Custom Client Certificates.
 * Proxy settings.
 * DNS-over-UDP and DNS-over-HTTPS.
@@ -77,6 +78,7 @@ await response.close();
 ## Recipes
 
 ### Adding Headers and Queries:
+
 ```dart
 final request = Request.get(
   'https://postman-echo.com/get?a=b',
@@ -105,6 +107,7 @@ final response = await call.execute();
 ```
 
 ### Performing a POST request:
+
 ```dart
 final request = post(
   'https://postman-echo.com/post',
@@ -121,24 +124,28 @@ await response.close();
 ```
 
 ### Get raw response bytes:
+
 ```dart
 final bytes = await response.body.raw();
 await response.close();
 ```
 
 ### Get decompressed response bytes (gzip, deflate or brotli):
+
 ```dart
 final bytes = await response.body.decompressed();
 await response.close();
 ```
 
 ### Get response string:
+
 ```dart
 final string = await response.body.string();
 await response.close();
 ```
 
 ### Get response JSON:
+
 ```dart
 final json = await response.body.json();
 await response.close();
@@ -158,6 +165,7 @@ final response = await call.execute();
 ```
 
 ### Sending multipart data:
+
 ```dart
 final request = post(
   'https://postman-echo.com/post',
@@ -194,6 +202,7 @@ final request = Request.post(
 ```
 
 ### Posting binary data:
+
 ```dart
 // Binary data.
 final postData = <int>[...];
@@ -206,6 +215,7 @@ final response = await call.execute();
 ```
 
 ### Listening for download progress:
+
 ```dart
 final ProgressCallback onProgress = (Response res, int length, int total, bool done) {
   print('length: $length, total: $total, done: $done');
@@ -224,6 +234,7 @@ await response.close();
 ```
 
 ### Listening for upload progress:
+
 ```dart
 final ProgressCallback onProgress = (Request req, int length, int total, bool done) {
   print('length: $length, total: $total, done: $done');
@@ -242,6 +253,7 @@ final response = await call.execute();
 ```
 
 ### Pause & Resume retrieving response data
+
 ```dart
 final response = await call.execute();
 final responseBody = response.body;
@@ -255,6 +267,7 @@ responseBody.resume();
 ```
 
 ### Interceptors
+
 ```dart
 final client = Restio(
   interceptors: [MyInterceptor()],
@@ -273,6 +286,7 @@ class MyInterceptor implements Interceptor {
 ```
 
 ### Authentication
+
 ```dart
 final client = Restio(
   authenticator: BasicAuthenticator(
@@ -290,6 +304,7 @@ final response = await call.execute();
 > Supports Bearer, Digest and Hawk Authorization Method too.
 
 ### Cookie Manager
+
 ```dart
 final client = Restio(
   cookieJar: MyCookieJar(),
@@ -311,6 +326,7 @@ class MyCookieJar extends CookieJar {
 ```
 
 ### Handling Errors
+
 ```dart
 try {
   final response = await call.execute();
@@ -326,6 +342,7 @@ try {
 ```
 
 ### Cancellation
+
 ```dart
 final call = client.newCall(request);
 final response = await call.execute();
@@ -335,6 +352,7 @@ call.cancel('cancelled');
 ```
 
 ### Proxy
+
 ```dart
 final client = Restio(
   proxy: Proxy(
@@ -358,6 +376,7 @@ final response = await call.execute();
 ```
 
 ### WebSocket
+
 ```dart
 final client = Restio();
 final request = Request(uri: RequestUri.parse('wss://echo.websocket.org'));
@@ -376,6 +395,7 @@ await conn.close();
 ```
 
 ### SSE
+
 ```dart
 final client = Restio();
 final request = Request(uri: RequestUri.parse('https://my.sse.com'));
@@ -432,6 +452,29 @@ final cacheResponse = response.cacheResponse; // From cache.
 ```
 
 > Supports LruCacheStore.memory() too.
+
+with encryption:
+
+```dart
+import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:encrypt/encrypt.dart';
+
+final key = Key.fromUtf8('TLjBdXJxDiqHAFWQAk68NyEtK9D8XYEG');
+final encrypter = Encrypter(Fernet(Key.fromUtf8(base64.encode(key.bytes))));
+
+Uint8List encrypt(List<int> data) {
+  data = base64Encode(data).codeUnits;
+  return encrypter.encryptBytes(data).bytes;
+}
+
+List<int> decrypt(Uint8List data) {
+  return base64Decode(encrypter.decrypt(Encrypted(data)));
+}
+
+final store = await LruCacheStore.local('./cache', decrypt: decrypt, encrypt: encrypt);
+```
 
 ## Projects using this library
 

@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:convert/convert.dart';
+import 'package:crypto/crypto.dart';
 import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:file/memory.dart';
 import 'package:path/path.dart' as path;
+import 'package:restio/src/common/encrypted_file.dart';
+import 'package:restio/src/common/encrypted_file_system.dart';
 import 'package:restio/src/common/file_stream_sink.dart';
 import 'package:restio/src/common/strict_line_splitter.dart';
 import 'package:restio/src/core/cache/cache_store.dart';
@@ -29,6 +33,8 @@ class LruCacheStore implements CacheStore {
   final File _journalFileTmp;
   final File _journalFileBackup;
   final int appVersion;
+  final Encrypt encrypt;
+  final Decrypt decrypt;
   int _maxSize;
   final int valueCount;
   int _size = 0;
@@ -44,8 +50,11 @@ class LruCacheStore implements CacheStore {
     this.directory,
     this.appVersion,
     this.valueCount,
-    this._maxSize,
-  )   : _journalFile = fileSystem.file(path.join(directory, journalFile)),
+    int maxSize,
+    this.encrypt,
+    this.decrypt,
+  )   : _maxSize = maxSize,
+        _journalFile = fileSystem.file(path.join(directory, journalFile)),
         _journalFileTmp = fileSystem.file(path.join(directory, journalFileTmp)),
         _journalFileBackup =
             fileSystem.file(path.join(directory, journalFileBackup));
@@ -54,10 +63,28 @@ class LruCacheStore implements CacheStore {
     FileSystem fileSystem,
     String directory, {
     int maxSize = 10 * 1024 * 1024, // 10 MiB
+    Encrypt encrypt,
+    Decrypt decrypt,
   }) async {
     assert(maxSize != null && maxSize > 0);
 
-    final store = LruCacheStore._(fileSystem, directory, 1, 2, maxSize);
+    if (encrypt != null && decrypt != null) {
+      fileSystem = EncryptedFileSystem(
+        fileSystem,
+        encrypt: encrypt,
+        decrypt: decrypt,
+      );
+    }
+
+    final store = LruCacheStore._(
+      fileSystem,
+      directory,
+      1,
+      2,
+      maxSize,
+      encrypt,
+      decrypt,
+    );
 
     if (store._journalFileBackup.existsSync()) {
       if (store._journalFile.existsSync()) {
@@ -90,18 +117,39 @@ class LruCacheStore implements CacheStore {
 
   static Future<LruCacheStore> memory({
     int maxSize = 10 * 1024 * 1024, // 10 MiB
+    Encrypt encrypt,
+    Decrypt decrypt,
   }) {
-    return open(MemoryFileSystem(), '/', maxSize: maxSize);
+    return open(
+      MemoryFileSystem(),
+      '/',
+      maxSize: maxSize,
+      encrypt: encrypt,
+      decrypt: decrypt,
+    );
   }
 
   static Future<LruCacheStore> local(
     String directory, {
     int maxSize = 10 * 1024 * 1024, // 10 MiB
+    Encrypt encrypt,
+    Decrypt decrypt,
   }) {
-    return open(const LocalFileSystem(), directory, maxSize: maxSize);
+    return open(
+      const LocalFileSystem(),
+      directory,
+      maxSize: maxSize,
+      encrypt: encrypt,
+      decrypt: decrypt,
+    );
   }
 
   int get maxSize => _maxSize;
+
+  @override
+  String getKey(String uri) {
+    return hex.encode(md5.convert(utf8.encode(uri)).bytes);
+  }
 
   @override
   Future<void> increaseMaxSize(int value) async {
@@ -319,7 +367,7 @@ class LruCacheStore implements CacheStore {
   @override
   Future<Editor> edit(
     String key, [
-    int expectedSequenceNumber = -1,
+    int expectedSequenceNumber = CacheStore.anySequenceNumber,
   ]) async {
     _checkNotClosed();
     _validateKey(key);

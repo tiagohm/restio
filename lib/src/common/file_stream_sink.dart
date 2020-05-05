@@ -6,15 +6,16 @@ import 'package:restio/src/common/closeable.dart';
 
 class FileStreamSink implements StreamSink<List<int>>, Closeable {
   final IOSink _sink;
-  final void Function() onError;
+  final void Function() _onError;
   var _isClosed = false;
 
   FileStreamSink(
     File file, {
-    this.onError,
+    void Function() onError,
     FileMode mode = FileMode.write,
     Encoding encoding = utf8,
-  }) : _sink = file.openWrite(mode: mode, encoding: encoding);
+  })  : _onError = onError,
+        _sink = file.openWrite(mode: mode, encoding: encoding);
 
   @override
   void add(List<int> event) {
@@ -26,7 +27,7 @@ class FileStreamSink implements StreamSink<List<int>>, Closeable {
     Object error, [
     StackTrace stackTrace,
   ]) {
-    onError?.call();
+    _onError?.call();
     _sink.addError(error, stackTrace);
   }
 

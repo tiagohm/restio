@@ -3,10 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:crypto/crypto.dart';
-import 'package:hex/hex.dart';
 import 'package:meta/meta.dart';
-import 'package:restio/src/common/closeable.dart';
 import 'package:restio/src/common/decompressor.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/cache/cache_store.dart';
@@ -30,15 +27,8 @@ part 'cache_request.dart';
 part 'cache_strategy.dart';
 part 'entry.dart';
 
-typedef KeyExtractor = String Function(RequestUri uri);
-
-String _defaultKeyExtractor(RequestUri uri) {
-  return HEX.encode(md5.convert(utf8.encode(uri.toUriString())).bytes);
-}
-
 class Cache {
   final CacheStore store;
-  final KeyExtractor _keyExtractor;
 
   var _networkCount = 0;
   var _hitCount = 0;
@@ -50,9 +40,7 @@ class Cache {
 
   Cache({
     @required this.store,
-    KeyExtractor keyExtractor,
-  })  : assert(store != null),
-        _keyExtractor = keyExtractor ?? _defaultKeyExtractor;
+  }) : assert(store != null);
 
   int get networkCount {
     return _networkCount;
@@ -82,12 +70,12 @@ class Cache {
     }
   }
 
-  String _getKey(Request request) {
-    return _keyExtractor(request.uri);
+  String _key(Request request) {
+    return store.getKey(request.uri.toUriString());
   }
 
   Future<Response> _get(Request request) async {
-    final key = _getKey(request);
+    final key = _key(request);
     Snapshot snapshot;
     Entry entry;
 
@@ -155,7 +143,7 @@ class Cache {
     Editor editor;
 
     try {
-      editor = await store.edit(_getKey(response.request));
+      editor = await store.edit(_key(response.request));
 
       if (editor == null) {
         return null;
@@ -180,21 +168,15 @@ class Cache {
     final body = cached.body as Snapshotable;
     final snapshot = body.snapshot;
     Editor editor;
-    Sink<List<int>> sink;
 
     try {
       editor = await store.edit(snapshot.key, snapshot.sequenceNumber);
 
       if (editor != null) {
         final metaData = entry.metaData();
-        sink = editor.newSink(Cache.entryMetaData);
+        final sink = editor.newSink(Cache.entryMetaData);
         sink.add(metaData);
-
-        if (sink is Closeable) {
-          await (sink as Closeable).close();
-        } else {
-          sink.close();
-        }
+        await sink.close();
 
         await editor.commit();
       }
@@ -206,7 +188,7 @@ class Cache {
   }
 
   Future<bool> _remove(Request request) {
-    return store.remove(_getKey(request));
+    return store.remove(_key(request));
   }
 
   Future<void> clear() {

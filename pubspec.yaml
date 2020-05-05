@@ -19,10 +19,11 @@ dependencies:
   raw: ^0.2.0
   ip: ^0.1.1
   brotli: ^0.2.2
-  hex: ^0.1.2
   file: ^5.1.0
+  convert: ^2.1.1
 
 dev_dependencies:
+  encrypt: ^4.0.0
   effective_dart: ^1.2.1
   test: ^1.14.2
   pubspec: ^0.1.2

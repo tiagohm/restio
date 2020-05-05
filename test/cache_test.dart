@@ -1,11 +1,10 @@
-@Timeout(Duration(days: 1))
-
 import 'dart:io';
 
 import 'package:restio/restio.dart';
 import 'package:test/test.dart';
 
 import 'cache_tests.dart';
+import 'fernet.dart';
 
 const client = Restio(
   interceptors: [
@@ -20,11 +19,21 @@ void main() {
     cacheDir.listSync(recursive: true).forEach((i) => i.deleteSync());
   });
 
-  group('LruCacheStore In Memory', () {
+  group('LruCacheStore:Memory', () {
     testCache(client, () async => LruCacheStore.memory());
   });
 
-  group('Local LruCacheStore', () {
+  group('LruCacheStore:Local', () {
     testCache(client, () async => LruCacheStore.local(cacheDir.path));
+  });
+
+  group('LruCacheStore:Encrypted', () {
+    testCache(client, () async {
+      return LruCacheStore.local(
+        cacheDir.path,
+        decrypt: decrypt,
+        encrypt: encrypt,
+      );
+    });
   });
 }
