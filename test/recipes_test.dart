@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:pubspec/pubspec.dart';
 import 'package:restio/restio.dart';
+import 'package:restio/src/core/interceptors/mock_interceptor.dart';
 import 'package:test/test.dart';
 
 import 'utils.dart';
@@ -903,6 +904,26 @@ void main() {
 
     expect(response.code, 301);
     expect(response.redirects.last.request.uri.host, 'goo.gle');
+  });
+
+  test('Mocking', () async {
+    final mockClient = client.copyWith(
+      networkInterceptors: [
+        MockInterceptor(
+          [
+            Response(code: 200, body: ResponseBody.string('OK')),
+          ],
+        ),
+      ],
+    );
+
+    final request = Request.get('http://mock.test.io');
+    final call = mockClient.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+    expect(await response.body.string(), 'OK');
+    await response.close();
   });
 }
 

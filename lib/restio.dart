@@ -32,6 +32,7 @@ export 'package:restio/src/core/dns/dns_packet.dart';
 export 'package:restio/src/core/exceptions.dart';
 export 'package:restio/src/core/interceptors/interceptor.dart';
 export 'package:restio/src/core/interceptors/log_interceptor.dart';
+export 'package:restio/src/core/interceptors/mock_interceptor.dart';
 export 'package:restio/src/core/listeners.dart';
 export 'package:restio/src/core/proxy/proxy.dart';
 export 'package:restio/src/core/push/sse/sse.dart' hide SseTransformer;

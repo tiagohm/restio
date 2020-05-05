@@ -476,6 +476,28 @@ List<int> decrypt(Uint8List data) {
 final store = await LruCacheStore.local('./cache', decrypt: decrypt, encrypt: encrypt);
 ```
 
+### Mocking
+
+```dart
+final mockClient = Restio(
+  networkInterceptors: [
+    MockInterceptor(
+      [
+        Response(code: 200, body: ResponseBody.string('OK')),
+      ],
+    ),
+  ],
+);
+
+final request = Request.get('http://mock.test.io');
+final call = mockClient.newCall(request);
+final response = await call.execute();
+
+expect(response.code, 200);
+expect(await response.body.string(), 'OK');
+await response.close();
+```
+
 ## Projects using this library
 
 * [Restler](https://play.google.com/store/apps/details?id=br.tiagohm.restler): Restler is an Android app built with simplicity and ease of use in mind. It allows you send custom HTTP/HTTPS requests and test your REST API anywhere and anytime.

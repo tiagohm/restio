@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:restio/restio.dart';
+import 'package:restio/src/core/interceptors/mock_interceptor.dart';
 import 'package:test/test.dart';
 
 const url = 'http://localhost:8000';
@@ -19,7 +20,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               code: responseCode,
@@ -62,7 +63,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               code: responseCode,
@@ -96,7 +97,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             mockResponse.copyMockWith(body: 'A'),
             MockResponse(body: 'B'),
@@ -124,7 +125,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             mockResponse.copyMockWith(body: 'A'),
             mockResponse.copyMockWith(body: 'B'),
@@ -158,7 +159,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(headers: {
               'expires': obtainDate(const Duration(hours: 1)),
@@ -207,7 +208,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -258,7 +259,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             mockResponse.copyMockWith(
               body: gzip('ABCABCABC'),
@@ -298,7 +299,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'ABCDE',
@@ -339,7 +340,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               code: io.HttpStatus.movedPermanently,
@@ -388,7 +389,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             // A primeira requisição "/foo" cria o cache.
             MockResponse(
@@ -496,7 +497,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               code: 301,
@@ -531,7 +532,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             //  last modified: 105 seconds ago
             //         served:   5 seconds ago
@@ -571,7 +572,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             //      last modified: 105 days ago
             //             served:   5 days ago
@@ -610,7 +611,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -765,7 +766,7 @@ void testCache(
         // 1. Seed the cache.
         // 2. Invalidate it with an uncacheable response.
         // 3. Expect a cache miss.
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -810,7 +811,7 @@ void testCache(
         // 1. Seed the cache.
         // 2. Invalidate it.
         // 3. Expect a cache miss.
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -901,7 +902,7 @@ void testCache(
       networkInterceptors: [
         // 1. Request a range.
         // 2. Request a full document, expecting a cache miss.
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               code: io.HttpStatus.partialContent,
@@ -938,7 +939,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -984,7 +985,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -1044,7 +1045,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'ABCABCABC',
@@ -1093,7 +1094,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: gzip('ABCABCABC'),
@@ -1142,7 +1143,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: gzip('ABCABCABC'),
@@ -1191,7 +1192,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: gzip('ABCABCABC'),
@@ -1228,7 +1229,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -1265,7 +1266,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -1301,7 +1302,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -1339,7 +1340,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -1378,7 +1379,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -1415,7 +1416,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(const []),
+        MockInterceptor(const []),
       ],
     );
 
@@ -1436,7 +1437,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1473,7 +1474,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1508,7 +1509,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(body: 'A'),
         ]),
       ],
@@ -1537,7 +1538,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1572,7 +1573,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1607,7 +1608,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1640,7 +1641,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1673,7 +1674,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1722,7 +1723,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1771,7 +1772,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1817,7 +1818,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1852,7 +1853,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1887,7 +1888,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1920,7 +1921,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1954,7 +1955,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -1988,7 +1989,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2023,7 +2024,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: (HeadersBuilder()
@@ -2067,7 +2068,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: (HeadersBuilder()
@@ -2111,7 +2112,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: (HeadersBuilder()
@@ -2144,7 +2145,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2185,7 +2186,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2226,7 +2227,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2262,7 +2263,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2309,7 +2310,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2368,7 +2369,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2401,7 +2402,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2439,7 +2440,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2471,7 +2472,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(body: 'A'),
         ]),
       ],
@@ -2490,7 +2491,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'A',
             headers: {
@@ -2527,7 +2528,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor([
+        MockInterceptor([
           MockResponse(
             body: 'abcd',
             headers: {
@@ -2574,7 +2575,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(
               body: 'A',
@@ -2607,7 +2608,7 @@ void testCache(
     final cacheClient = client.copyWith(
       cache: cache,
       networkInterceptors: [
-        MockResponseInterceptor(
+        MockInterceptor(
           [
             MockResponse(body: 'A'),
             MockResponse(
@@ -2657,18 +2658,6 @@ ResponseBody gzip(String text) {
   return ResponseBody.bytes(
     io.gzip.encode(utf8.encode(text)),
   );
-}
-
-class MockResponseInterceptor implements Interceptor {
-  final List<Response> responses;
-  var _index = 0;
-
-  MockResponseInterceptor(this.responses);
-
-  @override
-  Future<Response> intercept(Chain chain) async {
-    return responses[_index++].copyWith(request: chain.request);
-  }
 }
 
 class MockResponse extends Response {
