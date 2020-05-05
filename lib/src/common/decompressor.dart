@@ -1,7 +1,5 @@
 import 'dart:convert';
 
-import 'package:restio/src/common/output_buffer.dart';
-
 typedef ChunkReceivedCallback = void Function(List<int> chunk);
 
 class Decompressor extends Converter<List<int>, List<int>> {
@@ -15,11 +13,7 @@ class Decompressor extends Converter<List<int>, List<int>> {
 
   @override
   List<int> convert(List<int> input) {
-    final sink = OutputBuffer();
-    startChunkedConversion(sink)
-      ..add(input)
-      ..close();
-    return sink.bytes;
+    return decoder?.convert(input) ?? input;
   }
 
   @override
