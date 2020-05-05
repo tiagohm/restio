@@ -144,6 +144,7 @@ class LruCacheStore implements CacheStore {
     );
   }
 
+  @override
   int get maxSize => _maxSize;
 
   @override
@@ -152,7 +153,7 @@ class LruCacheStore implements CacheStore {
   }
 
   @override
-  Future<void> increaseMaxSize(int value) async {
+  Future<void> setMaxSize(int value) async {
     _maxSize = value;
     await cleanup();
   }

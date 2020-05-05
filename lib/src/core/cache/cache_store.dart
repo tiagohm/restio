@@ -20,5 +20,7 @@ abstract class CacheStore implements Closeable {
 
   Future<int> size();
 
-  Future<void> increaseMaxSize(int value);
+  int get maxSize;
+
+  Future<void> setMaxSize(int value);
 }
