@@ -564,17 +564,23 @@ void main() {
   });
 
   test('Client Certificate', () async {
-    const client = Restio(clientCertificateJar: MyClientCertificateJar());
-    final request = get('https://localhost:3002');
+    final client = Restio(
+      certificates: [
+        Certificate(
+          'client.badssl.com',
+          File('./test/assets/badssl.com-client.pem').readAsBytesSync(),
+          File('./test/assets/badssl.com-client.p12').readAsBytesSync(),
+          port: 443,
+          password: 'badssl.com',
+        ),
+      ],
+    );
+    final request = get('https://client.badssl.com/');
     final call = client.newCall(request);
     final response = await call.execute();
-
-    expect(response.code, 200);
-
-    final json = await response.body.string();
     await response.close();
 
-    expect(json, 'Olá Tiago!');
+    expect(response.code, 200);
   });
 
   test('Proxy', () async {
@@ -1056,22 +1062,5 @@ class _RetryAfterInterceptor implements Interceptor {
             ..set(HttpHeaders.retryAfterHeader, seconds))
           .build(),
     );
-  }
-}
-
-class MyClientCertificateJar implements ClientCertificateJar {
-  const MyClientCertificateJar();
-
-  @override
-  Future<ClientCertificate> get(String host, int port) async {
-    if (host == 'localhost' && port == 3002) {
-      return ClientCertificate(
-        await File('./test/node/ca/certs/tiago.crt').readAsBytes(),
-        await File('./test/node/ca/certs/tiago.key').readAsBytes(),
-        password: '123mudar',
-      );
-    } else {
-      return null;
-    }
   }
 }

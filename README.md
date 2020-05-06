@@ -354,24 +354,21 @@ class MyCookieJar implements CookieJar {
 ### Custom Client Certificates
 
 ```dart
-const client = Restio(clientCertificateJar: MyClientCertificateJar());
-
-class MyClientCertificateJar implements ClientCertificateJar {
-  const MyClientCertificateJar();
-
-  @override
-  Future<ClientCertificate> get(String host, int port) async {
-    if (host == 'localhost' && port == 3002) {
-      return ClientCertificate(
-        await File('./test/node/ca/certs/test.crt').readAsBytes(),
-        await File('./test/node/ca/certs/test.key').readAsBytes(),
-        password: 'password',
-      );
-    } else {
-      return null;
-    }
-  }
-}
+final client = Restio(
+  certificates: [
+    Certificate(
+      'client.badssl.com',
+      File('./test/assets/badssl.com-client.pem').readAsBytesSync(),
+      File('./test/assets/badssl.com-client.p12').readAsBytesSync(),
+      port: 443,
+      password: 'badssl.com',
+    ),
+  ],
+);
+final request = get('https://client.badssl.com/');
+final call = client.newCall(request);
+final response = await call.execute();
+await response.close();
 ```
 
 ### Handling Errors

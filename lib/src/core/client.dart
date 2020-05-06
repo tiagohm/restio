@@ -4,7 +4,7 @@ import 'dart:io' as io;
 import 'package:restio/src/core/cache/cache.dart';
 import 'package:restio/src/core/call/call.dart';
 import 'package:restio/src/core/call/cancellable.dart';
-import 'package:restio/src/core/certificate/client_certificate_jar.dart';
+import 'package:restio/src/core/certificate/certificate.dart';
 import 'package:restio/src/core/cookie/cookie_jar.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
@@ -34,7 +34,7 @@ class Restio {
   final ProgressCallback<Response> onDownloadProgress;
   final BadCertificateCallback onBadCertificate;
   final bool http2;
-  final ClientCertificateJar clientCertificateJar;
+  final List<Certificate> certificates;
   final Cache cache;
   final List<RedirectPolicy> redirectPolicies;
   final RequestOptions options;
@@ -48,7 +48,7 @@ class Restio {
     this.onDownloadProgress,
     this.onBadCertificate,
     this.http2 = false,
-    this.clientCertificateJar,
+    this.certificates,
     this.cache,
     this.redirectPolicies,
     RequestOptions options,
@@ -96,7 +96,7 @@ class Restio {
     ProgressCallback<Response> onDownloadProgress,
     BadCertificateCallback onBadCertificate,
     bool http2,
-    ClientCertificateJar clientCertificateJar,
+    List<Certificate> certificates,
     Cache cache,
     List<RedirectPolicy> redirectPolicies,
     RequestOptions options,
@@ -110,7 +110,7 @@ class Restio {
       onDownloadProgress: onDownloadProgress ?? this.onDownloadProgress,
       onBadCertificate: onBadCertificate ?? this.onBadCertificate,
       http2: http2 ?? this.http2,
-      clientCertificateJar: clientCertificateJar ?? this.clientCertificateJar,
+      certificates: certificates ?? this.certificates,
       cache: cache ?? this.cache,
       redirectPolicies: redirectPolicies ?? this.redirectPolicies,
       options: options ?? this.options,

@@ -38,26 +38,29 @@ class HttpTransport implements Transport {
     final securityContext =
         SecurityContext(withTrustedRoots: client.withTrustedRoots ?? true);
 
-    final clientCertificate = await client.clientCertificateJar?.get(
-      request.uri.host,
-      request.uri.effectivePort,
+    // Busca o certificado.
+    final certificate = client.certificates?.firstWhere(
+      (certificate) {
+        return certificate.matches(request.uri.host, request.uri.effectivePort);
+      },
+      orElse: () => null,
     );
 
-    if (clientCertificate != null) {
-      final certificate = clientCertificate.certificate;
-      final privateKey = clientCertificate.privateKey;
-      final password = clientCertificate.password;
+    if (certificate != null) {
+      final chainBytes = certificate.certificate;
+      final keyBytes = certificate.privateKey;
+      final password = certificate.password;
 
-      if (certificate != null) {
+      if (chainBytes != null) {
         securityContext.useCertificateChainBytes(
-          certificate,
+          chainBytes,
           password: password,
         );
       }
 
-      if (privateKey != null) {
+      if (keyBytes != null) {
         securityContext.usePrivateKeyBytes(
-          privateKey,
+          keyBytes,
           password: password,
         );
       }

@@ -21,6 +21,7 @@ dependencies:
   brotli: ^0.2.2
   file: ^5.1.0
   convert: ^2.1.1
+  globbing: ^0.3.1
 
 dev_dependencies:
   encrypt: ^4.0.0
