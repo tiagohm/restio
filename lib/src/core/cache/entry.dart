@@ -36,7 +36,6 @@ class Entry {
     }
 
     builder.writeln('$code $message');
-
     builder.writeln(responseHeaders.length + 2);
 
     for (var i = 0; i < responseHeaders.length; i++) {
@@ -198,7 +197,7 @@ class Entry {
     final fields = response.headers.vary();
 
     if (fields.isEmpty) {
-      return HeadersBuilder().build();
+      return Headers.empty;
     }
 
     final result = HeadersBuilder();
@@ -206,7 +205,7 @@ class Entry {
     for (var i = 0; i < request.headers.length; i++) {
       final name = request.headers.nameAt(i);
 
-      if (fields.contains(name)) {
+      if (fields.contains(name.toLowerCase())) {
         result.add(name, request.headers.valueAt(i));
       }
     }

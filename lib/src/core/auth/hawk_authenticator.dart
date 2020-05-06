@@ -52,15 +52,13 @@ class HawkAuthenticator extends Authenticator {
 
   Request _authenticate(
     Challenge challenge,
-    Request originalRequest,
+    Request request,
     bool isProxy,
   ) {
-    final method = originalRequest.method;
-    final uri = originalRequest.uri;
+    final method = request.method;
+    final uri = request.uri;
 
-    final headerName = isProxy
-        ? HttpHeaders.proxyAuthorizationHeader
-        : HttpHeaders.authorizationHeader;
+    final headerName = isProxy ? 'Proxy-Authorization' : 'Authorization';
 
     final headerValue = _buildHeader(
       method: method ?? '',
@@ -71,10 +69,9 @@ class HawkAuthenticator extends Authenticator {
       algorithm: algorithm,
     );
 
-    return originalRequest.copyWith(
-      headers: (originalRequest.headers.toBuilder()
-            ..set(headerName, headerValue))
-          .build(),
+    return request.copyWith(
+      headers:
+          (request.headers.toBuilder()..set(headerName, headerValue)).build(),
     );
   }
 

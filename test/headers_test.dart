@@ -92,4 +92,12 @@ void main() {
     expect(headers.value('BOOL'), 'true');
     expect(headers.value('InT'), '5');
   });
+
+  test('Headers Preservers Case', () {
+    final builder = HeadersBuilder();
+    builder.add('STRING', 'foo');
+    final headers = builder.build();
+
+    expect(headers.nameAt(0), 'STRING');
+  });
 }

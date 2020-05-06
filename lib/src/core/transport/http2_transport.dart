@@ -112,7 +112,8 @@ class Http2Transport implements Transport {
 
       // Headers.
       request.headers?.forEach((item) {
-        headers.add(Header.ascii(item.name, item.value));
+        // https://tools.ietf.org/html/rfc7540#section-8.1.2
+        headers.add(Header.ascii(item.name.toLowerCase(), item.value));
       });
 
       // Body.

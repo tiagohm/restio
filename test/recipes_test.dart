@@ -1058,9 +1058,8 @@ class _RetryAfterInterceptor implements Interceptor {
     final response = await chain.proceed(request);
 
     return response.copyWith(
-      headers: (response.headers.toBuilder()
-            ..set(HttpHeaders.retryAfterHeader, seconds))
-          .build(),
+      headers:
+          (response.headers.toBuilder()..set('Retry-After', seconds)).build(),
     );
   }
 }

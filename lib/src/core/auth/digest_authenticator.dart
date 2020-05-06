@@ -57,9 +57,7 @@ class DigestAuthenticator extends Authenticator {
           algorithm: algorithm,
         );
 
-        final headerName = isProxy
-            ? HttpHeaders.proxyAuthorizationHeader
-            : HttpHeaders.authorizationHeader;
+        final headerName = isProxy ? 'Proxy-Authorization' : 'Authorization';
 
         return response.request.copyWith(
           headers: (response.request.headers.toBuilder()

@@ -42,7 +42,7 @@ class CacheStrategyFactory {
       final headers = cacheResponse.headers;
 
       for (var i = 0; i < headers.length; i++) {
-        final name = headers.nameAt(i);
+        final name = headers.nameAt(i).toLowerCase();
         final value = headers.valueAt(i);
 
         if (name == HttpHeaders.dateHeader) {
@@ -114,19 +114,14 @@ class CacheStrategyFactory {
       final builder = cacheResponse.headers.toBuilder();
 
       if (ageMillis + minFreshMillis >= freshMillis) {
-        builder.add(
-          HttpHeaders.warningHeader,
-          '110 HttpURLConnection \"Response is stale\"',
-        );
+        builder.add('Warning', '110 HttpURLConnection \"Response is stale\"');
       }
 
       final oneDayMillis = const Duration(days: 1).inMilliseconds;
 
       if (ageMillis > oneDayMillis && _isFreshnessLifetimeHeuristic()) {
         builder.add(
-          HttpHeaders.warningHeader,
-          '113 HttpURLConnection \"Heuristic expiration\"',
-        );
+            'Warning', '113 HttpURLConnection \"Heuristic expiration\"');
       }
 
       return CacheStrategy._(
@@ -142,13 +137,13 @@ class CacheStrategyFactory {
     String conditionValue;
 
     if (_etag != null) {
-      conditionName = HttpHeaders.ifNoneMatchHeader;
+      conditionName = 'If-None-Match';
       conditionValue = _etag;
     } else if (_lastModified != null) {
-      conditionName = HttpHeaders.ifModifiedSinceHeader;
+      conditionName = 'If-Modified-Since';
       conditionValue = _lastModifiedString;
     } else if (_servedDate != null) {
-      conditionName = HttpHeaders.ifModifiedSinceHeader;
+      conditionName = 'If-Modified-Since';
       conditionValue = _servedDateString;
     } else {
       // No condition! Make a regular request.

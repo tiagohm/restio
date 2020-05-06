@@ -24,8 +24,7 @@ class CookieInterceptor implements Interceptor {
       // Se tem cookies para enviar, seta no header.
       if (cookieHeader != null && cookieHeader.isNotEmpty) {
         request = request.copyWith(
-          headers: (request.headers.toBuilder()
-                ..set(HttpHeaders.cookieHeader, cookieHeader))
+          headers: (request.headers.toBuilder()..set('Cookie', cookieHeader))
               .build(),
         );
       }
@@ -33,9 +32,7 @@ class CookieInterceptor implements Interceptor {
       // TODO: Poderia ter uma opção para desabilitar isto?
       else {
         request = request.copyWith(
-          headers: (request.headers.toBuilder()
-                ..removeAll(HttpHeaders.cookieHeader))
-              .build(),
+          headers: (request.headers.toBuilder()..removeAll('Cookie')).build(),
         );
       }
     }

@@ -73,7 +73,7 @@ class _Sse implements Sse {
 
           // Monta o cabeçalho.
           final headers = request.headers.toBuilder();
-          headers.set('accept', 'text/event-stream');
+          headers.set('Accept', 'text/event-stream');
 
           if (lastEventId != null) {
             headers.set('Last-Event-ID', lastEventId);

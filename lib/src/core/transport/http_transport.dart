@@ -9,7 +9,6 @@ import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
-import 'package:restio/src/core/request/request_options.dart';
 import 'package:restio/src/core/response/response.dart';
 import 'package:restio/src/core/transport/transport.dart';
 
@@ -70,8 +69,8 @@ class HttpTransport implements Transport {
 
     httpClient = await onCreate(client, httpClient) ?? httpClient;
 
+    // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
     httpClient.badCertificateCallback = (cert, host, port) {
-      // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
       return !options.verifySSLCertificate ||
           (client.onBadCertificate?.call(cert, host, port) ?? false);
     };
@@ -106,9 +105,7 @@ class HttpTransport implements Transport {
 
   @override
   Future<Response> send(final Request request) async {
-    final options = RequestOptions.default_
-        .mergeWith(client.options)
-        .mergeWith(request.options);
+    final options = request.options;
 
     HttpClientRequest clientRequest;
     var uri = request.uri;
@@ -156,7 +153,11 @@ class HttpTransport implements Transport {
       }
 
       if (hasProxy) {
-        clientRequest.headers.add('proxy-connection', 'Keep-Alive');
+        clientRequest.headers.add(
+          'Proxy-Connection',
+          'Keep-Alive',
+          preserveHeaderCase: true,
+        );
       }
 
       // Não seguir redirecionamentos.
@@ -168,46 +169,74 @@ class HttpTransport implements Transport {
       // User-Agent.
       if (!request.headers.has(HttpHeaders.userAgentHeader)) {
         if (options.userAgent != null) {
-          clientRequest.headers
-              .set(HttpHeaders.userAgentHeader, options.userAgent);
+          clientRequest.headers.set(
+            'User-Agent',
+            options.userAgent,
+            preserveHeaderCase: true,
+          );
         } else {
-          clientRequest.headers
-              .set(HttpHeaders.userAgentHeader, 'Restio/${Restio.version}');
+          clientRequest.headers.set(
+            'User-Agent',
+            'Restio/${Restio.version}',
+            preserveHeaderCase: true,
+          );
         }
       }
 
       // Content-Type.
       if (!request.headers.has(HttpHeaders.contentTypeHeader) &&
           request.body?.contentType != null) {
-        clientRequest.headers.contentType =
-            request.body.contentType.toContentType();
+        clientRequest.headers.set(
+          'Content-Type',
+          request.body.contentType.toHeaderString(),
+          preserveHeaderCase: true,
+        );
       }
 
       // Accept-Encoding.
       if (!request.headers.has(HttpHeaders.acceptEncodingHeader)) {
-        clientRequest.headers
-            .set(HttpHeaders.acceptEncodingHeader, 'gzip, deflate, br');
+        clientRequest.headers.set(
+          'Accept-Encoding',
+          'gzip, deflate, br',
+          preserveHeaderCase: true,
+        );
       }
 
       // Connection.
       if (!request.headers.has(HttpHeaders.connectionHeader)) {
-        clientRequest.headers.set(HttpHeaders.connectionHeader, 'Keep-Alive');
+        clientRequest.headers.set(
+          'Connection',
+          'Keep-Alive',
+          preserveHeaderCase: true,
+        );
       }
 
       // Headers.
       request.headers?.forEach((item) {
         switch (item.name) {
           case HttpHeaders.userAgentHeader:
-            clientRequest.headers.set(item.name, item.value);
+            clientRequest.headers.set(
+              'User-Agent',
+              item.value,
+              preserveHeaderCase: true,
+            );
             break;
           default:
-            clientRequest.headers.add(item.name, item.value);
+            clientRequest.headers.add(
+              item.name,
+              item.value,
+              preserveHeaderCase: true,
+            );
         }
       });
 
       // Host.
       if (!request.headers.has(HttpHeaders.hostHeader) && dnsIp != null) {
-        clientRequest.headers.set('Host', request.uri.host);
+        clientRequest.headers.set(
+          'Host',
+          request.uri.host,
+          preserveHeaderCase: true,
+        );
       }
 
       // Body.
@@ -285,10 +314,21 @@ class HttpTransport implements Transport {
 
     if (request.body.contentLength == null || request.body.contentLength <= 0) {
       final data = await readStream(stream);
-      clientRequest.contentLength = data.length;
+
+      clientRequest.headers.add(
+        'Content-Length',
+        data.length.toString(),
+        preserveHeaderCase: true,
+      );
+
       clientRequest.add(data);
     } else {
-      clientRequest.contentLength = request.body.contentLength;
+      clientRequest.headers.add(
+        'Content-Length',
+        request.body.contentLength.toString(),
+        preserveHeaderCase: true,
+      );
+
       await clientRequest.addStream(stream);
     }
   }

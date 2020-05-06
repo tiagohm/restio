@@ -33,19 +33,16 @@ class BearerAuthenticator extends Authenticator {
   }
 
   Request _authenticate(
-    Request originalRequest,
+    Request request,
     bool isProxy,
   ) {
-    final headerName = isProxy
-        ? HttpHeaders.proxyAuthorizationHeader
-        : HttpHeaders.authorizationHeader;
+    final headerName = isProxy ? 'Proxy-Authorization' : 'Authorization';
 
     final headerValue = '$prefix $token';
 
-    return originalRequest.copyWith(
-      headers: (originalRequest.headers.toBuilder()
-            ..set(headerName, headerValue))
-          .build(),
+    return request.copyWith(
+      headers:
+          (request.headers.toBuilder()..set(headerName, headerValue)).build(),
     );
   }
 }

@@ -111,7 +111,7 @@ class MediaType extends Item {
   }
 
   @override
-  String get name => HttpHeaders.contentTypeHeader;
+  String get name => 'Content-Type';
 
   @override
   String get value => toHeaderString();

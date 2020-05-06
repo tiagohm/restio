@@ -42,15 +42,13 @@ class BasicAuthenticator extends Authenticator {
 
   Request _authenticate(
     Challenge challenge,
-    Request originalRequest,
+    Request request,
     bool isProxy,
   ) {
-    final headerName = isProxy
-        ? HttpHeaders.proxyAuthorizationHeader
-        : HttpHeaders.authorizationHeader;
+    final headerName = isProxy ? 'Proxy-Authorization' : 'Authorization';
 
-    return originalRequest.copyWith(
-      headers: (originalRequest.headers.toBuilder()
+    return request.copyWith(
+      headers: (request.headers.toBuilder()
             ..set(
               headerName,
               header(username, password, encoding: challenge?.encoding),

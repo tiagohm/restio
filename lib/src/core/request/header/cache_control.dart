@@ -42,7 +42,7 @@ class CacheControl extends Item {
   );
 
   @override
-  String get name => HttpHeaders.cacheControlHeader;
+  String get name => 'Cache-Control';
 
   @override
   String get value => toString();

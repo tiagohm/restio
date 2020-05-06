@@ -135,7 +135,7 @@ class CacheInterceptor implements Interceptor {
     final builder = HeadersBuilder();
 
     for (var i = 0; i < cachedHeaders.length; i++) {
-      final name = cachedHeaders.nameAt(i);
+      final name = cachedHeaders.nameAt(i).toLowerCase();
       final value = cachedHeaders.valueAt(i);
 
       if (name == HttpHeaders.warningHeader && value.startsWith('1')) {
@@ -145,15 +145,15 @@ class CacheInterceptor implements Interceptor {
       if (_isContentSpecificHeader(name) ||
           !_isEndToEnd(name) ||
           networkHeaders.value(name) == null) {
-        builder.set(name, value);
+        builder.set(cachedHeaders.nameAt(i), value);
       }
     }
 
     for (var i = 0; i < networkHeaders.length; i++) {
-      final name = networkHeaders.nameAt(i);
+      final name = networkHeaders.nameAt(i).toLowerCase();
 
       if (!_isContentSpecificHeader(name) && _isEndToEnd(name)) {
-        builder.set(name, networkHeaders.valueAt(i));
+        builder.set(networkHeaders.nameAt(i), networkHeaders.valueAt(i));
       }
     }
 
