@@ -246,12 +246,8 @@ void onProgress(Response res, int length, int total, bool done) {
   print('length: $length, total: $total, done: $done');
 };
 
-final progressClient = client.copyWith(
-  onDownloadProgress: onProgress,
-);
-
+final client = Restio(onDownloadProgress: onProgress);
 final request = get('https://httpbin.org/stream-bytes/36001');
-
 final call = client.newCall(request);
 final response = await call.execute();
 final data = await response.body.raw();
@@ -266,7 +262,6 @@ void onProgress(Request req, int length, int total, bool done) {
 };
 
 final client = Restio(onUploadProgress: onProgress);
-
 final request = post('https://postman-echo.com/post',
   body: File('./large_file.txt').asBody(),
 );
@@ -279,14 +274,14 @@ final response = await call.execute();
 
 ```dart
 final response = await call.execute();
-final responseBody = response.body;
-final data = await responseBody.raw();
+final body = response.body;
+final data = await body.raw();
 await response.close();
 
 // Called from any callback.
-responseBody.pause();
+body.pause();
 
-responseBody.resume();
+body.resume();
 ```
 
 ### Interceptors
@@ -294,6 +289,7 @@ responseBody.resume();
 ```dart
 const client = Restio(
   interceptors: [MyInterceptor()],
+  networkInterceptors: [MyInterceptor()],
 );
 
 class MyInterceptor implements Interceptor {
@@ -357,10 +353,10 @@ class MyCookieJar implements CookieJar {
 final client = Restio(
   certificates: [
     Certificate(
-      'client.badssl.com',
+      'client.badssl.com', // supports wildcard too!
       File('./test/assets/badssl.com-client.pem').readAsBytesSync(),
       File('./test/assets/badssl.com-client.p12').readAsBytesSync(),
-      port: 443,
+      port: 443, // Optional.
       password: 'badssl.com',
     ),
   ],

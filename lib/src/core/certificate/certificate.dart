@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import 'package:globbing/globbing.dart';
+import 'package:restio/src/common/glob_matcher.dart';
 
 class Certificate extends Equatable {
   final String host;
@@ -23,7 +23,7 @@ class Certificate extends Equatable {
     int port,
   ) {
     return (this.port == null || this.port == port) &&
-        Glob(this.host).match(host);
+        GlobMatcher(this.host).matches(host);
   }
 
   @override
