@@ -14,7 +14,7 @@ class RequestOptions extends Equatable {
   final String userAgent;
   final Proxy proxy;
   final Dns dns;
-  
+
   const RequestOptions({
     this.connectTimeout,
     this.writeTimeout,

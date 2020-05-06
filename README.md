@@ -79,7 +79,7 @@ await response.close();
 
 ## Recipes
 
-### Request Options:
+### Request Options
 
 ```dart
 const options = RequestOptions(
@@ -102,7 +102,7 @@ const client = Restio(options: options);
 final request = get('http://httpbin.org/get', options: options);
 ```
 
-### Adding Headers and Queries:
+### Adding Headers and Queries
 
 ```dart
 final request = Request.get(
@@ -122,7 +122,7 @@ builder.removeAll('header-name');
 final headers = builder.build();
 ```
 
-### Performing a GET request:
+### Performing a GET request
 
 ```dart
 const client = Restio();
@@ -131,7 +131,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-### Performing a POST request:
+### Performing a POST request
 
 ```dart
 final request = post(
@@ -142,41 +142,41 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-### Get response stream:
+### Get response stream
 ```dart
 final stream = response.body.data;
 await response.close();
 ```
 
-### Get raw response bytes:
+### Get raw response bytes
 
 ```dart
 final bytes = await response.body.raw();
 await response.close();
 ```
 
-### Get decompressed response bytes (gzip, deflate or brotli):
+### Get decompressed response bytes (gzip, deflate or brotli)
 
 ```dart
 final bytes = await response.body.decompressed();
 await response.close();
 ```
 
-### Get response string:
+### Get response string
 
 ```dart
 final string = await response.body.string();
 await response.close();
 ```
 
-### Get response JSON:
+### Get response JSON
 
 ```dart
 final json = await response.body.json();
 await response.close();
 ```
 
-### Sending form data:
+### Sending form data
 ```dart
 final request = post(
   'https://postman-echo.com/post',
@@ -189,7 +189,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-### Sending multipart data:
+### Sending multipart data
 
 ```dart
 final request = post(
@@ -226,7 +226,7 @@ final request = post(
 );
 ```
 
-### Posting binary data:
+### Posting binary data
 
 ```dart
 // Binary data.
@@ -239,7 +239,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-### Listening for download progress:
+### Listening for download progress
 
 ```dart
 void onProgress(Response res, int length, int total, bool done) {
@@ -254,7 +254,7 @@ final data = await response.body.raw();
 await response.close();
 ```
 
-### Listening for upload progress:
+### Listening for upload progress
 
 ```dart
 void onProgress(Request req, int length, int total, bool done) {

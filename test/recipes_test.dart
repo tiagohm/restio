@@ -677,8 +677,8 @@ void main() {
   });
 
   test('Custom Host Header', () async {
-    final dns = DnsOverHttps.google();
-    final client = Restio(options: RequestOptions(dns: dns));
+    const dns = DnsOverHttps.google();
+    const client = Restio(options: RequestOptions(dns: dns));
 
     final request = get(
       'https://httpbin.org/get',
@@ -999,7 +999,7 @@ void main() {
     });
 
     test('DNS', () async {
-      final options = RequestOptions(dns: DnsOverHttps.google());
+      const options = RequestOptions(dns: DnsOverHttps.google());
       final request = get('https://postman-echo.com/get', options: options);
       final response = await requestResponse(client, request);
 

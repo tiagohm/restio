@@ -118,13 +118,13 @@ List<String> _readDnsName(
 }
 
 class DnsResourceRecord extends SelfCodec {
-  static const int responseCodeNoError = 0;
-  static const int responseCodeFormatError = 1;
-  static const int responseCodeServerFailure = 2;
-  static const int responseCodeNonExistentDomain = 3;
-  static const int responseCodeNotImplemented = 4;
-  static const int responseCodeQueryRefused = 5;
-  static const int responseCodeNotInZone = 10;
+  static const responseCodeNoError = 0;
+  static const responseCodeFormatError = 1;
+  static const responseCodeServerFailure = 2;
+  static const responseCodeNonExistentDomain = 3;
+  static const responseCodeNotImplemented = 4;
+  static const responseCodeQueryRefused = 5;
+  static const responseCodeNotInZone = 10;
 
   static String stringFromResponseCode(int code) {
     switch (code) {
@@ -148,34 +148,34 @@ class DnsResourceRecord extends SelfCodec {
   }
 
   /// A host address ('A' record).
-  static const int typeIp4 = 1;
+  static const typeIp4 = 1;
 
   /// Authoritative name server ('NS' record).
-  static const int typeNameServer = 2;
+  static const typeNameServer = 2;
 
   /// The canonical name for an alias ('CNAME' record).
-  static const int typeCanonicalName = 5;
+  static const typeCanonicalName = 5;
 
   /// Domain name pointer ('PTR' record).
-  static const int typeDomainNamePointer = 12;
+  static const typeDomainNamePointer = 12;
 
   /// Mail server ('MX' record) record.
-  static const int typeMailServer = 15;
+  static const typeMailServer = 15;
 
   /// Text record ('TXT' record).
-  static const int typeText = 15;
+  static const typeText = 15;
 
   /// IPv6 host address record.
-  static const int typeIp6 = 28;
+  static const typeIp6 = 28;
 
   /// Server discovery ('SRV' record).
-  static const int typeServerDiscovery = 33;
+  static const typeServerDiscovery = 33;
 
   static String stringFromType(int value) {
     return DnsQuestion.stringFromType(value);
   }
 
-  static const int classInternetAddress = 1;
+  static const classInternetAddress = 1;
 
   static String stringFromClass(int value) {
     return DnsQuestion.stringFromClass(value);
@@ -184,7 +184,7 @@ class DnsResourceRecord extends SelfCodec {
   /// List of name parts.
   ///
   /// It can be an immutable value.
-  List<String> nameParts = const <String>[];
+  var nameParts = const <String>[];
 
   set name(String value) {
     nameParts = value.split('.');
@@ -268,18 +268,18 @@ class DnsResourceRecord extends SelfCodec {
 }
 
 class DnsPacket extends Packet {
-  static const int opQuery = 0;
-  static const int opInverseQuery = 1;
-  static const int opStatus = 2;
-  static const int opNotify = 3;
-  static const int opUpdate = 4;
+  static const opQuery = 0;
+  static const opInverseQuery = 1;
+  static const opStatus = 2;
+  static const opNotify = 3;
+  static const opUpdate = 4;
 
-  int _v0 = 0;
+  var _v0 = 0;
 
-  List<DnsQuestion> questions = const <DnsQuestion>[];
-  List<DnsResourceRecord> answers = const <DnsResourceRecord>[];
-  List<DnsResourceRecord> authorities = const <DnsResourceRecord>[];
-  List<DnsResourceRecord> additionalRecords = const <DnsResourceRecord>[];
+  var questions = const <DnsQuestion>[];
+  var answers = const <DnsResourceRecord>[];
+  var authorities = const <DnsResourceRecord>[];
+  var additionalRecords = const <DnsResourceRecord>[];
 
   DnsPacket() {
     op = opQuery;
@@ -447,12 +447,12 @@ class DnsPacket extends Packet {
 }
 
 class DnsQuestion extends SelfCodec {
-  static const int typeIp4 = 1;
-  static const int typeNameServer = 2;
-  static const int typeCanonicalName = 5;
-  static const int typeMailServer = 15;
-  static const int typeTxt = 16;
-  static const int typeIp6 = 28;
+  static const typeIp4 = 1;
+  static const typeNameServer = 2;
+  static const typeCanonicalName = 5;
+  static const typeMailServer = 15;
+  static const typeTxt = 16;
+  static const typeIp6 = 28;
 
   static String stringFromType(int type) {
     switch (type) {
@@ -473,7 +473,7 @@ class DnsQuestion extends SelfCodec {
     }
   }
 
-  static const int classInternetAddress = 1;
+  static const classInternetAddress = 1;
 
   static String stringFromClass(int type) {
     switch (type) {
@@ -485,7 +485,7 @@ class DnsQuestion extends SelfCodec {
   }
 
   /// List of name parts.
-  List<String> nameParts = <String>[];
+  var nameParts = <String>[];
 
   set name(String value) {
     nameParts = value.split('.');

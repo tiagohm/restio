@@ -1,5 +1,5 @@
 // Copyright 2019 Gohilla.com team.
-// Modifications Copyright 2019 Tiago Melo.
+// Modifications Copyright 2019-2020 Tiago Melo.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -19,10 +19,11 @@ import 'package:ip/ip.dart';
 import 'package:restio/src/core/dns/dns_packet.dart';
 
 abstract class Dns {
-  static const Duration defaultTimeout = Duration(seconds: 15);
-  static const Dns system = _SystemDns();
-
   const Dns();
+
+  static const Duration defaultTimeout = Duration(seconds: 15);
+
+  static const Dns system = _SystemDns();
 
   Future<List<IpAddress>> lookup(
     String name, {
@@ -122,6 +123,8 @@ class _SystemDns extends Dns {
 }
 
 abstract class PacketBasedDns extends Dns {
+  const PacketBasedDns();
+
   @override
   Future<DnsPacket> lookupPacket(
     String name, {

@@ -1,5 +1,5 @@
 // Copyright 2019 Gohilla.com team.
-// Modifications Copyright 2019 Tiago Melo.
+// Modifications Copyright 2019-2020 Tiago Melo.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 import 'dart:io';
 
 import 'package:ip/ip.dart';
+import 'package:restio/restio.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/dns/dns.dart';
 import 'package:restio/src/core/dns/dns_over_udp.dart';
@@ -33,74 +34,72 @@ class DnsOverHttps extends PacketBasedDns {
   final bool maximalPrivacy;
   final Duration timeout;
   final Queries queries;
-  final Restio _client;
+  final Restio client;
 
-  DnsOverHttps(
+  const DnsOverHttps(
     this.uri, {
     Restio client,
     this.timeout,
     this.maximalPrivacy = false,
     this.dns,
     this.queries,
-  }) : _client = _obtainRealClient(client, timeout);
+  }) : client = client ?? const Restio();
 
-  static Restio _obtainRealClient(
-    Restio client,
-    Duration timeout,
-  ) {
-    final options = (client?.options ?? RequestOptions.default_)
-        .copyWith(connectTimeout: timeout);
-    return (client ?? const Restio()).copyWith(options: options);
-  }
-
-  DnsOverHttps.google({
+  const DnsOverHttps.google({
     Restio client,
     Duration timeout,
     bool maximalPrivacy = false,
     Dns dns,
   }) : this(
-          RequestUri.parse('https://dns.google.com/resolve'),
+          // RequestUri.parse('https://dns.google.com/resolve'),
+          const RequestUri(
+              scheme: 'https', host: 'dns.google.com', paths: ['resolve']),
           client: client,
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
           dns: dns,
         );
 
-  DnsOverHttps.cloudflare({
+  const DnsOverHttps.cloudflare({
     Restio client,
     Duration timeout,
     bool maximalPrivacy = false,
     Dns dns,
   }) : this(
-          RequestUri.parse('https://cloudflare-dns.com/dns-query'),
+          // RequestUri.parse('https://cloudflare-dns.com/dns-query'),
+          const RequestUri(
+              scheme: 'https',
+              host: 'cloudflare-dns.com',
+              paths: ['dns-query']),
           client: client,
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
           dns: dns,
-          queries: Queries.fromMap({
-            'ct': 'application/dns-json',
-          }),
+          queries: const Queries([Query('ct', 'application/dns-json')]),
         );
 
-  DnsOverHttps.mozilla({
+  const DnsOverHttps.mozilla({
     Restio client,
     Duration timeout,
     bool maximalPrivacy = false,
     Dns dns,
   }) : this(
-          RequestUri.parse('https://mozilla.cloudflare-dns.com/dns-query'),
+          // RequestUri.parse('https://mozilla.cloudflare-dns.com/dns-query'),
+          const RequestUri(
+              scheme: 'https',
+              host: 'mozilla.cloudflare-dns.com',
+              paths: ['dns-query']),
           client: client,
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
           dns: dns,
-          queries: Queries.fromMap({
-            'ct': 'application/dns-json',
-          }),
+          queries: const Queries([Query('ct', 'application/dns-json')]),
         );
 
   Future<Response> _execute(RequestUri uri) async {
-    final request = Request(uri: uri);
-    final call = _client.newCall(request);
+    final options = RequestOptions(connectTimeout: timeout);
+    final request = Request(uri: uri, options: options);
+    final call = client.newCall(request);
     return call.execute();
   }
 
@@ -116,30 +115,29 @@ class DnsOverHttps extends PacketBasedDns {
     }
 
     // Build URL.
-    final queries = <String, dynamic>{};
-    queries['name'] = Uri.encodeQueryComponent(name);
+    final queries = QueriesBuilder();
+    queries.add('name', Uri.encodeQueryComponent(name));
 
     // Add: IPv4 or IPv6?
     if (type == null) {
       throw ArgumentError.notNull('type');
     } else if (type == InternetAddressType.any ||
         type == InternetAddressType.IPv4) {
-      queries['type'] = 'A';
+      queries.add('type', 'A');
     } else {
-      queries['type'] = 'AAAA';
+      queries.add('type', 'AAAA');
     }
 
     // Hide my IP?
     if (maximalPrivacy) {
-      queries['edns_client_subnet'] = '0.0.0.0/0';
+      queries.add('edns_client_subnet', '0.0.0.0/0');
     }
 
     // Additional queries.
-    uri.queries.forEach((item) => queries[item.name] = item.value);
-    this.queries?.forEach((item) => queries[item.name] = item.value);
+    uri.queries.forEach((item) => queries.add(item.name, item.value));
+    this.queries?.forEach((item) => queries.add(item.name, item.value));
 
-    final response =
-        await _execute(uri.copyWith(queries: Queries.fromMap(queries)));
+    final response = await _execute(uri.copyWith(queries: queries.build()));
 
     if (response.code != 200) {
       throw RestioException(

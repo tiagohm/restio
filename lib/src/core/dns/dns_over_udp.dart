@@ -1,5 +1,5 @@
 // Copyright 2019 Gohilla.com team.
-// Modifications Copyright 2019 Tiago Melo.
+// Modifications Copyright 2019-2020 Tiago Melo.
 //
 // Licensed under the Apache License, Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -40,14 +40,8 @@ class DnsOverUdp extends PacketBasedDns {
     this.localAddress,
     this.localPort,
     this.timeout,
-  }) {
-    if (remoteAddress == null) {
-      throw ArgumentError.notNull('remoteAddress');
-    }
-    if (remotePort == null) {
-      throw ArgumentError.notNull('remotePort');
-    }
-  }
+  })  : assert(remoteAddress != null),
+        assert(remotePort != null);
 
   factory DnsOverUdp.ip(String ip) {
     return DnsOverUdp(remoteAddress: InternetAddress(ip));
