@@ -27,12 +27,10 @@ abstract class RequestBody {
   factory RequestBody.bytes(
     List<int> data, {
     MediaType contentType,
-    int contentLength,
   }) {
     return _BytesRequestBody(
       data: data,
       contentType: contentType ?? MediaType.octetStream,
-      contentLength: contentLength,
     );
   }
 
@@ -51,23 +49,26 @@ abstract class RequestBody {
   factory RequestBody.file(
     File file, {
     MediaType contentType,
-    int contentLength,
+    String charset, // charset for auto-detect Content-Type.
+    int start,
+    int end,
   }) {
     return _FileRequestBody(
       file: file,
-      contentType: contentType ?? MediaType.fromFile(file.path),
-      contentLength: contentLength,
+      contentType: contentType ?? MediaType.fromFile(file.path, charset),
+      start: start,
+      end: end,
     );
   }
+
+  static const _prettyJson = JsonEncoder.withIndent('  ');
 
   factory RequestBody.json(
     Object o, {
     bool pretty = false,
   }) {
     return RequestBody.string(
-      pretty
-          ? const JsonEncoder.withIndent('  ').convert(o)
-          : json.encoder.convert(o),
+      pretty ? _prettyJson.convert(o) : json.encoder.convert(o),
       contentType: MediaType.json,
     );
   }
@@ -117,13 +118,8 @@ class _StringRequestBody implements RequestBody {
 
   @override
   Stream<List<int>> write() async* {
-    final encoding = contentType?.encoding;
-
-    if (encoding != null) {
-      yield encoding.encode(text);
-    } else {
-      yield utf8.encode(text);
-    }
+    final encoding = contentType?.encoding ?? utf8;
+    yield encoding.encode(text);
   }
 
   @override
@@ -143,10 +139,8 @@ class _BytesRequestBody implements RequestBody {
   _BytesRequestBody({
     @required this.data,
     this.contentType,
-    int contentLength,
   })  : assert(data != null),
-        assert(contentLength == null || contentLength > 0),
-        contentLength = contentLength ?? data?.length ?? 0;
+        contentLength = data?.length ?? 0;
 
   @override
   Stream<List<int>> write() async* {
@@ -166,18 +160,20 @@ class _FileRequestBody implements RequestBody {
   @override
   final int contentLength;
   final File file;
+  final int start;
+  final int end;
 
   _FileRequestBody({
     @required this.file,
     this.contentType,
-    int contentLength,
+    this.start,
+    this.end,
   })  : assert(file != null),
-        assert(contentLength == null || contentLength >= -1),
-        contentLength = contentLength ?? file.lengthSync();
+        contentLength = (end ?? file.lengthSync()) - (start ?? 0);
 
   @override
   Stream<List<int>> write() async* {
-    yield await file.readAsBytes();
+    yield* file.openRead(start ?? 0, end);
   }
 
   @override

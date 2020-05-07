@@ -129,8 +129,17 @@ extension StringExtension on String {
 }
 
 extension FileExtension on File {
-  RequestBody asBody([MediaType contentType]) {
-    return RequestBody.file(this, contentType: contentType);
+  RequestBody asBody({
+    MediaType contentType,
+    int start,
+    int end,
+  }) {
+    return RequestBody.file(
+      this,
+      contentType: contentType,
+      start: start,
+      end: end,
+    );
   }
 }
 

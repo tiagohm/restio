@@ -142,6 +142,7 @@ void main() {
     final data = await requestJson(client, request);
 
     expect(isDone, true);
+    expect(data['headers']['content-length'], '${request.body.contentLength}');
     expect(data['data']['type'], 'Buffer');
     expect(data['data']['data'], const [
       57, 142, 52, 40, 70, //
@@ -169,6 +170,21 @@ void main() {
     expect(isDone, true);
     expect(
         data['data'], 'data:application/octet-stream;base64,OY40KEa5vitQmQ==');
+  });
+
+  test('Posting Part of Binary File', () async {
+    const client = Restio();
+
+    final request = post(
+      'https://postman-echo.com/post',
+      body: File('./test/assets/binary.dat').asBody(start: 2, end: 6),
+    );
+
+    final data = await requestJson(client, request);
+
+    expect(data['headers']['content-length'], '${request.body.contentLength}');
+    expect(data['data']['type'], 'Buffer');
+    expect(data['data']['data'], const [52, 40, 70, 185]);
   });
 
   test('User-Agent', () async {

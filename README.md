@@ -5,9 +5,9 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 ## Features
 
 * GET, POST, PUT, DELETE, HEAD, PATCH, OPTIONS, etc.
-* Request Body can be List&lt;int&gt;, String, Stream or File.
+* Request Body can be List&lt;int&gt;, String, Stream, File or JSON Object.
   * Auto detects Content-Type.
-  * Buffer less processing for List&lt;int&gt;, String and File.
+  * Buffer less processing for List&lt;int&gt; and File.
 * Response Body gives you access as raw or decompressed data (List&lt;int&gt;), String and JSON Object too.
   * Supports Gzip, Deflate and Brotli.
 * Easy to upload one or more file(s) via multipart/form-data.
@@ -466,8 +466,8 @@ await conn.close();
 Thanks to [dart-protocol](https://github.com/dart-protocol) for this great [dns](https://github.com/dart-protocol/dns) library!
 
 ```dart
-final dns = DnsOverUdp.google();
-final client = Restio(options: RequestOptions(dns: dns));
+const dns = DnsOverUdp.google();
+const client = Restio(options: RequestOptions(dns: dns));
 final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();
