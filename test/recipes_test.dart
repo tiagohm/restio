@@ -326,6 +326,14 @@ void main() {
     request = get('https://postman-echo.com/auth/hawk/?a=b');
     response = await requestResponse(client, request);
     expect(response.code, 200);
+
+    request = get('https://postman-echo.com/auth/hawk?a=', keepEqualSign: true);
+    response = await requestResponse(client, request);
+    expect(response.code, 200);
+
+    request = get('https://postman-echo.com/auth/hawk?a');
+    response = await requestResponse(client, request);
+    expect(response.code, 200);
   });
 
   test('Timeout', () async {
@@ -964,6 +972,7 @@ void main() {
         userAgent: 'pqrstuvwxyz',
       ),
     );
+
     test('Authentication', () async {
       const options = RequestOptions(
         auth: BasicAuthenticator(username: 'a', password: 'b'),
@@ -1038,6 +1047,39 @@ void main() {
       await response.close();
 
       expect(data['authenticated'], true);
+    });
+
+    test('Equal Sign If Empty', () async {
+      var request = get('https://httpbin.org/get?a=', keepEqualSign: true);
+      var response = await requestResponse(client, request);
+      var data = await response.body.json();
+      await response.close();
+      expect(data['url'], 'https://httpbin.org/get?a=');
+
+      request = get('https://httpbin.org/get?a', keepEqualSign: true);
+      response = await requestResponse(client, request);
+      data = await response.body.json();
+      await response.close();
+      expect(data['url'], 'https://httpbin.org/get?a=');
+
+      request = get('https://httpbin.org/get?a=');
+      response = await requestResponse(client, request);
+      data = await response.body.json();
+      await response.close();
+      expect(data['url'], 'https://httpbin.org/get?a');
+
+      request = get('https://httpbin.org/get?a');
+      response = await requestResponse(client, request);
+      data = await response.body.json();
+      await response.close();
+      expect(data['url'], 'https://httpbin.org/get?a');
+
+      request = get('https://httpbin.org/get?a',
+          queries: {'c': 'd'}.asQueries(keepEqualSign: true));
+      response = await requestResponse(client, request);
+      data = await response.body.json();
+      await response.close();
+      expect(data['url'], 'https://httpbin.org/get?a=&c=d');
     });
   });
 

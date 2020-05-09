@@ -25,7 +25,10 @@ class RequestUri extends Equatable {
   })  : paths = paths ?? const [],
         queries = queries ?? Queries.empty;
 
-  factory RequestUri.fromUri(Uri uri) {
+  factory RequestUri.fromUri(
+    Uri uri, {
+    bool keepEqualSign = false,
+  }) {
     final userInfo = uri.userInfo.isNotEmpty ? uri.userInfo.split(':') : null;
 
     return RequestUri(
@@ -36,11 +39,14 @@ class RequestUri extends Equatable {
       scheme: uri.scheme,
       username: userInfo?.isNotEmpty == true ? userInfo[0] : null,
       password: userInfo?.length == 2 ? userInfo[1] : null,
-      queries: _obtainQueriesFromMap(uri.queryParametersAll),
+      queries: _obtainQueriesFromMap(uri.queryParametersAll, keepEqualSign),
     );
   }
 
-  factory RequestUri.parse(String uri) {
+  factory RequestUri.parse(
+    String uri, {
+    bool keepEqualSign = false,
+  }) {
     final p =
         uri == null || uri.isEmpty ? const <String, dynamic>{} : parseUri(uri);
 
@@ -52,14 +58,15 @@ class RequestUri extends Equatable {
       scheme: p['scheme'],
       username: p['username'],
       password: p['password'],
-      queries: _obtainQueriesFromList(p['query']),
+      queries: _obtainQueriesFromList(p['query'], keepEqualSign),
     );
   }
 
   static Queries _obtainQueriesFromList(
     List<String> queries,
+    bool keepEqualSign,
   ) {
-    final builder = QueriesBuilder();
+    final builder = QueriesBuilder(keepEqualSign: keepEqualSign);
 
     if (queries != null) {
       for (var i = 0; i < queries.length; i += 2) {
@@ -76,8 +83,9 @@ class RequestUri extends Equatable {
 
   static Queries _obtainQueriesFromMap(
     Map<String, List<String>> queries,
+    bool keepEqualSign,
   ) {
-    final builder = QueriesBuilder();
+    final builder = QueriesBuilder(keepEqualSign: keepEqualSign);
 
     queries.forEach((key, values) {
       for (final item in values) {

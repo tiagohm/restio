@@ -2642,6 +2642,96 @@ void testCache(
     expect(await response.body.string(), 'B');
     await response.close();
   });
+
+  test('Url With Equal Sign If Empty', () async {
+    final cache = Cache(store: await store());
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockInterceptor(
+          [
+            MockResponse(
+              body: 'A',
+              headers: {
+                'last-modified': obtainDate(const Duration(hours: -1)),
+                'expires': obtainDate(const Duration(hours: 1)),
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+
+    // Cache 'A' for '?a='.
+    var request = Request.get('$url?a=', keepEqualSign: true);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(await response.body.string(), 'A');
+    await response.close();
+
+    // Use the same cache.
+    request = Request.get('$url?a', keepEqualSign: true);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(await response.body.string(), 'A');
+    await response.close();
+  });
+
+  test('Url Without Equal Sign If Empty', () async {
+    final cache = Cache(store: await store());
+    final cacheClient = client.copyWith(
+      cache: cache,
+      networkInterceptors: [
+        MockInterceptor(
+          [
+            MockResponse(
+              body: 'A',
+              headers: {
+                'last-modified': obtainDate(const Duration(hours: -1)),
+                'expires': obtainDate(const Duration(hours: 1)),
+              },
+            ),
+            MockResponse(
+              body: 'B',
+              headers: {
+                'last-modified': obtainDate(const Duration(hours: -1)),
+                'expires': obtainDate(const Duration(hours: 1)),
+              },
+            ),
+          ],
+        ),
+      ],
+    );
+
+    // Cache 'A' for '?a'.
+    var request = Request.get('$url?a=', keepEqualSign: false);
+    var call = cacheClient.newCall(request);
+    var response = await call.execute();
+
+    expect(await response.body.string(), 'A');
+    await response.close();
+
+    // Use the same cache.
+    request = Request.get('$url?a', keepEqualSign: false);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(await response.body.string(), 'A');
+    await response.close();
+
+    // Cache 'B' for '?a='.
+    request = Request.get('$url?a=', keepEqualSign: true);
+
+    call = cacheClient.newCall(request);
+    response = await call.execute();
+
+    expect(await response.body.string(), 'B');
+    await response.close();
+  });
 }
 
 String obtainDate(Duration duration) {

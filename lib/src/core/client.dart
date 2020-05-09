@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/cache/cache.dart';
 import 'package:restio/src/core/call/call.dart';
 import 'package:restio/src/core/call/cancellable.dart';
@@ -66,7 +67,7 @@ class Restio {
     Duration pingInterval,
   }) {
     return _WebSocket(
-      request,
+      request.copyWith(options: mergeOptions(this, request)),
       protocols: protocols,
       pingInterval: pingInterval,
     );

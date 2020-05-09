@@ -169,9 +169,10 @@ class Entry {
   }
 
   factory Entry.fromResponse(Response response) {
-    final url = response.request.uri.toUriString();
-    final varyHeaders = _varyHeaders(response.request, response);
-    final method = response.request.method;
+    final request = response.request;
+    final url = request.uri.toUriString();
+    final varyHeaders = _varyHeaders(request, response);
+    final method = request.method;
     final code = response.code;
     final message = response.message;
     final responseHeaders = response.headers;

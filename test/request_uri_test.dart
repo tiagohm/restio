@@ -65,6 +65,26 @@ void main() {
     expect(uri.queries.valueAt(1), 'd');
   });
 
+  test('Query With Equal Sign If Empty', () {
+    final uri = RequestUri(
+        scheme: 'https',
+        host: 'httpbin.org',
+        paths: ['get'],
+        queries: {'a': '', 'c': 'd'}.asQueries(keepEqualSign: true));
+    expect(uri.toUriString(), 'https://httpbin.org/get?a=&c=d');
+    expect(uri.toUri().toString(), 'https://httpbin.org/get?a=&c=d');
+  });
+
+  test('Query Without Equal Sign If Empty', () {
+    final uri = RequestUri(
+        scheme: 'https',
+        host: 'httpbin.org',
+        paths: ['get'],
+        queries: {'a': '', 'c': 'd'}.asQueries());
+    expect(uri.toUriString(), 'https://httpbin.org/get?a&c=d');
+    expect(uri.toUri().toString(), 'https://httpbin.org/get?a&c=d');
+  });
+
   test('Uri', () {
     final uri = Uri.parse('https://user:pass@example.com:8080/a/b/c?d=e#f');
     final req = RequestUri.fromUri(uri);

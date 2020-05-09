@@ -60,6 +60,9 @@ class DnsOverHttps extends PacketBasedDns {
           dns: dns,
         );
 
+  static const _ctDnsJson =
+      Queries(items: [Query('ct', 'application/dns-json')]);
+
   const DnsOverHttps.cloudflare({
     Restio client,
     Duration timeout,
@@ -75,7 +78,7 @@ class DnsOverHttps extends PacketBasedDns {
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
           dns: dns,
-          queries: const Queries([Query('ct', 'application/dns-json')]),
+          queries: _ctDnsJson,
         );
 
   const DnsOverHttps.mozilla({
@@ -93,7 +96,7 @@ class DnsOverHttps extends PacketBasedDns {
           timeout: timeout,
           maximalPrivacy: maximalPrivacy,
           dns: dns,
-          queries: const Queries([Query('ct', 'application/dns-json')]),
+          queries: _ctDnsJson,
         );
 
   Future<Response> _execute(RequestUri uri) async {

@@ -21,6 +21,7 @@ Request get(
   Map<String, dynamic> extra,
   CacheControl cacheControl,
   RequestOptions options,
+  bool keepEqualSign = false,
 }) {
   return Request.get(
     uri,
@@ -29,6 +30,7 @@ Request get(
     extra: extra,
     cacheControl: cacheControl,
     options: options,
+    keepEqualSign: keepEqualSign,
   );
 }
 
@@ -39,6 +41,7 @@ Request post(
   Map<String, dynamic> extra,
   RequestBody body,
   RequestOptions options,
+  bool keepEqualSign = false,
 }) {
   return Request.post(
     uri,
@@ -47,6 +50,7 @@ Request post(
     extra: extra,
     body: body,
     options: options,
+    keepEqualSign: keepEqualSign,
   );
 }
 
@@ -57,6 +61,7 @@ Request put(
   Map<String, dynamic> extra,
   RequestBody body,
   RequestOptions options,
+  bool keepEqualSign = false,
 }) {
   return Request.put(
     uri,
@@ -65,6 +70,7 @@ Request put(
     extra: extra,
     body: body,
     options: options,
+    keepEqualSign: keepEqualSign,
   );
 }
 
@@ -75,6 +81,7 @@ Request delete(
   Map<String, dynamic> extra,
   RequestBody body,
   RequestOptions options,
+  bool keepEqualSign = false,
 }) {
   return Request.delete(
     uri,
@@ -83,6 +90,7 @@ Request delete(
     extra: extra,
     body: body,
     options: options,
+    keepEqualSign: keepEqualSign,
   );
 }
 
@@ -93,6 +101,7 @@ Request head(
   Map<String, dynamic> extra,
   CacheControl cacheControl,
   RequestOptions options,
+  bool keepEqualSign = false,
 }) {
   return Request.head(
     uri,
@@ -101,6 +110,7 @@ Request head(
     extra: extra,
     cacheControl: cacheControl,
     options: options,
+    keepEqualSign: keepEqualSign,
   );
 }
 
@@ -110,6 +120,7 @@ Request patch(
   Queries queries,
   Map<String, dynamic> extra,
   RequestOptions options,
+  bool keepEqualSign = false,
 }) {
   return Request.patch(
     uri,
@@ -117,6 +128,7 @@ Request patch(
     queries: queries,
     extra: extra,
     options: options,
+    keepEqualSign: keepEqualSign,
   );
 }
 
@@ -144,8 +156,8 @@ extension FileExtension on File {
 }
 
 extension MapExtension on Map<String, dynamic> {
-  Queries asQueries() {
-    return Queries.fromMap(this);
+  Queries asQueries({bool keepEqualSign = false}) {
+    return Queries.fromMap(this, keepEqualSign: keepEqualSign);
   }
 
   Headers asHeaders() {

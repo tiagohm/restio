@@ -26,8 +26,9 @@ class Request extends Equatable {
     this.extra,
     CacheControl cacheControl,
     RequestOptions options,
+    bool keepEqualSign = false,
   })  : assert(uri != null),
-        uri = _obtainUri(uri, queries),
+        uri = _obtainUri(uri, queries ?? Queries.empty, keepEqualSign),
         headers = headers ?? Headers.empty,
         cacheControl = cacheControl ??
             CacheControl.fromHeaders(headers) ??
@@ -41,8 +42,9 @@ class Request extends Equatable {
     Map<String, dynamic> extra,
     CacheControl cacheControl,
     RequestOptions options,
+    bool keepEqualSign = false,
   }) : this(
-          uri: RequestUri.parse(uri),
+          uri: RequestUri.parse(uri, keepEqualSign: keepEqualSign),
           headers: headers,
           queries: queries,
           extra: extra,
@@ -57,9 +59,10 @@ class Request extends Equatable {
     RequestBody body,
     Map<String, dynamic> extra,
     RequestOptions options,
+    bool keepEqualSign = false,
   }) : this(
           method: 'POST',
-          uri: RequestUri.parse(uri),
+          uri: RequestUri.parse(uri, keepEqualSign: keepEqualSign),
           headers: headers,
           queries: queries,
           body: body,
@@ -74,9 +77,10 @@ class Request extends Equatable {
     RequestBody body,
     Map<String, dynamic> extra,
     RequestOptions options,
+    bool keepEqualSign = false,
   }) : this(
           method: 'PUT',
-          uri: RequestUri.parse(uri),
+          uri: RequestUri.parse(uri, keepEqualSign: keepEqualSign),
           headers: headers,
           queries: queries,
           body: body,
@@ -91,9 +95,10 @@ class Request extends Equatable {
     Map<String, dynamic> extra,
     CacheControl cacheControl,
     RequestOptions options,
+    bool keepEqualSign = false,
   }) : this(
           method: 'HEAD',
-          uri: RequestUri.parse(uri),
+          uri: RequestUri.parse(uri, keepEqualSign: keepEqualSign),
           headers: headers,
           queries: queries,
           extra: extra,
@@ -108,9 +113,10 @@ class Request extends Equatable {
     RequestBody body,
     Map<String, dynamic> extra,
     RequestOptions options,
+    bool keepEqualSign = false,
   }) : this(
           method: 'DELETE',
-          uri: RequestUri.parse(uri),
+          uri: RequestUri.parse(uri, keepEqualSign: keepEqualSign),
           headers: headers,
           queries: queries,
           body: body,
@@ -125,9 +131,10 @@ class Request extends Equatable {
     RequestBody body,
     Map<String, dynamic> extra,
     RequestOptions options,
+    bool keepEqualSign = false,
   }) : this(
           method: 'PATCH',
-          uri: RequestUri.parse(uri),
+          uri: RequestUri.parse(uri, keepEqualSign: keepEqualSign),
           headers: headers,
           queries: queries,
           body: body,
@@ -140,20 +147,24 @@ class Request extends Equatable {
   static RequestUri _obtainUri(
     RequestUri uri,
     Queries queries,
+    bool keepEqualSign,
   ) {
-    queries = _obtainQueries(uri, queries);
+    queries = _obtainQueries(uri.queries, queries, keepEqualSign);
     return uri.copyWith(queries: queries);
   }
 
   static Queries _obtainQueries(
-    RequestUri uri,
-    Queries queries,
+    Queries a,
+    Queries b,
+    bool keepEqualSign,
   ) {
-    final builder = QueriesBuilder();
+    final builder = QueriesBuilder(
+        keepEqualSign: keepEqualSign || a.keepEqualSign || b.keepEqualSign);
     // Adiciona as queries da URL.
-    uri.queries.forEach(builder.addItem);
+    a.forEach(builder.addItem);
     // Adiciona as queries.
-    queries?.forEach(builder.addItem);
+    b.forEach(builder.addItem);
+    // Obtém as queries.
     return builder.build();
   }
 
@@ -193,6 +204,7 @@ class Request extends Equatable {
   @override
   String toString() {
     return 'Request { uri: $uri, method: $method, headers: $headers,'
-        ' body: $body, extra: $extra, cacheControl: $cacheControl }';
+        ' body: $body, extra: $extra, cacheControl: $cacheControl,'
+        ' options: $options }';
   }
 }

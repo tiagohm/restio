@@ -90,4 +90,13 @@ class RequestOptions extends Equatable {
         proxy,
         dns,
       ];
+
+  @override
+  String toString() {
+    return 'RequestOptions { connectTimeout: $connectTimeout, auth: $auth,'
+        ' writeTimeout: $writeTimeout, receiveTimeout: $receiveTimeout,'
+        ' followRedirects: $followRedirects, maxRedirects: $maxRedirects,'
+        ' verifySSLCertificate: $verifySSLCertificate, userAgent: $userAgent,'
+        ' proxy: $proxy, dns: $dns }';
+  }
 }

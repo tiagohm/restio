@@ -60,7 +60,6 @@ class Http2Transport implements Transport {
       _transport = ClientTransportConnection.viaSocket(socket);
 
       final uri = request.uri.toUri();
-
       var path = uri.path;
 
       if (uri.query.trim().isNotEmpty) {

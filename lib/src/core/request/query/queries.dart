@@ -3,12 +3,21 @@ import 'package:restio/src/core/request/query/queries_builder.dart';
 import 'package:restio/src/core/request/query/query.dart';
 
 class Queries extends ItemList<Query> {
-  const Queries([List<Query> items]) : super(items);
+  final bool keepEqualSign;
+
+  const Queries({
+    List<Query> items,
+    bool keepEqualSign = false,
+  })  : keepEqualSign = keepEqualSign ?? false,
+        super(items);
 
   static const empty = Queries();
 
-  factory Queries.fromMap(Map<String, dynamic> items) {
-    final builder = QueriesBuilder();
+  factory Queries.fromMap(
+    Map<String, dynamic> items, {
+    bool keepEqualSign = false,
+  }) {
+    final builder = QueriesBuilder(keepEqualSign: keepEqualSign);
     items.forEach(builder.add);
     return builder.build();
   }
@@ -30,7 +39,9 @@ class Queries extends ItemList<Query> {
         sb.write('&');
       }
 
-      sb.write(encode ? item.toEncodedQueryString() : item.toQueryString());
+      sb.write(encode
+          ? item.toEncodedQueryString(keepEqualSign: keepEqualSign)
+          : item.toQueryString(keepEqualSign: keepEqualSign));
     }
 
     return sb.toString();
@@ -38,7 +49,10 @@ class Queries extends ItemList<Query> {
 
   @override
   QueriesBuilder toBuilder() {
-    return QueriesBuilder(items);
+    return QueriesBuilder(
+      items: items,
+      keepEqualSign: keepEqualSign,
+    );
   }
 
   @override

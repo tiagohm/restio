@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math';
 
+import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/chain.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/exceptions.dart';
@@ -20,15 +21,11 @@ class FollowUpInterceptor implements Interceptor {
   @override
   Future<Response> intercept(Chain chain) async {
     final originalRequest = chain.request;
+    final redirects = <Redirect>[];
+    final startTime = DateTime.now();
+    final options = mergeOptions(client, originalRequest);
     var request = originalRequest;
     var count = 0;
-    final redirects = <Redirect>[];
-
-    final startTime = DateTime.now();
-
-    final options = RequestOptions.default_
-        .mergeWith(client.options)
-        .mergeWith(request.options);
 
     while (true) {
       request = request.copyWith(options: options);

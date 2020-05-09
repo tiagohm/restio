@@ -4,6 +4,9 @@ import 'dart:io';
 
 import 'package:brotli/brotli.dart';
 import 'package:ip/ip.dart';
+import 'package:restio/src/core/client.dart';
+import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_options.dart';
 
 Future<List<int>> readStream(Stream<List<int>> source) {
   final completer = Completer<List<int>>();
@@ -131,4 +134,13 @@ Converter<List<int>, List<int>> decoderByContentEncoding(
     default:
       return null;
   }
+}
+
+RequestOptions mergeOptions(
+  Restio client,
+  Request request,
+) {
+  return RequestOptions.default_
+      .mergeWith(client.options)
+      .mergeWith(request.options);
 }

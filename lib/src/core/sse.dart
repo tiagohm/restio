@@ -1,7 +1,7 @@
 part of 'client.dart';
 
 class _Sse implements Sse {
-  final Restio _client;
+  final Restio client;
   @override
   final Request request;
   SseTransformer transformer;
@@ -11,7 +11,7 @@ class _Sse implements Sse {
   var _retries = 0;
 
   _Sse(
-    this._client,
+    this.client,
     this.request, {
     Duration retryInterval,
     String lastEventId,
@@ -86,7 +86,7 @@ class _Sse implements Sse {
 
           try {
             // Conecta ao servidor.
-            final call = _client.newCall(connectRequest);
+            final call = client.newCall(connectRequest);
             response = await call.execute();
 
             retry = false;

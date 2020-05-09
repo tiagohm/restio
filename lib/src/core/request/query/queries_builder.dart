@@ -3,7 +3,13 @@ import 'package:restio/src/core/request/query/queries.dart';
 import 'package:restio/src/core/request/query/query.dart';
 
 class QueriesBuilder extends ItemListBuilder<Query> {
-  QueriesBuilder([List<Query> items]) : super(items);
+  final bool keepEqualSign;
+
+  QueriesBuilder({
+    List<Query> items,
+    bool keepEqualSign = false,
+  })  : keepEqualSign = keepEqualSign ?? false,
+        super(items);
 
   @override
   Query createItem(
@@ -15,6 +21,9 @@ class QueriesBuilder extends ItemListBuilder<Query> {
 
   @override
   Queries build() {
-    return Queries(items);
+    return Queries(
+      items: items,
+      keepEqualSign: keepEqualSign,
+    );
   }
 }

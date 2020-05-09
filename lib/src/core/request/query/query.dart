@@ -11,14 +11,22 @@ class Query extends Item {
   @override
   bool getBool() => isEmpty || super.getBool();
 
-  String toQueryString() {
-    return '$name${isNotEmpty ? '=$value' : ''}';
+  String toQueryString({
+    bool keepEqualSign = false,
+  }) {
+    return keepEqualSign
+        ? '$name=${isNotEmpty ? value : ''}'
+        : '$name${isNotEmpty ? '=$value' : ''}';
   }
 
-  String toEncodedQueryString() {
+  String toEncodedQueryString({
+    bool keepEqualSign = false,
+  }) {
+    final value = Uri.encodeQueryComponent(this.value);
     final name = Uri.encodeQueryComponent(this.name);
-    final value = isNotEmpty ? '=${Uri.encodeQueryComponent(this.value)}' : '';
-    return '$name$value';
+    return keepEqualSign
+        ? '$name=${isNotEmpty ? value : ''}'
+        : '$name${isNotEmpty ? '=$value' : ''}';
   }
 
   @override
