@@ -963,6 +963,22 @@ void main() {
     expect(response.redirects.last.request.uri.host, 'goo.gle');
   });
 
+  test('Fix Bug #16', () async {
+    const client = Restio(
+      http2: true,
+      options: RequestOptions(
+        receiveTimeout: Duration(seconds: 4),
+        connectTimeout: Duration(seconds: 4),
+        writeTimeout: Duration(seconds: 4),
+      ),
+    );
+
+    final request = Request.get('https://httpbin.org/delay/10');
+    final call = client.newCall(request);
+
+    expect(() async => await call.execute(), throwsA(isA<TimedOutException>()));
+  });
+
   group('Request Options', () {
     const client = Restio(
       options: RequestOptions(

@@ -10,7 +10,6 @@ import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
-import 'package:restio/src/core/request/request_options.dart';
 import 'package:restio/src/core/response/response.dart';
 import 'package:restio/src/core/transport/transport.dart';
 
@@ -56,7 +55,13 @@ class Http2Transport implements Transport {
     SecureSocket socket;
 
     try {
-      socket = await _createSocket(request, options);
+      if (options.connectTimeout != null &&
+          !options.connectTimeout.isNegative) {
+        socket = await _createSocket(request).timeout(options.connectTimeout);
+      } else {
+        socket = await _createSocket(request);
+      }
+
       _transport = ClientTransportConnection.viaSocket(socket);
 
       final uri = request.uri.toUri();
@@ -124,24 +129,29 @@ class Http2Transport implements Transport {
       }
 
       await _stream.outgoingMessages.close();
+
+      // Monta a resposta.
+      final response = _makeResponse(client, _stream, socket);
+
+      if (options.receiveTimeout != null &&
+          !options.receiveTimeout.isNegative) {
+        return await response.timeout(options.receiveTimeout);
+      } else {
+        return response;
+      }
     } on TimeoutException {
       throw const TimedOutException(''); // Connect time out.
     }
-
-    // Monta a resposta.
-    return _makeResponse(client, _stream, socket);
   }
 
-  Future<SecureSocket> _createSocket(
-    Request request,
-    RequestOptions options,
-  ) async {
+  Future<SecureSocket> _createSocket(Request request) {
+    final options = request.options;
     final port = request.uri.effectivePort;
 
     return SecureSocket.connect(
       request.uri.host,
       port,
-      timeout: options.connectTimeout,
+      // timeout: options.connectTimeout,
       context: SecurityContext(withTrustedRoots: client.withTrustedRoots),
       supportedProtocols: ['h2'],
       onBadCertificate: (cert) {
