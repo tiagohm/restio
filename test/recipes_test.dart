@@ -591,9 +591,11 @@ void main() {
     final client = Restio(
       certificates: [
         Certificate(
-          'client.badssl.com',
-          File('./test/assets/badssl.com-client.pem').readAsBytesSync(),
-          File('./test/assets/badssl.com-client.p12').readAsBytesSync(),
+          host: 'client.badssl.com',
+          certificate:
+              File('./test/assets/badssl.com-client.pem').readAsBytesSync(),
+          privateKey:
+              File('./test/assets/badssl.com-client.p12').readAsBytesSync(),
           port: 443,
           password: 'badssl.com',
         ),
@@ -1096,6 +1098,26 @@ void main() {
       data = await response.body.json();
       await response.close();
       expect(data['url'], 'https://httpbin.org/get?a=&c=d');
+    });
+
+    test('Client Certificate', () async {
+      final certificate = Certificate(
+        host: 'client.badssl.com',
+        certificate:
+            File('./test/assets/badssl.com-client.pem').readAsBytesSync(),
+        privateKey:
+            File('./test/assets/badssl.com-client.p12').readAsBytesSync(),
+        port: 443,
+        password: 'badssl.com',
+      );
+      const client = Restio();
+      final request = get('https://client.badssl.com/',
+          options: RequestOptions(certificate: certificate));
+      final call = client.newCall(request);
+      final response = await call.execute();
+      await response.close();
+
+      expect(response.code, 200);
     });
   });
 

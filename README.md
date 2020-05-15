@@ -353,9 +353,9 @@ class MyCookieJar implements CookieJar {
 final client = Restio(
   certificates: [
     Certificate(
-      'client.badssl.com', // supports wildcard too!
-      File('./test/assets/badssl.com-client.pem').readAsBytesSync(),
-      File('./test/assets/badssl.com-client.p12').readAsBytesSync(),
+      host: 'client.badssl.com', // supports wildcard too!
+      certificate: File('./test/assets/badssl.com-client.pem').readAsBytesSync(),
+      privateKey: File('./test/assets/badssl.com-client.p12').readAsBytesSync(),
       port: 443, // Optional.
       password: 'badssl.com',
     ),
@@ -366,6 +366,8 @@ final call = client.newCall(request);
 final response = await call.execute();
 await response.close();
 ```
+
+You can pass in RequestOptions too. The `host` and `port` will be ignored.
 
 ### Handling Errors
 

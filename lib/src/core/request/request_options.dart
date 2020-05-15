@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:restio/src/core/auth/authenticator.dart';
+import 'package:restio/src/core/certificate/certificate.dart';
 import 'package:restio/src/core/dns/dns.dart';
 import 'package:restio/src/core/proxy/proxy.dart';
 
@@ -14,6 +15,7 @@ class RequestOptions extends Equatable {
   final String userAgent;
   final Proxy proxy;
   final Dns dns;
+  final Certificate certificate;
 
   const RequestOptions({
     this.connectTimeout,
@@ -26,6 +28,7 @@ class RequestOptions extends Equatable {
     this.userAgent,
     this.proxy,
     this.dns,
+    this.certificate,
   });
 
   static const empty = RequestOptions();
@@ -47,6 +50,7 @@ class RequestOptions extends Equatable {
     String userAgent,
     Proxy proxy,
     Dns dns,
+    Certificate certificate,
   }) {
     return RequestOptions(
       connectTimeout: connectTimeout ?? this.connectTimeout,
@@ -59,6 +63,7 @@ class RequestOptions extends Equatable {
       userAgent: userAgent ?? this.userAgent,
       proxy: proxy ?? this.proxy,
       dns: dns ?? this.dns,
+      certificate: certificate ?? this.certificate,
     );
   }
 
@@ -74,6 +79,7 @@ class RequestOptions extends Equatable {
       userAgent: options.userAgent,
       proxy: options.proxy,
       dns: options.dns,
+      certificate: options.certificate,
     );
   }
 
@@ -89,6 +95,7 @@ class RequestOptions extends Equatable {
         userAgent,
         proxy,
         dns,
+        certificate,
       ];
 
   @override

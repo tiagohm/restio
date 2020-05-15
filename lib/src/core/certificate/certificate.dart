@@ -8,22 +8,21 @@ class Certificate extends Equatable {
   final List<int> privateKey;
   final String password;
 
-  const Certificate(
+  const Certificate({
     this.host,
     this.certificate,
-    this.privateKey, {
+    this.privateKey,
     this.port,
     this.password,
-  })  : assert(host != null),
-        assert(certificate != null),
-        assert(privateKey != null);
+  });
 
   bool matches(
     String host,
     int port,
   ) {
-    return (this.port == null || this.port == port) &&
-        GlobMatcher(this.host).matches(host);
+    return this.host == null ||
+        (this.port == null || this.port == port) &&
+            GlobMatcher(this.host).matches(host);
   }
 
   @override

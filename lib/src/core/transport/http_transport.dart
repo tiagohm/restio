@@ -34,16 +34,20 @@ class HttpTransport implements Transport {
   ) async {
     final options = request.options;
 
-    final securityContext =
+    final context =
         SecurityContext(withTrustedRoots: client.withTrustedRoots ?? true);
 
     // Busca o certificado.
-    final certificate = client.certificates?.firstWhere(
-      (certificate) {
-        return certificate.matches(request.uri.host, request.uri.effectivePort);
-      },
-      orElse: () => null,
-    );
+    final certificate = options.certificate ??
+        client.certificates?.firstWhere(
+          (certificate) {
+            return certificate.matches(
+              request.uri.host,
+              request.uri.effectivePort,
+            );
+          },
+          orElse: () => null,
+        );
 
     if (certificate != null) {
       final chainBytes = certificate.certificate;
@@ -51,21 +55,21 @@ class HttpTransport implements Transport {
       final password = certificate.password;
 
       if (chainBytes != null) {
-        securityContext.useCertificateChainBytes(
+        context.useCertificateChainBytes(
           chainBytes,
           password: password,
         );
       }
 
       if (keyBytes != null) {
-        securityContext.usePrivateKeyBytes(
+        context.usePrivateKeyBytes(
           keyBytes,
           password: password,
         );
       }
     }
 
-    var httpClient = HttpClient(context: securityContext);
+    var httpClient = HttpClient(context: context);
 
     httpClient = await onCreate(client, httpClient) ?? httpClient;
 
