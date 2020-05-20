@@ -1140,6 +1140,45 @@ void main() {
     expect(await response.body.string(), 'OK');
     await response.close();
   });
+
+  // https://github.com/flutterchina/dio/issues/793
+  group('Following Redirects, Auth And Cookies', () {
+    final invalid =
+        {'username': 'tomsmith', 'password': 'badpassword'}.asForm();
+    final valid =
+        {'username': 'tomsmith', 'password': 'SuperSecretPassword!'}.asForm();
+
+    test('Invalid', () async {
+      final client = Restio(cookieJar: MyCookieJar());
+      final request = post(
+        'https://the-internet.herokuapp.com/authenticate',
+        body: invalid,
+      );
+      final response = await requestResponse(client, request);
+      final data = await response.body.string();
+      await response.close();
+
+      expect(response.code, 200);
+      expect(response.redirects.length, 1);
+      expect(data, contains('Your password is invalid!'));
+      expect(data, contains('Login Page'));
+    });
+
+    test('Valid', () async {
+      final client = Restio(cookieJar: MyCookieJar());
+      final request = post(
+        'https://the-internet.herokuapp.com/authenticate',
+        body: valid,
+      );
+      final response = await requestResponse(client, request);
+      final data = await response.body.string();
+      await response.close();
+
+      expect(response.code, 200);
+      expect(response.redirects.length, 1);
+      expect(data, contains('Secure Area'));
+    });
+  });
 }
 
 class _RetryAfterInterceptor implements Interceptor {
@@ -1157,5 +1196,20 @@ class _RetryAfterInterceptor implements Interceptor {
       headers:
           (response.headers.toBuilder()..set('Retry-After', seconds)).build(),
     );
+  }
+}
+
+class MyCookieJar implements CookieJar {
+  final jar = <String, List<Cookie>>{};
+
+  @override
+  Future<List<Cookie>> load(Request request) async {
+    return jar[request.uri.host] ?? const [];
+  }
+
+  @override
+  Future<void> save(Response response) async {
+    final host = response.request.uri.host;
+    jar[host] = response.cookies;
   }
 }

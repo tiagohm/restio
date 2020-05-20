@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:restio/restio.dart';
 import 'package:restio/src/common/parse_uri.dart';
 import 'package:restio/src/core/request/query/queries.dart';
 import 'package:restio/src/core/request/query/queries_builder.dart';
@@ -243,6 +244,12 @@ class RequestUri extends Equatable {
     return 'RequestUri { scheme: $scheme, username: $username,'
         ' password: $password, host: $host, port: $port, paths: $paths,'
         ' queries: $queries, fragment: $fragment }';
+  }
+
+  bool canReuseConnectionFor(RequestUri uri) {
+    return host == uri.host &&
+        effectivePort == uri.effectivePort &&
+        scheme == uri.scheme;
   }
 
   @override

@@ -10,6 +10,7 @@ class RequestOptions extends Equatable {
   final Duration receiveTimeout;
   final Authenticator auth;
   final bool followRedirects;
+  final bool followSslRedirects;
   final int maxRedirects;
   final bool verifySSLCertificate;
   final String userAgent;
@@ -29,12 +30,14 @@ class RequestOptions extends Equatable {
     this.proxy,
     this.dns,
     this.certificate,
+    this.followSslRedirects,
   });
 
   static const empty = RequestOptions();
 
   static const default_ = RequestOptions(
     followRedirects: true,
+    followSslRedirects: true,
     maxRedirects: 5,
     verifySSLCertificate: false,
   );
@@ -45,6 +48,7 @@ class RequestOptions extends Equatable {
     Duration receiveTimeout,
     Authenticator auth,
     bool followRedirects,
+    bool followSslRedirects,
     int maxRedirects,
     bool verifySSLCertificate,
     String userAgent,
@@ -58,6 +62,7 @@ class RequestOptions extends Equatable {
       receiveTimeout: receiveTimeout ?? this.receiveTimeout,
       auth: auth ?? this.auth,
       followRedirects: followRedirects ?? this.followRedirects,
+      followSslRedirects: followSslRedirects ?? this.followSslRedirects,
       maxRedirects: maxRedirects ?? this.maxRedirects,
       verifySSLCertificate: verifySSLCertificate ?? this.verifySSLCertificate,
       userAgent: userAgent ?? this.userAgent,
@@ -74,6 +79,7 @@ class RequestOptions extends Equatable {
       receiveTimeout: options.receiveTimeout,
       auth: options.auth,
       followRedirects: options.followRedirects,
+      followSslRedirects: options.followSslRedirects,
       maxRedirects: options.maxRedirects,
       verifySSLCertificate: options.verifySSLCertificate,
       userAgent: options.userAgent,
@@ -90,6 +96,7 @@ class RequestOptions extends Equatable {
         receiveTimeout,
         auth,
         followRedirects,
+        followSslRedirects,
         maxRedirects,
         verifySSLCertificate,
         userAgent,
@@ -104,6 +111,6 @@ class RequestOptions extends Equatable {
         ' writeTimeout: $writeTimeout, receiveTimeout: $receiveTimeout,'
         ' followRedirects: $followRedirects, maxRedirects: $maxRedirects,'
         ' verifySSLCertificate: $verifySSLCertificate, userAgent: $userAgent,'
-        ' proxy: $proxy, dns: $dns }';
+        ' proxy: $proxy, dns: $dns, followSslRedirects: $followSslRedirects }';
   }
 }

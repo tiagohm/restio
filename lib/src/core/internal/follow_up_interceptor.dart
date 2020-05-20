@@ -7,6 +7,7 @@ import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
 import 'package:restio/src/core/redirect/redirect.dart';
+import 'package:restio/src/core/request/http_method.dart';
 import 'package:restio/src/core/request/query/queries.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_options.dart';
@@ -75,8 +76,6 @@ class FollowUpInterceptor implements Interceptor {
     List<Redirect> redirects,
     RequestOptions options,
   ) async {
-    final method = response.request.method;
-
     switch (response.code) {
       case HttpStatus.proxyAuthenticationRequired:
         return options.proxy?.auth?.authenticate(response);
@@ -84,9 +83,6 @@ class FollowUpInterceptor implements Interceptor {
         return options.auth?.authenticate(response);
       case HttpStatus.permanentRedirect:
       case HttpStatus.temporaryRedirect:
-        return method != 'GET' && method != 'HEAD'
-            ? null
-            : _buildRedirectRequest(response, redirects, options);
       case HttpStatus.multipleChoices:
       case HttpStatus.movedPermanently:
       case HttpStatus.movedTemporarily:
@@ -102,6 +98,9 @@ class FollowUpInterceptor implements Interceptor {
     List<Redirect> redirects,
     RequestOptions options,
   ) async {
+    final method = response.request.method;
+    final code = response.code;
+
     // Does the client allow redirects?
     if (!options.followRedirects) {
       return null;
@@ -110,34 +109,65 @@ class FollowUpInterceptor implements Interceptor {
     // Location.
     final location = response.headers.value(HttpHeaders.locationHeader);
 
-    Request request;
+    var request = response.request;
 
     if (location != null && location.isNotEmpty) {
-      final uri = response.request.uri.toUri().resolve(location);
+      final uri = request.uri.toUri().resolve(location);
 
       if (uri == null) {
         return null;
       }
 
-      // Retry-After Header.
-      request = await _retryAfter(
-          response,
-          response.request.copyWith(
-            uri: RequestUri.fromUri(uri),
-            queries: Queries.empty,
-          ));
-    }
+      final sameScheme = uri.scheme == request.uri.scheme;
 
-    // Redirect Policy.
-    if (request != null && client.redirectPolicies != null) {
-      for (final redirectPolicy in client.redirectPolicies) {
-        if (!redirectPolicy.apply(response, request, redirects)) {
-          return null;
+      // If configured, don't follow redirects between SSL and non-SSL.
+      if (!sameScheme && !options.followSslRedirects) {
+        return null;
+      }
+
+      final requestUri = RequestUri.fromUri(uri);
+
+      // Most redirects don't include a request body.
+      if (HttpMethod.permitsRequestBody(method)) {
+        final maintainBody = HttpMethod.redirectsWithBody(method) ||
+            code == HttpStatus.permanentRedirect ||
+            code == HttpStatus.temporaryRedirect;
+
+        if (HttpMethod.redirectsToGet(method) &&
+            code != HttpStatus.permanentRedirect &&
+            code != HttpStatus.temporaryRedirect) {
+          request = request.copyWith(method: 'GET');
+        }
+
+        if (!maintainBody) {
+          final builder = request.headers.toBuilder();
+          builder.removeAll("Transfer-Encoding");
+          builder.removeAll("Content-Length");
+          builder.removeAll("Content-Type");
+          request = request.copyWith(headers: builder.build());
+        }
+
+        if (!response.request.uri.canReuseConnectionFor(requestUri)) {
+          final builder = request.headers.toBuilder();
+          builder.removeAll("Authorization");
+          request = request.copyWith(headers: builder.build());
+        }
+      }
+
+      request = request.copyWith(uri: requestUri, queries: Queries.empty);
+
+      // Redirect Policy.
+      if (client.redirectPolicies != null) {
+        for (final redirectPolicy in client.redirectPolicies) {
+          if (!redirectPolicy.apply(response, request, redirects)) {
+            return null;
+          }
         }
       }
     }
 
-    return request;
+    // Retry-After Header.
+    return await _retryAfter(response, request);
   }
 
   Future<Request> _retryAfter(
