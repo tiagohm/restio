@@ -1,11 +1,12 @@
 ## 0.8.0
  - Add Cache Encryption support.
  - Allow send headers without to force to lowercase.
+ - Allow keep equal sign if query is empty.
+ - Add `MultiAuthenticator` class.
  - [Breaking]: Move the most `Restio` parameters to `RequestOptions` class.
  - [Breaking]: Remove `ClientCertificateJar` and `ClientCertificate` classes. Use `Certificate` class at `Restio(certificates: [])` instead.
  - [Breaking]: Rename method `increaseMaxSize()` to `setMaxSize()`.
  - Require min Dart SDK version 2.8.
- - Allow keep equal sign if query is empty.
  - Bug fixes.
 
 ## 0.7.1
