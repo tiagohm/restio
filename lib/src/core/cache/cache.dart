@@ -81,10 +81,8 @@ class Cache {
 
     try {
       snapshot = await store.get(key);
-    } catch (e, stackTrace) {
+    } catch (e) {
       // Give up because the cache cannot be read.
-      print(e);
-      print(stackTrace);
       return null;
     }
 
@@ -95,9 +93,7 @@ class Cache {
     try {
       try {
         entry = await Entry.sourceEntry(snapshot.source(entryMetaData));
-      } catch (e, stackTrace) {
-        print(e);
-        print(stackTrace);
+      } catch (e) {
         return null;
       }
 
@@ -119,9 +115,7 @@ class Cache {
     if (HttpMethod.invalidatesCache(method)) {
       try {
         await _remove(response.request);
-      } catch (e, stackTrace) {
-        print(e);
-        print(stackTrace);
+      } catch (e) {
         // The cache cannot be written.
       }
 
@@ -152,9 +146,7 @@ class Cache {
       final metaData = entry.metaData();
 
       return CacheRequest(editor, metaData);
-    } catch (e, stackTrace) {
-      print(e);
-      print(stackTrace);
+    } catch (e) {
       await _abortQuietly(editor);
       return null;
     }
@@ -180,9 +172,7 @@ class Cache {
 
         await editor.commit();
       }
-    } catch (e, stackTrace) {
-      print(e);
-      print(stackTrace);
+    } catch (e) {
       await _abortQuietly(editor);
     }
   }

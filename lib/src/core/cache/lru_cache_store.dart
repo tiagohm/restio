@@ -99,10 +99,7 @@ class LruCacheStore implements CacheStore {
         await store._readJournal();
         store._processJournal();
         return store;
-      } catch (e, stackTrace) {
-        print(e);
-        print(stackTrace);
-
+      } catch (e) {
         fileSystem
             .directory(directory)
             .listSync()
@@ -197,9 +194,7 @@ class LruCacheStore implements CacheStore {
         _readJournalLine(lines[lineCount++]);
       } on FileSystemException {
         rethrow;
-      } catch (e, stackTrace) {
-        print(e);
-        print(stackTrace);
+      } catch (e) {
         error = true;
         break;
       }
@@ -508,9 +503,7 @@ class LruCacheStore implements CacheStore {
         final s = Stream.value(entry.getCleanFile(i).readAsBytesSync())
             .cast<List<int>>();
         streams.add(s);
-      } catch (e, stackTrace) {
-        print(e);
-        print(stackTrace);
+      } catch (e) {
         return null;
       }
     }

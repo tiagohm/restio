@@ -114,9 +114,7 @@ class CacheInterceptor implements Interceptor {
     if (HttpMethod.invalidatesCache(networkRequest.method)) {
       try {
         await cache._remove(networkRequest);
-      } catch (e, stackTrace) {
-        print(e);
-        print(stackTrace);
+      } catch (e) {
         // The cache cannot be written.
       }
     }
