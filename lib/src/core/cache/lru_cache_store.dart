@@ -429,7 +429,8 @@ class LruCacheStore implements CacheStore {
         }
 
         if (!entry.getDirtyFile(i).existsSync()) {
-          return editor.abort();
+          await editor.abort();
+          return;
         }
       }
     }
@@ -437,8 +438,8 @@ class LruCacheStore implements CacheStore {
     for (var i = 0; i < valueCount; i++) {
       final dirty = entry.getDirtyFile(i);
 
-      if (success) {
-        if (dirty.existsSync()) {
+      if (dirty.existsSync()) {
+        if (success) {
           final clean = entry.getCleanFile(i);
 
           dirty.renameSync(clean.path);
@@ -449,9 +450,7 @@ class LruCacheStore implements CacheStore {
           entry.lengths[i] = newLength;
 
           _size = _size - oldLength + newLength;
-        }
-      } else {
-        if (dirty.existsSync()) {
+        } else {
           dirty.deleteSync();
         }
       }

@@ -14,6 +14,10 @@ class CacheRequest {
     return _BodySink(editor, editor.newSink(Cache.entryBody));
   }
 
+  Future<void> commit() {
+    return editor.commit();
+  }
+
   Future<void> abort() {
     return editor.abort();
   }
@@ -35,12 +39,6 @@ class _BodySink implements StreamSink<List<int>> {
     Object error, [
     StackTrace stackTrace,
   ]) async {
-    try {
-      await editor.abort();
-    } catch (e) {
-      // nada.
-    }
-
     sink.addError(error, stackTrace);
   }
 
@@ -53,9 +51,15 @@ class _BodySink implements StreamSink<List<int>> {
   Future<void> close() async {
     try {
       await sink.close();
-      await editor.commit();
     } catch (e) {
       await editor.abort();
+      return;
+    }
+
+    try {
+      await editor.commit();
+    } catch (e) {
+      // nada.
     }
   }
 

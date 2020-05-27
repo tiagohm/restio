@@ -193,7 +193,6 @@ class CacheInterceptor implements Interceptor {
       response.body.data,
       onData: cacheSink.add,
       onError: (e, stackTrace) async {
-        // await cacheRequest.abort();
         cacheSink.addError(e, stackTrace);
       },
       onClose: () async {
