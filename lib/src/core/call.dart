@@ -4,8 +4,7 @@ class _Call implements Call {
   final Restio client;
   @override
   final Request request;
-  final _cancellable = Cancellable();
-  var _executed = false;
+  Cancellable _cancellable;
   var _executing = false;
 
   _Call({
@@ -15,55 +14,65 @@ class _Call implements Call {
 
   @override
   void cancel(String message) {
-    _cancellable.cancel(message);
+    _cancellable?.cancel(message);
   }
 
   @override
   Future<Response> execute() async {
-    if (!_executing && !isCancelled) {
-      _executing = true;
+    if (_executing) {
+      throw const RestioException('Call is in progress');
+    }
 
-      try {
-        final interceptors = [
-          // Interceptors.
-          if (client.interceptors != null)
-            ...client.interceptors,
-          // Redirects.
-          FollowUpInterceptor(client),
-          // Cookies.
-          CookieInterceptor(client.cookieJar),
-          BridgeInterceptor(client),
-          // Cache.
-          CacheInterceptor(client),
-          // Network Interceptors.
-          if (client.networkInterceptors != null)
-            ...client.networkInterceptors,
-          // Connection.
-          ConnectInterceptor(
-            client: client,
-            cancellable: _cancellable,
-          ),
-        ];
+    _executing = true;
+    _cancellable = Cancellable();
 
-        final chain = InterceptorChain(
-          call: this,
-          request: request,
-          interceptors: interceptors,
-          index: 0,
-        );
+    try {
+      final interceptors = [
+        // Interceptors.
+        if (client.interceptors != null)
+          ...client.interceptors,
+        // Redirects.
+        FollowUpInterceptor(client),
+        // Cookies.
+        CookieInterceptor(client.cookieJar),
+        BridgeInterceptor(client),
+        // Cache.
+        CacheInterceptor(client),
+        // Network Interceptors.
+        if (client.networkInterceptors != null)
+          ...client.networkInterceptors,
+        // Connection.
+        ConnectInterceptor(
+          client: client,
+          cancellable: _cancellable,
+        ),
+      ];
 
-        return chain.proceed(request);
-      } finally {
-        _executed = true;
+      final chain = InterceptorChain(
+        call: this,
+        request: request,
+        interceptors: interceptors,
+        index: 0,
+      );
+
+      final response = await chain.proceed(request);
+
+      return response;
+    } catch (e) {
+      if (_cancellable.isCancelled) {
+        throw _cancellable.exception;
+      } else {
+        rethrow;
       }
-    } else {
-      throw const RestioException('Call has already been executed');
+    } finally {
+      _executing = false;
+      await _cancellable.close();
     }
   }
 
   @override
-  bool get isExecuted => _executed;
+  bool get isExecuting => _executing;
 
   @override
-  bool get isCancelled => _cancellable.isCancelled;
+  bool get isCancelled => _cancellable != null && _cancellable.isCancelled;
 }

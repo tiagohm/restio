@@ -9,7 +9,6 @@ import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
 import 'package:restio/src/core/transport/http2_transport.dart';
 import 'package:restio/src/core/transport/http_transport.dart';
-import 'package:restio/src/core/transport/transport.dart';
 
 class ConnectInterceptor implements Interceptor {
   final Restio client;
@@ -25,37 +24,27 @@ class ConnectInterceptor implements Interceptor {
     return _execute(chain.request);
   }
 
-  static Transport _createHttpTransport(Restio client) {
-    return HttpTransport(client);
-  }
-
-  static Transport _createHttp2Transport(Restio client) {
-    return Http2Transport(client);
-  }
-
   Future<Response> _execute(final Request request) async {
-    final sentAt = DateTime.now();
-
-    final transport = client.http2 == true
-        ? _createHttp2Transport(client)
-        : _createHttpTransport(client);
-
     if (cancellable != null && cancellable.isCancelled) {
       throw cancellable.exception;
     }
 
-    // ignore: unawaited_futures
-    cancellable?.whenCancel?.catchError((e, stackTrace) async {
+    final transport =
+        client.http2 ? Http2Transport(client) : HttpTransport(client);
+
+    void cancelTransport() async {
       try {
         await transport.cancel();
       } catch (e) {
         // nada.
       }
-    });
+    }
+
+    cancellable?.add(cancelTransport);
 
     try {
+      final sentAt = DateTime.now();
       final response = await transport.send(request);
-
       final receivedAt = DateTime.now();
 
       final spentMilliseconds =
@@ -68,15 +57,9 @@ class ConnectInterceptor implements Interceptor {
         spentMilliseconds: spentMilliseconds,
         totalMilliseconds: spentMilliseconds,
       );
-    } on Exception {
-      if (cancellable != null && cancellable.isCancelled) {
-        throw cancellable.exception;
-      } else {
-        rethrow;
-      }
     } finally {
-      // Encerra a conexão, pois ela não é persistente.
-      await transport.close();
+      cancellable?.remove(cancelTransport);
+      await transport.close(); // A conexão não é persistente.
     }
   }
 }

@@ -49,7 +49,6 @@ void testCache(
     expect(await response.body.string(), 'a');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'a');
@@ -85,7 +84,6 @@ void testCache(
     expect(await response.body.string(), 'a');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'b');
@@ -113,7 +111,6 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'B');
@@ -141,7 +138,6 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -186,7 +182,6 @@ void testCache(
 
     expect(response.headers.value('x-response-id'), '1');
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
     await response.body.string();
     await response.close();
@@ -235,6 +230,7 @@ void testCache(
       method: method,
       body: requestBodyOrNull(method),
     );
+
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -281,13 +277,11 @@ void testCache(
     expect(await response.body.string(), 'ABCABCABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
@@ -324,7 +318,6 @@ void testCache(
     expect(cache.networkCount, 1);
     expect(cache.hitCount, 0);
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
     expect(await response.body.string(), 'ABCDE');
     await response.close();
@@ -372,7 +365,6 @@ void testCache(
     expect(await response.body.string(), 'ABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute(); // Cached.
     expect(await response.body.string(), 'ABC');
     await response.close();
@@ -520,7 +512,6 @@ void testCache(
     expect(await response.body.string(), 'ABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'ABC');
@@ -557,7 +548,6 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -597,7 +587,6 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -633,7 +622,6 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'B');
@@ -967,13 +955,11 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'B');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'B');
@@ -1075,13 +1061,11 @@ void testCache(
     expect(await response.body.string(), 'ABCABCABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'DEFDEFDEF');
@@ -1125,13 +1109,11 @@ void testCache(
     expect(await response.body.string(), 'ABCABCABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'DEFDEFDEF');
@@ -1173,13 +1155,11 @@ void testCache(
     expect(await response.body.string(), 'ABCABCABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'DEFDEFDEF');
@@ -1215,7 +1195,6 @@ void testCache(
     expect(await response.body.string(), 'ABCABCABC');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
@@ -2050,12 +2029,16 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    request = Request.get(url,
-        headers: Headers.fromMap({
+    request = Request.get(
+      url,
+      headers: Headers.fromMap(
+        {
           'accept-language': 'pt-BR',
           'accept-charset': 'utf-8',
           'accept-encoding': 'identity',
-        }));
+        },
+      ),
+    );
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -2342,7 +2325,6 @@ void testCache(
     // A conditional cache hit updates the cache.
     await Future.delayed(const Duration(milliseconds: 500));
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(response.code, 200);
@@ -2355,7 +2337,6 @@ void testCache(
     // A full cache hit reads the cache.
     await Future.delayed(const Duration(milliseconds: 10));
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(response.headers.value('allow'), 'GET, HEAD');
@@ -2428,7 +2409,6 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'B');
@@ -2460,7 +2440,6 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -2515,7 +2494,6 @@ void testCache(
     await cache.clear();
     expect(await cache.size(), 0);
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'B');
@@ -2559,7 +2537,6 @@ void testCache(
     expect(await response.body.string(), 'abcd');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(response.headers.value('Alpha'), 'α');
@@ -2596,7 +2573,6 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -2630,13 +2606,11 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'B');
     await response.close();
 
-    call = cacheClient.newCall(request);
     response = await call.execute();
 
     expect(await response.body.string(), 'B');

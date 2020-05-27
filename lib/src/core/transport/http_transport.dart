@@ -21,13 +21,6 @@ class HttpTransport implements Transport {
 
   HttpTransport(this.client) : assert(client != null);
 
-  Future<HttpClient> onCreate(
-    Restio client,
-    HttpClient httpClient,
-  ) async {
-    return httpClient;
-  }
-
   Future<HttpClient> _buildHttpClient(
     Restio client,
     Request request,
@@ -69,9 +62,7 @@ class HttpTransport implements Transport {
       }
     }
 
-    var httpClient = HttpClient(context: context);
-
-    httpClient = await onCreate(client, httpClient) ?? httpClient;
+    final httpClient = HttpClient(context: context);
 
     // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
     httpClient.badCertificateCallback = (cert, host, port) {
@@ -114,7 +105,7 @@ class HttpTransport implements Transport {
     HttpClientRequest clientRequest;
     var uri = request.uri;
 
-    _httpClient = await _buildHttpClient(client, request);
+    _httpClient ??= await _buildHttpClient(client, request);
 
     final proxy = options.proxy;
     var hasProxy = false;

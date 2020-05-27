@@ -801,7 +801,6 @@ void main() {
         greaterThanOrEqualTo(response.networkResponse.totalMilliseconds));
     expect(response.cacheResponse, isNull);
 
-    call = client.newCall(request);
     response = await call.execute();
     text = await response.body.string();
     await response.close();
@@ -829,7 +828,6 @@ void main() {
 
     await cache.clear();
 
-    call = client.newCall(request);
     response = await call.execute();
     text = await response.body.string();
     await response.close();
@@ -855,7 +853,6 @@ void main() {
         greaterThanOrEqualTo(response.networkResponse.totalMilliseconds));
     expect(response.cacheResponse, isNull);
 
-    call = client.newCall(request);
     response = await call.execute();
     text = await response.body.string();
     expect(text, 'Restio Caching test!');
@@ -979,6 +976,26 @@ void main() {
     final call = client.newCall(request);
 
     expect(() async => await call.execute(), throwsA(isA<TimedOutException>()));
+  });
+
+  test('Call can be executed multiple times', () async {
+    const client = Restio();
+
+    final request = Request.get('https://httpbin.org/get');
+    final call = client.newCall(request);
+
+    final response1 = await call.execute();
+    final response2 = await call.execute();
+
+    final data1 = await response1.body.json();
+    final data2 = await response2.body.json();
+
+    final header1 = data1['headers']['X-Amzn-Trace-Id'];
+    final header2 = data2['headers']['X-Amzn-Trace-Id'];
+
+    expect(response1.code, 200);
+    expect(response2.code, 200);
+    expect(header1, isNot(header2));
   });
 
   group('Request Options', () {

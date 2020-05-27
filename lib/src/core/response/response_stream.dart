@@ -76,7 +76,7 @@ class ResponseStream extends Stream<List<int>> implements Closeable, Pauseable {
 
       return s;
     } catch (e, stackTrace) {
-      _onError(e, stackTrace);
+      _onError?.call(e, stackTrace);
       rethrow;
     }
   }

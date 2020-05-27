@@ -8,7 +8,7 @@ abstract class Call {
 
   void cancel(String message);
 
-  bool get isExecuted;
+  bool get isExecuting;
 
   bool get isCancelled;
 }
