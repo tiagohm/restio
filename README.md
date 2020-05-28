@@ -17,6 +17,7 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * Send and save cookies for your request via CookieJar.
 * Allows GET request with payload.
 * Works fine with `HTTP/2` and `HTTP/1.1`.
+* HTTP/2 Server Push support.
 * Have Client level options and also override at Request level if you want to.
 * Caching applying [RFC 7234](https://tools.ietf.org/html/rfc7234) and Lru Replacement Strategy.
    * Supports encryption.
@@ -420,7 +421,7 @@ final response = await call.execute();
 ### HTTP2
 
 ```dart
-final client = Restio(http2: true);
+final client = Restio(options: const RequestOptions(http2: true));
 final request = get('https://www.google.com/');
 final call = client.newCall(request);
 final response = await call.execute();

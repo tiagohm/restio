@@ -107,7 +107,7 @@ class Http2Transport implements Transport {
 
       // Monta a resposta.
       final response =
-          _makeResponse(client, _stream, state.connection.client[0]);
+          _makeResponse(client, request, _stream, state.connection.client[0]);
 
       if (options.receiveTimeout != null &&
           !options.receiveTimeout.isNegative) {
@@ -162,13 +162,14 @@ class Http2Transport implements Transport {
 
   static Future<Response> _makeResponse(
     Restio client,
+    Request request,
     ClientTransportStream stream,
     SecureSocket socket,
   ) {
     StreamController<ServerPush> serverPushController;
     final completer = Completer<Response>();
     final dataController = StreamController<List<int>>();
-    final allowServerPushes = client.allowServerPushes ?? false;
+    final allowServerPushes = request.options.allowServerPushes;
 
     if (allowServerPushes) {
       serverPushController = StreamController<ServerPush>(sync: true);

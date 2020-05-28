@@ -30,7 +30,7 @@ class ConnectInterceptor implements Interceptor {
     }
 
     final transport =
-        client.http2 ? Http2Transport(client) : HttpTransport(client);
+        request.options.http2 ? Http2Transport(client) : HttpTransport(client);
 
     void cancelTransport() async {
       try {

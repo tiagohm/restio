@@ -17,6 +17,8 @@ class RequestOptions extends Equatable {
   final Proxy proxy;
   final Dns dns;
   final Certificate certificate;
+  final bool http2;
+  final bool allowServerPushes;
 
   const RequestOptions({
     this.connectTimeout,
@@ -31,15 +33,20 @@ class RequestOptions extends Equatable {
     this.dns,
     this.certificate,
     this.followSslRedirects,
+    this.http2,
+    this.allowServerPushes,
   });
 
   static const empty = RequestOptions();
 
+  // ignore: constant_identifier_names
   static const default_ = RequestOptions(
     followRedirects: true,
     followSslRedirects: true,
     maxRedirects: 5,
     verifySSLCertificate: false,
+    http2: false,
+    allowServerPushes: false,
   );
 
   RequestOptions copyWith({
@@ -55,6 +62,8 @@ class RequestOptions extends Equatable {
     Proxy proxy,
     Dns dns,
     Certificate certificate,
+    bool http2,
+    bool allowServerPushes,
   }) {
     return RequestOptions(
       connectTimeout: connectTimeout ?? this.connectTimeout,
@@ -69,6 +78,8 @@ class RequestOptions extends Equatable {
       proxy: proxy ?? this.proxy,
       dns: dns ?? this.dns,
       certificate: certificate ?? this.certificate,
+      http2: http2 ?? this.http2,
+      allowServerPushes: allowServerPushes ?? this.allowServerPushes,
     );
   }
 
@@ -86,6 +97,8 @@ class RequestOptions extends Equatable {
       proxy: options.proxy,
       dns: options.dns,
       certificate: options.certificate,
+      http2: options.http2,
+      allowServerPushes: options.allowServerPushes,
     );
   }
 
@@ -103,6 +116,8 @@ class RequestOptions extends Equatable {
         proxy,
         dns,
         certificate,
+        http2,
+        allowServerPushes,
       ];
 
   @override
@@ -111,6 +126,7 @@ class RequestOptions extends Equatable {
         ' writeTimeout: $writeTimeout, receiveTimeout: $receiveTimeout,'
         ' followRedirects: $followRedirects, maxRedirects: $maxRedirects,'
         ' verifySSLCertificate: $verifySSLCertificate, userAgent: $userAgent,'
-        ' proxy: $proxy, dns: $dns, followSslRedirects: $followSslRedirects }';
+        ' proxy: $proxy, dns: $dns, followSslRedirects: $followSslRedirects,'
+        ' http2: $http2, allowServerPushes: $allowServerPushes }';
   }
 }

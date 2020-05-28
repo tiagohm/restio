@@ -83,7 +83,7 @@ void main() {
   });
 
   test('Cancelling a HTTP2 Call', () async {
-    final client = Restio(http2: true);
+    final client = Restio(options: const RequestOptions(http2: true));
     final request = get('https://httpbin.org/delay/10');
 
     final call = client.newCall(request);
@@ -186,7 +186,10 @@ void main() {
       isDone = done;
     }
 
-    final client = Restio(onUploadProgress: onProgress, http2: true);
+    final client = Restio(
+      onUploadProgress: onProgress,
+      options: const RequestOptions(http2: true),
+    );
 
     final request = post(
       'https://httpbin.org/post',
@@ -642,7 +645,7 @@ void main() {
   });
 
   test('HTTP2', () async {
-    final client = Restio(http2: true);
+    final client = Restio(options: const RequestOptions(http2: true));
 
     final request = get('https://http2.pro/api/v1');
     final call = client.newCall(request);
@@ -662,7 +665,11 @@ void main() {
   });
 
   test('HTTP2 Server Push Is Enabled', () async {
-    final client = Restio(http2: true, allowServerPushes: true);
+    final client = Restio(
+        options: const RequestOptions(
+      http2: true,
+      allowServerPushes: true,
+    ));
 
     final request = get('https://http2.pro/api/v1');
     final call = client.newCall(request);
@@ -681,7 +688,11 @@ void main() {
   });
 
   test('HTTP2 Server Push', () async {
-    final client = Restio(http2: true, allowServerPushes: true);
+    final client = Restio(
+        options: const RequestOptions(
+      http2: true,
+      allowServerPushes: true,
+    ));
 
     final request = get('https://nghttp2.org/');
     final call = client.newCall(request);
@@ -716,7 +727,11 @@ void main() {
   });
 
   test('HTTP2 Server Push Is Disabled', () async {
-    final client = Restio(http2: true, allowServerPushes: false);
+    final client = Restio(
+        options: const RequestOptions(
+      http2: true,
+      allowServerPushes: false,
+    ));
 
     final request = get('https://nghttp2.org/');
     final call = client.newCall(request);
@@ -895,7 +910,7 @@ void main() {
   });
 
   test('Force Accept-Encoding', () async {
-    final client = Restio(http2: true);
+    final client = Restio(options: const RequestOptions(http2: true));
 
     final request = get(
       'https://http2.pro/api/v1',
@@ -1157,8 +1172,8 @@ void main() {
 
   test('Fix Bug #16', () async {
     final client = Restio(
-      http2: true,
       options: const RequestOptions(
+        http2: true,
         receiveTimeout: Duration(seconds: 4),
         connectTimeout: Duration(seconds: 4),
         writeTimeout: Duration(seconds: 4),
@@ -1218,7 +1233,7 @@ void main() {
   });
 
   test('HTTP2 Persistent Connection', () async {
-    final client = Restio(http2: true);
+    final client = Restio(options: const RequestOptions(http2: true));
 
     final request = Request.get('https://httpbin.org/get');
     final call = client.newCall(request);
@@ -1264,7 +1279,10 @@ void main() {
   });
 
   test('HTTP2 Persistent Connection With Short Timeout', () async {
-    final client = Restio(http2: true, idleTimeout: const Duration(seconds: 5));
+    final client = Restio(
+      options: const RequestOptions(http2: true),
+      idleTimeout: const Duration(seconds: 5),
+    );
 
     final request = Request.get('https://httpbin.org/delay/10');
     final call = client.newCall(request);
@@ -1433,8 +1451,9 @@ void main() {
 
       final request =
           get('https://httpbin.org/basic-auth/a/b', options: options);
-      final response =
-          await requestResponse(client.copyWith(http2: true), request);
+      final response = await requestResponse(
+          client.copyWith(options: client.options.copyWith(http2: true)),
+          request);
 
       expect(response.code, 200);
 

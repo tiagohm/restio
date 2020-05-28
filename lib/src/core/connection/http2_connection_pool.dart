@@ -27,7 +27,7 @@ class Http2ConnectionPool extends ConnectionPool<List> {
     }
 
     final settings =
-        ClientSettings(allowServerPushes: client.allowServerPushes ?? false);
+        ClientSettings(allowServerPushes: options.allowServerPushes);
 
     return [
       socket,

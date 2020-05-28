@@ -1,4 +1,3 @@
-import 'package:restio/src/common/closeable.dart';
 import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/response/response.dart';
 

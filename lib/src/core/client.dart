@@ -37,13 +37,11 @@ class Restio implements Closeable {
   final ProgressCallback<Request> onUploadProgress;
   final ProgressCallback<Response> onDownloadProgress;
   final BadCertificateCallback onBadCertificate;
-  final bool http2;
   final List<Certificate> certificates;
   final Cache cache;
   final List<RedirectPolicy> redirectPolicies;
   final RequestOptions options;
   final Duration idleTimeout;
-  final bool allowServerPushes;
 
   HttpConnectionPool _httpConnectionPool;
   Http2ConnectionPool _http2ConnectionPool;
@@ -56,13 +54,11 @@ class Restio implements Closeable {
     this.onUploadProgress,
     this.onDownloadProgress,
     this.onBadCertificate,
-    this.http2 = false,
     this.certificates,
     this.cache,
     this.redirectPolicies,
     RequestOptions options,
     this.idleTimeout,
-    this.allowServerPushes = false,
   }) : options = options ?? RequestOptions.empty {
     _httpConnectionPool = HttpConnectionPool(this, idleTimeout: idleTimeout);
     _http2ConnectionPool = Http2ConnectionPool(this, idleTimeout: idleTimeout);
@@ -113,13 +109,11 @@ class Restio implements Closeable {
     ProgressCallback<Request> onUploadProgress,
     ProgressCallback<Response> onDownloadProgress,
     BadCertificateCallback onBadCertificate,
-    bool http2,
     List<Certificate> certificates,
     Cache cache,
     List<RedirectPolicy> redirectPolicies,
     RequestOptions options,
     Duration idleTimeout,
-    bool allowServerPushes,
   }) {
     return Restio(
       interceptors: interceptors ?? this.interceptors,
@@ -129,13 +123,11 @@ class Restio implements Closeable {
       onUploadProgress: onUploadProgress ?? this.onUploadProgress,
       onDownloadProgress: onDownloadProgress ?? this.onDownloadProgress,
       onBadCertificate: onBadCertificate ?? this.onBadCertificate,
-      http2: http2 ?? this.http2,
       certificates: certificates ?? this.certificates,
       cache: cache ?? this.cache,
       redirectPolicies: redirectPolicies ?? this.redirectPolicies,
       options: options ?? this.options,
       idleTimeout: idleTimeout ?? this.idleTimeout,
-      allowServerPushes: allowServerPushes ?? this.allowServerPushes,
     );
   }
 
