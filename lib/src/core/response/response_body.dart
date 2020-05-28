@@ -81,6 +81,10 @@ class ResponseBody implements Pauseable {
   @override
   bool get isPaused => data is Pauseable && (data as Pauseable).isPaused;
 
+  Future<void> drain() async {
+    await data.drain();
+  }
+
   Future<List<int>> raw() {
     return readStream(
         data.transform(Decompressor(null, decompressor?.onChunkReceived)));

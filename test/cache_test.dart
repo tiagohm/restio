@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 import 'cache_tests.dart';
 import 'fernet.dart';
 
-const client = Restio(
+final client = Restio(
   interceptors: [
     // LogInterceptor(),
   ],

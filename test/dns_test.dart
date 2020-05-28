@@ -6,7 +6,7 @@ import 'package:test/test.dart';
 void main() {
   group('System Dns', () {
     test('Lookup packet', () async {
-      const dns = Dns.system;
+      final dns = Dns.system;
       final packet = await dns.lookupPacket('google.com');
       expect(packet, isNotNull);
       expect(packet.isResponse, isTrue);
@@ -16,7 +16,7 @@ void main() {
     });
 
     test('Lookup', () async {
-      const dns = Dns.system;
+      final dns = Dns.system;
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
@@ -74,7 +74,7 @@ void main() {
 
   group('Dns over Https', () {
     test('Lookup packet', () async {
-      const dns = DnsOverHttps.google();
+      final dns = DnsOverHttps.google();
       final packet = await dns.lookupPacket('google.com');
       expect(packet, isNotNull);
       expect(packet.isResponse, isTrue);
@@ -84,21 +84,21 @@ void main() {
     });
 
     test('Google Lookup', () async {
-      const dns = DnsOverHttps.google();
+      final dns = DnsOverHttps.google();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
 
     test('Cloudflare Lookup', () async {
-      const dns = DnsOverHttps.cloudflare();
+      final dns = DnsOverHttps.cloudflare();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');
     });
 
     test('Mozilla Lookup', () async {
-      const dns = DnsOverHttps.mozilla();
+      final dns = DnsOverHttps.mozilla();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
       expect(response[0].toString(), '104.248.51.46');

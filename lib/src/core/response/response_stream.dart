@@ -23,6 +23,11 @@ class ResponseStream extends Stream<List<int>> implements Closeable, Pauseable {
   });
 
   @override
+  Future<E> drain<E>([E futureValue]) {
+    return stream.drain(futureValue);
+  }
+
+  @override
   StreamSubscription<List<int>> listen(
     void Function(List<int> event) onData, {
     Function onError,

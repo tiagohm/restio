@@ -3,7 +3,7 @@ import 'dart:io';
 import 'package:restio/restio.dart';
 import 'package:test/test.dart';
 
-const client = Restio();
+final client = Restio();
 
 void main() {
   Process process;

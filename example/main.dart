@@ -1,6 +1,6 @@
 import 'package:restio/restio.dart';
 
-const client = Restio();
+final client = Restio();
 
 Future<void> main() async {
   final request = Request.get('https://api.ipify.org?format=json');

@@ -59,7 +59,6 @@ class ConnectInterceptor implements Interceptor {
       );
     } finally {
       cancellable?.remove(cancelTransport);
-      await transport.close(); // A conexão não é persistente.
     }
   }
 }

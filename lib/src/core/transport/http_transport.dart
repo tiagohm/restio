@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:ip/ip.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/client.dart';
+import 'package:restio/src/core/connection/connection.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
@@ -16,96 +17,28 @@ class HttpTransport implements Transport {
   @override
   final Restio client;
 
-  HttpClient _httpClient;
-  var _isClosed = false;
+  Connection<HttpClient> _connection;
 
   HttpTransport(this.client) : assert(client != null);
 
-  Future<HttpClient> _buildHttpClient(
-    Restio client,
-    Request request,
-  ) async {
-    final options = request.options;
-
-    final context =
-        SecurityContext(withTrustedRoots: client.withTrustedRoots ?? true);
-
-    // Busca o certificado.
-    final certificate = options.certificate ??
-        client.certificates?.firstWhere(
-          (certificate) {
-            return certificate.matches(
-              request.uri.host,
-              request.uri.effectivePort,
-            );
-          },
-          orElse: () => null,
-        );
-
-    if (certificate != null) {
-      final chainBytes = certificate.certificate;
-      final keyBytes = certificate.privateKey;
-      final password = certificate.password;
-
-      if (chainBytes != null) {
-        context.useCertificateChainBytes(
-          chainBytes,
-          password: password,
-        );
-      }
-
-      if (keyBytes != null) {
-        context.usePrivateKeyBytes(
-          keyBytes,
-          password: password,
-        );
-      }
-    }
-
-    final httpClient = HttpClient(context: context);
-
-    // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
-    httpClient.badCertificateCallback = (cert, host, port) {
-      return !options.verifySSLCertificate ||
-          (client.onBadCertificate?.call(cert, host, port) ?? false);
-    };
-
-    return httpClient;
-  }
-
   @override
   Future<void> cancel() async {
-    if (isClosed) {
-      return;
-    }
-
-    _isClosed = true;
-
-    _httpClient?.close(force: true);
+    _connection?.client?.close(force: true);
   }
-
-  @override
-  Future<void> close() async {
-    if (isClosed) {
-      return;
-    }
-
-    _isClosed = true;
-
-    _httpClient?.close();
-  }
-
-  @override
-  bool get isClosed => _isClosed;
 
   @override
   Future<Response> send(final Request request) async {
     final options = request.options;
 
     HttpClientRequest clientRequest;
+    HttpClientResponse response;
+
     var uri = request.uri;
 
-    _httpClient ??= await _buildHttpClient(client, request);
+    final state = (await client.httpConnectionPool.get(request))..stop();
+
+    _connection = state.connection;
+    final httpClient = _connection.client;
 
     final proxy = options.proxy;
     var hasProxy = false;
@@ -115,7 +48,7 @@ class HttpTransport implements Transport {
         (proxy.http && uri.scheme == 'http' ||
             proxy.https && uri.scheme == 'https')) {
       hasProxy = true;
-      _httpClient.findProxy = (uri) {
+      httpClient.findProxy = (uri) {
         return 'PROXY ${proxy.host}:${proxy.port};';
       };
     }
@@ -137,11 +70,11 @@ class HttpTransport implements Transport {
     try {
       if (options.connectTimeout != null &&
           !options.connectTimeout.isNegative) {
-        clientRequest = await _httpClient
+        clientRequest = await httpClient
             .openUrl(request.method, uri.toUri())
             .timeout(options.connectTimeout);
       } else {
-        clientRequest = await _httpClient.openUrl(
+        clientRequest = await httpClient.openUrl(
           request.method,
           uri.toUri(),
         );
@@ -159,7 +92,7 @@ class HttpTransport implements Transport {
       clientRequest.followRedirects = false;
 
       // Não descomprimir a resposta.
-      _httpClient.autoUncompress = false;
+      httpClient.autoUncompress = false;
 
       // User-Agent.
       if (!request.headers.has(HttpHeaders.userAgentHeader)) {
@@ -199,11 +132,7 @@ class HttpTransport implements Transport {
 
       // Connection.
       if (!request.headers.has(HttpHeaders.connectionHeader)) {
-        clientRequest.headers.set(
-          'Connection',
-          'Keep-Alive',
-          preserveHeaderCase: true,
-        );
+        clientRequest.persistentConnection = true;
       }
 
       // Headers.
@@ -245,9 +174,6 @@ class HttpTransport implements Transport {
         }
       }
 
-      // Resposta.
-      HttpClientResponse response;
-
       if (options.receiveTimeout != null &&
           !options.receiveTimeout.isNegative) {
         response = await clientRequest.close().timeout(options.receiveTimeout);
@@ -264,6 +190,9 @@ class HttpTransport implements Transport {
         connectionInfo: response.connectionInfo,
         certificate: response.certificate,
         dnsIp: dnsIp,
+        onClose: () async {
+          state.start();
+        },
       );
 
       return res.copyWith(
@@ -273,8 +202,19 @@ class HttpTransport implements Transport {
           contentLength: response.headers.contentLength,
         ),
       );
-    } on TimeoutException {
-      throw const TimedOutException(''); // connect time out
+    } catch (e) {
+      if (e is TimeoutException) {
+        throw const TimedOutException('');
+      } else {
+        try {
+          // Evita vazamento de memória quando algum erro ocorrer.
+          await response?.drain();
+        } catch (e) {
+          // nada.
+        }
+
+        rethrow;
+      }
     }
   }
 

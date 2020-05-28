@@ -39,7 +39,7 @@ dependencies:
 
 1. Create a instance of `Restio`:
 ```dart
-const client = Restio();
+final client = Restio();
 ```
 
 2. Create a `Request`:
@@ -77,12 +77,17 @@ final response = await call.execute();
 await response.close();
 ```
 
+6. To close all persistent connections:
+```dart
+await client.close();
+```
+
 ## Recipes
 
 ### Request Options
 
 ```dart
-const options = RequestOptions(
+final options = RequestOptions(
   connectTimeout : Duration(...),  // default is null (no timeout)
   writeTimeout : Duration(...),  // default is null (no timeout)
   receiveTimeout : Duration(...),  // default is null (no timeout)
@@ -96,7 +101,7 @@ const options = RequestOptions(
 );
 
 // At Client level.
-const client = Restio(options: options);
+final client = Restio(options: options);
 
 // Override at Request Level.
 final request = get('http://httpbin.org/get', options: options);
@@ -125,7 +130,7 @@ final headers = builder.build();
 ### Performing a GET request
 
 ```dart
-const client = Restio();
+final client = Restio();
 final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();
@@ -287,9 +292,9 @@ body.resume();
 ### Interceptors
 
 ```dart
-const client = Restio(
-  interceptors: [MyInterceptor()],
-  networkInterceptors: [MyInterceptor()],
+final client = Restio(
+  interceptors: const [MyInterceptor()],
+  networkInterceptors: const [MyInterceptor()],
 );
 
 class MyInterceptor implements Interceptor {
@@ -309,8 +314,8 @@ class MyInterceptor implements Interceptor {
 ### Authentication
 
 ```dart
-const client = Restio(
-  options: RequestOptions(
+final client = Restio(
+  options: const RequestOptions(
     authenticator: BasicAuthenticator(
       username: 'postman',
       password: 'password',
@@ -329,7 +334,7 @@ final response = await call.execute();
 ### Cookie Manager
 
 ```dart
-const client = Restio(cookieJar: MyCookieJar());
+final client = Restio(cookieJar: const MyCookieJar());
 
 class MyCookieJar implements CookieJar {
   const MyCookieJar();
@@ -398,8 +403,8 @@ call.cancel('cancelled');
 ### Proxy
 
 ```dart
-const client = Restio(
-  options: RequestOptions(
+final client = Restio(
+  options: const RequestOptions(
     proxy: Proxy(
       host: 'localhost',
       port: 3001,
@@ -415,7 +420,7 @@ final response = await call.execute();
 ### HTTP2
 
 ```dart
-const client = Restio(http2: true);
+final client = Restio(http2: true);
 final request = get('https://www.google.com/');
 final call = client.newCall(request);
 final response = await call.execute();
@@ -424,7 +429,7 @@ final response = await call.execute();
 ### WebSocket
 
 ```dart
-const client = Restio();
+final client = Restio();
 final request = Request(uri: RequestUri.parse('wss://echo.websocket.org'));
 final ws = client.newWebSocket(request);
 final conn = await ws.open();
@@ -443,7 +448,7 @@ await conn.close();
 ### SSE
 
 ```dart
-const client = Restio();
+final client = Restio();
 final request = Request(uri: RequestUri.parse('https://my.sse.com'));
 final sse = client.newSse(
   request,
@@ -468,8 +473,8 @@ await conn.close();
 Thanks to [dart-protocol](https://github.com/dart-protocol) for this great [dns](https://github.com/dart-protocol/dns) library!
 
 ```dart
-const dns = DnsOverUdp.google();
-const client = Restio(options: RequestOptions(dns: dns));
+final dns = DnsOverUdp.google();
+final client = Restio(options: RequestOptions(dns: dns));
 final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();

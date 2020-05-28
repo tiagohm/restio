@@ -24,16 +24,17 @@ void main() {
   });
 
   test('Performing a GET request', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('https://postman-echo.com/get');
     final call = client.newCall(request);
     final response = await call.execute();
     expect(response.code, 200);
     await response.close();
+    await client.close();
   });
 
   test('Performing a POST request', () async {
-    const client = Restio();
+    final client = Restio();
     final request = post(
       'https://postman-echo.com/post',
       body:
@@ -46,10 +47,11 @@ void main() {
     await response.close();
     expect(json['headers']['content-length'], '58');
     expect(json['json'], null);
+    await client.close();
   });
 
   test('Simple Get', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('https://httpbin.org/json');
     final call = client.newCall(request);
     final response = await call.execute();
@@ -62,10 +64,11 @@ void main() {
     expect(response.message, 'OK');
 
     await response.close();
+    await client.close();
   });
 
   test('Cancelling a Call', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('https://httpbin.org/delay/10');
 
     final call = client.newCall(request);
@@ -75,10 +78,12 @@ void main() {
       final response = await call.execute();
       await response.close();
     }, throwsA(isA<CancelledException>()));
+
+    await client.close();
   });
 
   test('Posting a String', () async {
-    const client = Restio();
+    final client = Restio();
     final request = post(
       'https://postman-echo.com/post',
       body: 'Olá!'.asBody(),
@@ -90,10 +95,12 @@ void main() {
     expect(data['data'], 'Olá!');
     expect(data['headers']['content-length'], '5');
     expect(data['headers']['content-type'], 'application/json');
+
+    await client.close();
   });
 
   test('Posting Form Parameters', () async {
-    const client = Restio();
+    final client = Restio();
     final request = post(
       'https://postman-echo.com/post',
       body: {'a': 'b', 'c': 'd'}.asForm(),
@@ -103,10 +110,12 @@ void main() {
 
     expect(data['form']['a'], 'b');
     expect(data['form']['c'], 'd');
+
+    await client.close();
   });
 
   test('Posting a Multipart Request', () async {
-    const client = Restio();
+    final client = Restio();
     final request = post(
       'https://postman-echo.com/post',
       body: {
@@ -122,6 +131,8 @@ void main() {
     expect(data['form']['c'], 'd');
     expect(data['files']['text.txt'],
         'data:application/octet-stream;base64,YQpiCmMK');
+
+    await client.close();
   });
 
   test('Posting Binary File', () async {
@@ -148,6 +159,8 @@ void main() {
       57, 142, 52, 40, 70, //
       185, 190, 43, 80, 153, //
     ]);
+
+    await client.close();
   });
 
   test('Posting Binary File By HTTP2', () async {
@@ -170,10 +183,12 @@ void main() {
     expect(isDone, true);
     expect(
         data['data'], 'data:application/octet-stream;base64,OY40KEa5vitQmQ==');
+
+    await client.close();
   });
 
   test('Posting Part of Binary File', () async {
-    const client = Restio();
+    final client = Restio();
 
     final request = post(
       'https://postman-echo.com/post',
@@ -185,10 +200,13 @@ void main() {
     expect(data['headers']['content-length'], '${request.body.contentLength}');
     expect(data['data']['type'], 'Buffer');
     expect(data['data']['data'], const [52, 40, 70, 185]);
+
+    await client.close();
   });
 
   test('User-Agent', () async {
-    const client = Restio(options: RequestOptions(userAgent: 'Restio (Dart)'));
+    final client =
+        Restio(options: const RequestOptions(userAgent: 'Restio (Dart)'));
 
     var request = get('https://postman-echo.com/get');
     var data = await requestJson(client, request);
@@ -203,10 +221,12 @@ void main() {
     data = await requestJson(client, request);
 
     expect(data['headers']['user-agent'], 'jrit549ytyh549');
+
+    await client.close();
   });
 
   test('Posting a File', () async {
-    const client = Restio();
+    final client = Restio();
     final request = post(
       'https://api.github.com/markdown/raw',
       body: '# Restio'.asBody(MediaType(type: 'text', subType: 'x-markdown')),
@@ -215,10 +235,12 @@ void main() {
     final data = await requestString(client, request);
     expect(data,
         '<h1>\n<a id="user-content-restio" class="anchor" href="#restio" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Restio</h1>\n');
+
+    await client.close();
   });
 
   test('Content-Type Auto Detect', () async {
-    const client = Restio();
+    final client = Restio();
     final request = post(
       'https://httpbin.org/post',
       body: File('./test/assets/css.css').asBody(),
@@ -226,11 +248,13 @@ void main() {
 
     final data = await requestJson(client, request);
     expect(data['headers']['Content-Type'], 'text/css');
+
+    await client.close();
   });
 
   test('Basic Auth', () async {
-    const client = Restio(
-      options: RequestOptions(
+    final client = Restio(
+      options: const RequestOptions(
         auth: BasicAuthenticator(
           username: 'a',
           password: 'b',
@@ -246,10 +270,12 @@ void main() {
     final data = await response.body.json();
     await response.close();
     expect(data['authenticated'], true);
+
+    await client.close();
   });
 
   test('Bearer Auth', () async {
-    const client = Restio();
+    final client = Restio();
     final authClient = client.copyWith(
       options: client.options.copyWith(
         auth: const BearerAuthenticator(
@@ -267,11 +293,13 @@ void main() {
     await response.close();
     expect(data['authenticated'], true);
     expect(data['token'], '123');
+
+    await client.close();
   });
 
   test('Digest Auth', () async {
-    const client = Restio(
-      options: RequestOptions(
+    final client = Restio(
+      options: const RequestOptions(
         auth: DigestAuthenticator(
           username: 'postman',
           password: 'password',
@@ -287,11 +315,13 @@ void main() {
     final data = await response.body.json();
     await response.close();
     expect(data['authenticated'], true);
+
+    await client.close();
   });
 
   test('Hawk Auth', () async {
-    const client = Restio(
-      options: RequestOptions(
+    final client = Restio(
+      options: const RequestOptions(
         auth: HawkAuthenticator(
           id: 'dh37fgj492je',
           key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
@@ -307,11 +337,13 @@ void main() {
     final data = await response.body.json();
     await response.close();
     expect(data['message'], 'Hawk Authentication Successful');
+
+    await client.close();
   });
 
   test('Queries Should Be Included In the Hawk Auth Resource', () async {
-    const client = Restio(
-      options: RequestOptions(
+    final client = Restio(
+      options: const RequestOptions(
         auth: HawkAuthenticator(
           id: 'dh37fgj492je',
           key: 'werxhqb98rpaxn39848xrunpaw3489ruxnpa98w4rxn',
@@ -334,11 +366,13 @@ void main() {
     request = get('https://postman-echo.com/auth/hawk?a');
     response = await requestResponse(client, request);
     expect(response.code, 200);
+
+    await client.close();
   });
 
   test('Timeout', () async {
-    const client = Restio(
-      options: RequestOptions(
+    final client = Restio(
+      options: const RequestOptions(
         connectTimeout: Duration(seconds: 2),
         writeTimeout: Duration(seconds: 2),
         receiveTimeout: Duration(seconds: 2),
@@ -355,10 +389,12 @@ void main() {
     } on TimedOutException catch (e) {
       expect(e.message, '');
     }
+
+    await client.close();
   });
 
   test('Queries', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get(
       'https://api.github.com/search/repositories?q=flutter&sort=stars',
       queries: {'order': 'desc', 'per_page': '2'}.asQueries(),
@@ -376,10 +412,12 @@ void main() {
     await response.close();
     expect(data['items'].length, 2);
     expect(data['items'][0]['full_name'], 'flutter/flutter');
+
+    await client.close();
   });
 
   test('Raw Data', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('https://httpbin.org/robots.txt');
 
     final call = client.newCall(request);
@@ -388,33 +426,37 @@ void main() {
     await response.close();
 
     expect(data.length, 30);
+
+    await client.close();
   });
 
   test('Gzip', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('https://httpbin.org/gzip');
     final data = await requestJson(client, request);
     expect(data['gzipped'], true);
+    await client.close();
   });
 
   test('Deflate', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('https://httpbin.org/deflate');
     final data = await requestJson(client, request);
     expect(data['deflated'], true);
+    await client.close();
   });
 
   test('Brotli', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('https://httpbin.org/brotli');
     final data = await requestJson(client, request);
     expect(data['brotli'], true);
+    await client.close();
   });
 
   group('Redirects', () {
-    const client = Restio(options: RequestOptions(maxRedirects: 9));
-
     test('Absolute redirects n times', () async {
+      final client = Restio(options: const RequestOptions(maxRedirects: 9));
       final request = get('https://httpbin.org/absolute-redirect/7');
       final call = client.newCall(request);
       final response = await call.execute();
@@ -423,9 +465,11 @@ void main() {
       expect(response.redirects.length, 7);
 
       await response.close();
+      await client.close();
     });
 
     test('Relative redirects n times', () async {
+      final client = Restio(options: const RequestOptions(maxRedirects: 9));
       final request = get('https://httpbin.org/relative-redirect/7');
       final call = client.newCall(request);
       final response = await call.execute();
@@ -435,9 +479,11 @@ void main() {
       expect(response.redirects[6].request.uri.path, '/get');
 
       await response.close();
+      await client.close();
     });
 
     test('Too many redirects exception', () async {
+      final client = Restio(options: const RequestOptions(maxRedirects: 9));
       final request = get('https://httpbin.org/absolute-redirect/10');
       final call = client.newCall(request);
 
@@ -449,18 +495,16 @@ void main() {
         expect(e.message, 'Too many redirects: 10');
         expect(e.uri.toUriString(), 'https://httpbin.org/absolute-redirect/10');
       }
+
+      await client.close();
     });
   });
 
   group('Redirects with DNS', () {
-    final client = Restio(
-      options: RequestOptions(
-        maxRedirects: 9,
-        dns: DnsOverUdp.google(),
-      ),
-    );
-
     test('Absolute redirects n times', () async {
+      final client = Restio(
+        options: RequestOptions(maxRedirects: 9, dns: DnsOverUdp.google()),
+      );
       final request = get('https://httpbin.org/absolute-redirect/7');
       final call = client.newCall(request);
       final response = await call.execute();
@@ -469,9 +513,13 @@ void main() {
       expect(response.redirects.length, 7);
 
       await response.close();
+      await client.close();
     });
 
     test('Relative redirects n times', () async {
+      final client = Restio(
+        options: RequestOptions(maxRedirects: 9, dns: DnsOverUdp.google()),
+      );
       final request = get('https://httpbin.org/relative-redirect/7');
       final call = client.newCall(request);
       final response = await call.execute();
@@ -481,9 +529,13 @@ void main() {
       expect(response.redirects[6].request.uri.path, '/get');
 
       await response.close();
+      await client.close();
     });
 
     test('Too many redirects exception', () async {
+      final client = Restio(
+        options: RequestOptions(maxRedirects: 9, dns: DnsOverUdp.google()),
+      );
       final request = get('https://httpbin.org/absolute-redirect/10');
       final call = client.newCall(request);
 
@@ -495,11 +547,13 @@ void main() {
         expect(e.message, 'Too many redirects: 10');
         expect(e.uri.toUriString(), 'https://httpbin.org/absolute-redirect/10');
       }
+
+      await client.close();
     });
   });
 
   test('Chunked', () async {
-    const client = Restio();
+    final client = Restio();
     var isDone = false;
 
     void onProgress(Response entity, int rcv, int total, bool done) {
@@ -522,10 +576,11 @@ void main() {
     expect(isDone, true);
 
     await response.close();
+    await client.close();
   });
 
   test('Pause & Resume', () async {
-    const client = Restio();
+    final client = Restio();
     final startTime = DateTime.now().millisecondsSinceEpoch;
     Response response;
 
@@ -554,10 +609,11 @@ void main() {
 
     expect(raw.length, isNonZero);
     expect(endTime - startTime, greaterThan(5000));
+    await client.close();
   });
 
   test('Retry after', () async {
-    const client = Restio();
+    final client = Restio();
     final retryAfterClient = client.copyWith(networkInterceptors: [
       _RetryAfterInterceptor(15),
     ]);
@@ -567,10 +623,11 @@ void main() {
     final response = await call.execute();
     await response.close();
     expect(response.totalMilliseconds, greaterThan(15000));
+    await client.close();
   });
 
   test('HTTP2', () async {
-    const client = Restio(http2: true);
+    final client = Restio(http2: true);
 
     final request = get('https://http2.pro/api/v1');
     final call = client.newCall(request);
@@ -585,6 +642,7 @@ void main() {
     expect(json['protocol'], 'HTTP/2.0');
     expect(json['push'], 0);
     expect(response.headers.value(HttpHeaders.contentEncodingHeader), 'br');
+    await client.close();
   });
 
   test('Client Certificate', () async {
@@ -607,11 +665,13 @@ void main() {
     await response.close();
 
     expect(response.code, 200);
+
+    await client.close();
   });
 
   test('Proxy', () async {
-    const client = Restio(
-      options: RequestOptions(
+    final client = Restio(
+      options: const RequestOptions(
         proxy: Proxy(
           host: 'localhost',
           port: 3004,
@@ -636,11 +696,13 @@ void main() {
 
     expect(json['authenticated'], true);
     expect(json['user'], 'c');
+
+    await client.close();
   });
 
   test('Auth Proxy', () async {
-    const client = Restio(
-      options: RequestOptions(
+    final client = Restio(
+      options: const RequestOptions(
         proxy: Proxy(
           host: 'localhost',
           port: 3005,
@@ -666,6 +728,8 @@ void main() {
     await response.close();
 
     expect(json['authenticated'], true);
+
+    await client.close();
   });
 
   test('DNS-Over-UDP', () async {
@@ -683,6 +747,8 @@ void main() {
     expect(json['url'], 'https://httpbin.org/get?a=b');
     expect(json['args']['a'], 'b');
     expect(response.dnsIp, isNotNull);
+
+    await client.close();
   });
 
   test('DNS-Over-HTTPS', () async {
@@ -700,11 +766,13 @@ void main() {
     expect(json['url'], 'https://httpbin.org/get?a=b');
     expect(json['args']['a'], 'b');
     expect(response.dnsIp, isNotNull);
+
+    await client.close();
   });
 
   test('Custom Host Header', () async {
-    const dns = DnsOverHttps.google();
-    const client = Restio(options: RequestOptions(dns: dns));
+    final dns = DnsOverHttps.google();
+    final client = Restio(options: RequestOptions(dns: dns));
 
     final request = get(
       'https://httpbin.org/get',
@@ -719,10 +787,12 @@ void main() {
     await response.close();
 
     expect(json['url'], 'https://google.com/get');
+
+    await client.close();
   });
 
   test('Force Accept-Encoding', () async {
-    const client = Restio(http2: true);
+    final client = Restio(http2: true);
 
     final request = get(
       'https://http2.pro/api/v1',
@@ -733,6 +803,8 @@ void main() {
 
     expect(response.code, 200);
     expect(response.headers.value(HttpHeaders.contentEncodingHeader), 'gzip');
+
+    await client.close();
   });
 
   test('Fix DNS timeout bug', () async {
@@ -745,10 +817,12 @@ void main() {
     await response.close();
 
     expect(response.code, 200);
+
+    await client.close();
   });
 
   test('Cookies', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('https://postman-echo.com/get');
     final call = client.newCall(request);
     final response = await call.execute();
@@ -757,10 +831,12 @@ void main() {
     expect(response.code, 200);
     expect(response.cookies.length, 1);
     expect(response.cookies[0].name, 'sails.sid');
+
+    await client.close();
   });
 
   test('Version', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('https://httpbin.org/get');
     final call = client.newCall(request);
     final response = await call.execute();
@@ -773,6 +849,8 @@ void main() {
 
     expect(response.code, 200);
     expect(json['headers']['User-Agent'], 'Restio/${pubSpec.version}');
+
+    await client.close();
   });
 
   test('Cache', () async {
@@ -863,10 +941,12 @@ void main() {
     expect(response.totalMilliseconds, isNonZero);
     expect(response.networkResponse, isNotNull);
     expect(response.cacheResponse, isNull);
+
+    await client.close();
   });
 
   test('Empty Cache-Control Value', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get(
       'https://httpbin.org/get',
       headers: {'cache-control': ''}.asHeaders(),
@@ -876,10 +956,12 @@ void main() {
     await response.close();
 
     expect(response.code, 200);
+
+    await client.close();
   });
 
   test('Encoded Form Body', () async {
-    const client = Restio();
+    final client = Restio();
     final body = (FormBuilder()
           ..add(" \"':;<=>+@[]^`{}|/\\?#&!\$(),~",
               " \"':;<=>+@[]^`{}|/\\?#&!\$(),~")
@@ -907,10 +989,12 @@ void main() {
     expect(json['form']['円'], '円');
     expect(json['form']['£'], '£');
     expect(json['form']['text'], 'text');
+
+    await client.close();
   });
 
   test('Fix Default JSON Encoding', () async {
-    const client = Restio();
+    final client = Restio();
     final request = get('http://www.mocky.io/v2/5e2d86473000005000e77d19');
     final call = client.newCall(request);
     final response = await call.execute();
@@ -920,6 +1004,8 @@ void main() {
     expect(response.code, 200);
 
     expect(json, 'este é um corpo UTF-8');
+
+    await client.close();
   });
 
   test('Fix Timestamp When Use Cache', () async {
@@ -935,12 +1021,14 @@ void main() {
     expect(response.redirects.length, 5);
     expect(response.totalMilliseconds,
         greaterThanOrEqualTo(response.redirects.last.elapsedMilliseconds));
+
+    await cacheClient.close();
   });
 
   test('Redirect Policy', () async {
-    var client = const Restio(
+    var client = Restio(
       redirectPolicies: [
-        DomainCheckRedirectPolicy(['goo.gle', 'www.blog.google']),
+        const DomainCheckRedirectPolicy(['goo.gle', 'www.blog.google']),
       ],
     );
 
@@ -960,12 +1048,14 @@ void main() {
 
     expect(response.code, 301);
     expect(response.redirects.last.request.uri.host, 'goo.gle');
+
+    await client.close();
   });
 
   test('Fix Bug #16', () async {
-    const client = Restio(
+    final client = Restio(
       http2: true,
-      options: RequestOptions(
+      options: const RequestOptions(
         receiveTimeout: Duration(seconds: 4),
         connectTimeout: Duration(seconds: 4),
         writeTimeout: Duration(seconds: 4),
@@ -976,10 +1066,12 @@ void main() {
     final call = client.newCall(request);
 
     expect(() async => await call.execute(), throwsA(isA<TimedOutException>()));
+
+    await client.close();
   });
 
   test('Call can be executed multiple times', () async {
-    const client = Restio();
+    final client = Restio();
 
     final request = Request.get('https://httpbin.org/get');
     final call = client.newCall(request);
@@ -996,19 +1088,111 @@ void main() {
     expect(response1.code, 200);
     expect(response2.code, 200);
     expect(header1, isNot(header2));
+
+    await client.close();
+  });
+
+  test('Persistent Connection', () async {
+    final client = Restio();
+
+    final request = Request.get('https://httpbin.org/get');
+    final call = client.newCall(request);
+
+    final response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    final response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.connectionInfo.localPort,
+      response2.connectionInfo.localPort,
+    );
+
+    await client.close();
+  });
+
+  test('Persistent Connection With Short Timeout', () async {
+    final client = Restio(idleTimeout: const Duration(seconds: 5));
+
+    final request = Request.get('https://httpbin.org/delay/10');
+    final call = client.newCall(request);
+
+    final response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    await Future.delayed(const Duration(seconds: 6));
+
+    final response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.connectionInfo.localPort,
+      isNot(response2.connectionInfo.localPort),
+    );
+
+    await client.close();
+  });
+
+  test('Not Persist Connection For Two Schemes', () async {
+    final client = Restio();
+
+    var request = Request.get('https://httpbin.org/get');
+    var call = client.newCall(request);
+
+    final response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    request = Request.get('http://httpbin.org/get');
+    call = client.newCall(request);
+    final response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.connectionInfo.localPort,
+      isNot(response2.connectionInfo.localPort),
+    );
+
+    await client.close();
+  });
+
+  test('Two Call Share Same Connection', () async {
+    final client = Restio();
+
+    final request = Request.get('https://httpbin.org/get');
+    var call = client.newCall(request);
+
+    final response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    call = client.newCall(request);
+    final response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.connectionInfo.localPort,
+      response2.connectionInfo.localPort,
+    );
+
+    await client.close();
   });
 
   group('Request Options', () {
-    const client = Restio(
-      options: RequestOptions(
-        auth: BasicAuthenticator(username: 'c', password: 'd'),
-        followRedirects: true,
-        maxRedirects: 200,
-        userAgent: 'pqrstuvwxyz',
-      ),
-    );
-
     test('Authentication', () async {
+      final client = Restio(
+        options: const RequestOptions(
+          auth: BasicAuthenticator(username: 'c', password: 'd'),
+        ),
+      );
+
       const options = RequestOptions(
         auth: BasicAuthenticator(username: 'a', password: 'b'),
       );
@@ -1023,18 +1207,30 @@ void main() {
       await response.close();
 
       expect(data['authenticated'], true);
+
+      await client.close();
     });
 
     test('Follow Redirects', () async {
+      final client = Restio(
+        options: const RequestOptions(followRedirects: true),
+      );
+
       const options = RequestOptions(followRedirects: false);
       final request = get('https://httpbin.org/redirect/1', options: options);
       final response = await requestResponse(client, request);
       await response.close();
 
       expect(response.code, 302);
+
+      await client.close();
     });
 
     test('Too many redirects exception', () async {
+      final client = Restio(
+        options: const RequestOptions(maxRedirects: 200),
+      );
+
       const options = RequestOptions(maxRedirects: 2);
       final request = get('https://httpbin.org/redirect/5', options: options);
 
@@ -1048,18 +1244,27 @@ void main() {
         expect(e.message, 'Too many redirects: 3');
         expect(e.uri.toUriString(), 'https://httpbin.org/redirect/5');
       }
+
+      await client.close();
     });
 
     test('User-Agent', () async {
+      final client = Restio(
+        options: const RequestOptions(userAgent: 'pqrstuvwxyz'),
+      );
+
       const options = RequestOptions(userAgent: 'abcdefghijklmno');
       final request = get('https://postman-echo.com/get', options: options);
       final data = await requestJson(client, request);
 
       expect(data['headers']['user-agent'], 'abcdefghijklmno');
+
+      await client.close();
     });
 
     test('DNS', () async {
-      const options = RequestOptions(dns: DnsOverHttps.google());
+      final client = Restio();
+      final options = RequestOptions(dns: DnsOverHttps.google());
       final request = get('https://postman-echo.com/get', options: options);
       final response = await requestResponse(client, request);
 
@@ -1067,6 +1272,12 @@ void main() {
     });
 
     test('Authentication via HTTP2', () async {
+      final client = Restio(
+        options: const RequestOptions(
+          auth: BasicAuthenticator(username: 'c', password: 'd'),
+        ),
+      );
+
       const options = RequestOptions(
         auth: BasicAuthenticator(username: 'a', password: 'b'),
       );
@@ -1082,9 +1293,13 @@ void main() {
       await response.close();
 
       expect(data['authenticated'], true);
+
+      await client.close();
     });
 
     test('Equal Sign If Empty', () async {
+      final client = Restio();
+
       var request = get('https://httpbin.org/get?a=', keepEqualSign: true);
       var response = await requestResponse(client, request);
       var data = await response.body.json();
@@ -1115,6 +1330,8 @@ void main() {
       data = await response.body.json();
       await response.close();
       expect(data['url'], 'https://httpbin.org/get?a=&c=d');
+
+      await client.close();
     });
 
     test('Client Certificate', () async {
@@ -1127,7 +1344,7 @@ void main() {
         port: 443,
         password: 'badssl.com',
       );
-      const client = Restio();
+      final client = Restio();
       final request = get('https://client.badssl.com/',
           options: RequestOptions(certificate: certificate));
       final call = client.newCall(request);
@@ -1156,6 +1373,8 @@ void main() {
     expect(response.code, 200);
     expect(await response.body.string(), 'OK');
     await response.close();
+
+    await client.close();
   });
 
   // https://github.com/flutterchina/dio/issues/793
@@ -1179,6 +1398,8 @@ void main() {
       expect(response.redirects.length, 1);
       expect(data, contains('Your password is invalid!'));
       expect(data, contains('Login Page'));
+
+      await client.close();
     });
 
     test('Valid', () async {
@@ -1194,6 +1415,8 @@ void main() {
       expect(response.code, 200);
       expect(response.redirects.length, 1);
       expect(data, contains('Secure Area'));
+
+      await client.close();
     });
   });
 }

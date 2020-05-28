@@ -19,34 +19,13 @@ class Http2Transport implements Transport {
 
   ClientTransportStream _stream;
   ClientTransportConnection _transport;
-  var _isClosed = false;
 
   Http2Transport(this.client);
 
   @override
   Future<void> cancel() async {
-    if (isClosed) {
-      return;
-    }
-
-    _isClosed = true;
-
     _stream?.terminate();
   }
-
-  @override
-  Future<void> close() async {
-    if (isClosed) {
-      return;
-    }
-
-    _isClosed = true;
-
-    await _transport?.finish();
-  }
-
-  @override
-  bool get isClosed => _isClosed;
 
   @override
   Future<Response> send(final Request request) async {

@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:io' as io;
 
+import 'package:restio/src/common/closeable.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/cache/cache.dart';
 import 'package:restio/src/core/call/call.dart';
 import 'package:restio/src/core/call/cancellable.dart';
 import 'package:restio/src/core/certificate/certificate.dart';
+import 'package:restio/src/core/connection/http_connection_pool.dart';
 import 'package:restio/src/core/cookie/cookie_jar.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
@@ -26,7 +28,7 @@ part 'call.dart';
 part 'sse.dart';
 part 'ws.dart';
 
-class Restio {
+class Restio implements Closeable {
   final List<Interceptor> interceptors;
   final List<Interceptor> networkInterceptors;
   final CookieJar cookieJar;
@@ -39,8 +41,10 @@ class Restio {
   final Cache cache;
   final List<RedirectPolicy> redirectPolicies;
   final RequestOptions options;
+  final Duration idleTimeout;
+  HttpConnectionPool _httpConnectionPool;
 
-  const Restio({
+  Restio({
     this.interceptors,
     this.networkInterceptors,
     this.cookieJar,
@@ -53,9 +57,14 @@ class Restio {
     this.cache,
     this.redirectPolicies,
     RequestOptions options,
-  }) : options = options ?? RequestOptions.empty;
+    this.idleTimeout,
+  }) : options = options ?? RequestOptions.empty {
+    _httpConnectionPool = HttpConnectionPool(this, idleTimeout: idleTimeout);
+  }
 
   static const version = '0.7.1';
+
+  HttpConnectionPool get httpConnectionPool => _httpConnectionPool;
 
   Call newCall(Request request) {
     return _Call(client: this, request: request);
@@ -101,6 +110,7 @@ class Restio {
     Cache cache,
     List<RedirectPolicy> redirectPolicies,
     RequestOptions options,
+    Duration idleTimeout,
   }) {
     return Restio(
       interceptors: interceptors ?? this.interceptors,
@@ -115,6 +125,15 @@ class Restio {
       cache: cache ?? this.cache,
       redirectPolicies: redirectPolicies ?? this.redirectPolicies,
       options: options ?? this.options,
+      idleTimeout: idleTimeout ?? this.idleTimeout,
     );
   }
+
+  @override
+  Future<void> close() async {
+    await _httpConnectionPool.close();
+  }
+
+  @override
+  bool get isClosed => _httpConnectionPool.isClosed;
 }

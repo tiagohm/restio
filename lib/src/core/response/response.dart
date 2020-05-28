@@ -51,6 +51,8 @@ class Response implements Closeable {
 
   var _isClosed = false;
 
+  final Future<void> Function() onClose;
+
   Response({
     this.request,
     this.message = '',
@@ -69,6 +71,7 @@ class Response implements Closeable {
     CacheControl cacheControl,
     this.networkResponse,
     this.cacheResponse,
+    this.onClose,
   })  : challenges = _challenges(code, headers),
         cacheControl = cacheControl ??
             CacheControl.fromHeaders(headers) ??
@@ -231,6 +234,7 @@ class Response implements Closeable {
     CacheControl cacheControl,
     Response networkResponse,
     Response cacheResponse,
+    Future<void> Function() onClose,
   }) {
     return Response(
       request: request ?? this.request,
@@ -250,6 +254,7 @@ class Response implements Closeable {
       cacheControl: cacheControl ?? this.cacheControl,
       networkResponse: networkResponse ?? this.networkResponse,
       cacheResponse: cacheResponse ?? this.cacheResponse,
+      onClose: onClose ?? this.onClose,
     );
   }
 
@@ -261,6 +266,13 @@ class Response implements Closeable {
 
     _isClosed = true;
 
+    try {
+      // Libera a conexão para a próxima requisição.
+      await body.drain();
+    } catch (e) {
+      // nada.
+    }
+
     for (final redirect in redirects) {
       await redirect.response?.close();
     }
@@ -268,6 +280,8 @@ class Response implements Closeable {
     if (body?.data is Closeable) {
       await (body.data as Closeable).close();
     }
+
+    await onClose?.call();
   }
 
   @override
