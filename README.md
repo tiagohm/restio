@@ -479,7 +479,7 @@ final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);
 final response = await call.execute();
 
-print(response.dnsIp); // Prints the resolved IP.
+print(response.address); // Prints the resolved IP address.
 ```
 
 > Supports DnsOverHttps too.

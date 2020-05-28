@@ -746,7 +746,7 @@ void main() {
 
     expect(json['url'], 'https://httpbin.org/get?a=b');
     expect(json['args']['a'], 'b');
-    expect(response.dnsIp, isNotNull);
+    expect(response.address, isNotNull);
 
     await client.close();
   });
@@ -765,7 +765,7 @@ void main() {
 
     expect(json['url'], 'https://httpbin.org/get?a=b');
     expect(json['args']['a'], 'b');
-    expect(response.dnsIp, isNotNull);
+    expect(response.address, isNotNull);
 
     await client.close();
   });
@@ -1268,7 +1268,7 @@ void main() {
       final request = get('https://postman-echo.com/get', options: options);
       final response = await requestResponse(client, request);
 
-      expect(response.dnsIp, isNotNull);
+      expect(response.address, isNotNull);
     });
 
     test('Authentication via HTTP2', () async {

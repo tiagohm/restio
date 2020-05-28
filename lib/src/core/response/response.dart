@@ -44,7 +44,7 @@ class Response implements Closeable {
 
   final X509Certificate certificate;
 
-  final IpAddress dnsIp;
+  final IpAddress address;
 
   final Response networkResponse;
   final Response cacheResponse;
@@ -67,7 +67,7 @@ class Response implements Closeable {
     this.sentAt,
     this.receivedAt,
     this.certificate,
-    this.dnsIp,
+    this.address,
     CacheControl cacheControl,
     this.networkResponse,
     this.cacheResponse,
@@ -230,7 +230,7 @@ class Response implements Closeable {
     DateTime sentAt,
     DateTime receivedAt,
     X509Certificate certificate,
-    IpAddress dnsIp,
+    IpAddress address,
     CacheControl cacheControl,
     Response networkResponse,
     Response cacheResponse,
@@ -250,7 +250,7 @@ class Response implements Closeable {
       sentAt: sentAt ?? this.sentAt,
       receivedAt: receivedAt ?? this.receivedAt,
       certificate: certificate ?? this.certificate,
-      dnsIp: dnsIp ?? this.dnsIp,
+      address: address ?? this.address,
       cacheControl: cacheControl ?? this.cacheControl,
       networkResponse: networkResponse ?? this.networkResponse,
       cacheResponse: cacheResponse ?? this.cacheResponse,
@@ -296,7 +296,7 @@ class Response implements Closeable {
         ' headers: $headers, cookies: $cookies, message: $message,'
         ' request: $request, connectionInfo: $connectionInfo,'
         ' redirects: $redirects, originalRequest: $originalRequest,'
-        ' dnsIp: $dnsIp, cacheControl: $cacheControl,'
+        ' address: $address, cacheControl: $cacheControl,'
         ' networkResponse: $networkResponse, cacheResponse: $cacheResponse }';
   }
 }

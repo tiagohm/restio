@@ -23,6 +23,7 @@ class HttpTransport implements Transport {
 
   @override
   Future<void> cancel() async {
+    // Irá fechar todas as conexões para um determinado [scheme:host:port].
     _connection?.client?.close(force: true);
   }
 
@@ -32,10 +33,27 @@ class HttpTransport implements Transport {
 
     HttpClientRequest clientRequest;
     HttpClientResponse response;
+    IpAddress address;
 
     var uri = request.uri;
 
-    final state = (await client.httpConnectionPool.get(request))..stop();
+    // Verificar se não é um IP.
+    // Busca o real endereço (IP) do host através de um DNS.
+    if (options.dns != null && !isIp(uri.host)) {
+      final addresses = await options.dns.lookup(uri.host);
+
+      if (addresses != null && addresses.isNotEmpty) {
+        address = addresses[0];
+        uri = uri.copyWith(host: address.toString());
+      }
+    }
+
+    final state = (await client.httpConnectionPool.get(
+      request,
+      address?.toString(),
+    ));
+
+    state.stop();
 
     _connection = state.connection;
     final httpClient = _connection.client;
@@ -51,20 +69,6 @@ class HttpTransport implements Transport {
       httpClient.findProxy = (uri) {
         return 'PROXY ${proxy.host}:${proxy.port};';
       };
-    }
-
-    // Host.
-    IpAddress dnsIp;
-
-    // Verificar se não é um IP.
-    // Busca o real endereço (IP) do host através de um DNS.
-    if (options.dns != null && !isIp(uri.host)) {
-      final addresses = await options.dns.lookup(uri.host);
-
-      if (addresses != null && addresses.isNotEmpty) {
-        dnsIp = addresses[0];
-        uri = uri.copyWith(host: dnsIp.toString());
-      }
     }
 
     try {
@@ -155,7 +159,7 @@ class HttpTransport implements Transport {
       });
 
       // Host.
-      if (!request.headers.has(HttpHeaders.hostHeader) && dnsIp != null) {
+      if (!request.headers.has(HttpHeaders.hostHeader) && address != null) {
         clientRequest.headers.set(
           'Host',
           request.uri.host,
@@ -189,7 +193,7 @@ class HttpTransport implements Transport {
         message: response.reasonPhrase,
         connectionInfo: response.connectionInfo,
         certificate: response.certificate,
-        dnsIp: dnsIp,
+        address: address,
         onClose: () async {
           state.start();
         },
