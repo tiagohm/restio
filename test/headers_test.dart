@@ -27,7 +27,7 @@ void main() {
   test('Remove', () {
     final builder = HeadersBuilder();
     builder.add('foo', 'bar');
-    builder.add('foo', 'baz');
+    builder.add('Foo', 'baz');
     builder.add('bar', 'foo');
 
     var headers = builder.build();
@@ -56,7 +56,7 @@ void main() {
 
   test('Remove First', () {
     final builder = HeadersBuilder()
-      ..add('foo', 'bar')
+      ..add('Foo', 'bar')
       ..add('foo', 'baz')
       ..add('bar', 'foo')
       ..removeFirst('foo');
@@ -70,7 +70,7 @@ void main() {
   test('Remove Last', () {
     final builder = HeadersBuilder()
       ..add('foo', 'bar')
-      ..add('foo', 'baz')
+      ..add('Foo', 'baz')
       ..add('bar', 'foo')
       ..removeLast('foo');
 
@@ -85,6 +85,10 @@ void main() {
     builder.add('STRING', 'foo');
     builder.add('bool', true);
     builder.add('iNt', 5);
+
+    expect(builder.first('int').value, '5');
+    expect(builder.first('string').value, 'foo');
+    expect(builder.first('bool').value, 'true');
 
     final headers = builder.build();
 
