@@ -186,6 +186,7 @@ class Response implements Closeable {
         if (headers.compareName(item.name, 'set-cookie')) {
           try {
             final cookie = Cookie.fromSetCookieValue(item.value);
+
             if (cookie.name != null && cookie.name.isNotEmpty) {
               final domain = cookie.domain == null
                   ? uri.host

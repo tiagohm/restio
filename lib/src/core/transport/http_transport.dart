@@ -208,7 +208,7 @@ class HttpTransport implements Transport {
 
       // Headers.
       request.headers?.forEach((item) {
-        switch (item.name) {
+        switch (item.name.toLowerCase()) {
           case HttpHeaders.userAgentHeader:
             clientRequest.headers.set(
               'User-Agent',
