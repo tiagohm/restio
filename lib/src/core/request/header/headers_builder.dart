@@ -31,6 +31,11 @@ class HeadersBuilder extends ItemListBuilder<Header> {
   }
 
   @override
+  bool compareName(String item, String param) {
+    return super.compareName(item?.toLowerCase(), param);
+  }
+
+  @override
   Headers build() {
     return Headers(items);
   }

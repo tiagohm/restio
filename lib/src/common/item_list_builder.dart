@@ -25,6 +25,9 @@ abstract class ItemListBuilder<T extends Item> {
   @protected
   T createItem(String name, String value);
 
+  @protected
+  bool compareName(String item, String param) => item == param;
+
   void add(
     String name,
     Object value,
@@ -59,7 +62,7 @@ abstract class ItemListBuilder<T extends Item> {
     for (var i = 0; i < length; i++) {
       final item = items[i];
 
-      if (item.name == name && item.value == value) {
+      if (compareName(item.name, name) && item.value == value) {
         items.removeAt(i);
         i--;
       }
@@ -70,7 +73,7 @@ abstract class ItemListBuilder<T extends Item> {
     for (var i = 0; i < length; i++) {
       final item = items[i];
 
-      if (item.name == name) {
+      if (compareName(item.name, name)) {
         items.removeAt(i);
         i--;
       }
@@ -83,11 +86,43 @@ abstract class ItemListBuilder<T extends Item> {
     }
   }
 
+  T at(int index) {
+    if (index < length) {
+      return items[index];
+    } else {
+      return null;
+    }
+  }
+
+  T first(String name) {
+    for (var i = 0; i < length; i++) {
+      final item = items[i];
+
+      if (compareName(item.name, name)) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+
+  T last(String name) {
+    for (var i = length - 1; i >= 0; i--) {
+      final item = items[i];
+
+      if (compareName(item.name, name)) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+
   void removeFirst(String name) {
     for (var i = 0; i < length; i++) {
       final item = items[i];
 
-      if (item.name == name) {
+      if (compareName(item.name, name)) {
         items.removeAt(i);
         break;
       }
@@ -98,7 +133,7 @@ abstract class ItemListBuilder<T extends Item> {
     for (var i = length - 1; i >= 0; i--) {
       final item = items[i];
 
-      if (item.name == name) {
+      if (compareName(item.name, name)) {
         items.removeAt(i);
         break;
       }
