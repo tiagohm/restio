@@ -1,11 +1,17 @@
 ## 0.8.0
  - Add Cache Encryption support.
+ - Add Persistent Connection support.
+ - Add HTTP2 Server Push support.
  - Allow send headers without to force to lowercase.
- - Allow keep equal sign if query is empty.
+ - Add option to keep equal sign if query is empty.
  - Add `MultiAuthenticator` class.
+ - Allow `Call` be executed multiple times.
  - [Breaking]: Move the most `Restio` parameters to `RequestOptions` class.
  - [Breaking]: Remove `ClientCertificateJar` and `ClientCertificate` classes. Use `Certificate` class at `Restio(certificates: [])` instead.
- - [Breaking]: Rename method `increaseMaxSize()` to `setMaxSize()`.
+ - [Breaking]: Rename `increaseMaxSize()` to `setMaxSize()`.
+ - [Breaking]: Rename `dnsIp` to `address`.
+ - [Breaking]: Replace `connectionInfo` with `localPort`.
+ - [Breaking]: Move `http2` property from `Restio` to `RequestOptions`.
  - Require min Dart SDK version 2.8.
  - Bug fixes.
 

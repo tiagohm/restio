@@ -94,11 +94,15 @@ final options = RequestOptions(
   receiveTimeout : Duration(...),  // default is null (no timeout)
   auth: BasicAuthenticator(...), // default is null (no auth)
   followRedirects: true,
+  followSslRedirects: true,
   maxRedirects: 5,
   verifySSLCertificate: false,
   userAgent: 'Restio/0.7.1',
   proxy: Proxy(...), // default is null
   dns: DnsOverHttps(...), // default is null
+  certificate: Certificate(...), // default is null
+  http2: false,
+  allowServerPushes: false,
 );
 
 // At Client level.
@@ -441,7 +445,7 @@ conn.stream.listen((dynamic data) {
 });
 
 // Send.
-conn.addString('❤️ Larichan ❤️');
+conn.addString('💖 Larichan 💖');
 
 await conn.close();
 ```
