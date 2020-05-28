@@ -191,7 +191,7 @@ class HttpTransport implements Transport {
         code: response.statusCode,
         headers: _obtainHeadersfromHttpHeaders(response.headers),
         message: response.reasonPhrase,
-        connectionInfo: response.connectionInfo,
+        localPort: response.connectionInfo?.localPort,
         certificate: response.certificate,
         address: address,
         onClose: () async {

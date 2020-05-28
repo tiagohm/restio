@@ -7,6 +7,7 @@ import 'package:restio/src/core/cache/cache.dart';
 import 'package:restio/src/core/call/call.dart';
 import 'package:restio/src/core/call/cancellable.dart';
 import 'package:restio/src/core/certificate/certificate.dart';
+import 'package:restio/src/core/connection/http2_connection_pool.dart';
 import 'package:restio/src/core/connection/http_connection_pool.dart';
 import 'package:restio/src/core/cookie/cookie_jar.dart';
 import 'package:restio/src/core/exceptions.dart';
@@ -43,6 +44,7 @@ class Restio implements Closeable {
   final RequestOptions options;
   final Duration idleTimeout;
   HttpConnectionPool _httpConnectionPool;
+  Http2ConnectionPool _http2ConnectionPool;
 
   Restio({
     this.interceptors,
@@ -60,11 +62,14 @@ class Restio implements Closeable {
     this.idleTimeout,
   }) : options = options ?? RequestOptions.empty {
     _httpConnectionPool = HttpConnectionPool(this, idleTimeout: idleTimeout);
+    _http2ConnectionPool = Http2ConnectionPool(this, idleTimeout: idleTimeout);
   }
 
   static const version = '0.7.1';
 
   HttpConnectionPool get httpConnectionPool => _httpConnectionPool;
+
+  Http2ConnectionPool get http2ConnectionPool => _http2ConnectionPool;
 
   Call newCall(Request request) {
     return _Call(client: this, request: request);

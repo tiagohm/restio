@@ -31,17 +31,10 @@ class Http2Transport implements Transport {
   Future<Response> send(final Request request) async {
     final options = request.options;
 
-    SecureSocket socket;
-
     try {
-      if (options.connectTimeout != null &&
-          !options.connectTimeout.isNegative) {
-        socket = await _createSocket(request).timeout(options.connectTimeout);
-      } else {
-        socket = await _createSocket(request);
-      }
+      final state = (await client.http2ConnectionPool.get(request));
 
-      _transport = ClientTransportConnection.viaSocket(socket);
+      _transport = state.connection.client[1];
 
       final uri = request.uri.toUri();
       var path = uri.path;
@@ -110,7 +103,8 @@ class Http2Transport implements Transport {
       await _stream.outgoingMessages.close();
 
       // Monta a resposta.
-      final response = _makeResponse(client, _stream, socket);
+      final response =
+          _makeResponse(client, _stream, state.connection.client[0]);
 
       if (options.receiveTimeout != null &&
           !options.receiveTimeout.isNegative) {
@@ -121,28 +115,6 @@ class Http2Transport implements Transport {
     } on TimeoutException {
       throw const TimedOutException(''); // Connect time out.
     }
-  }
-
-  Future<SecureSocket> _createSocket(Request request) {
-    final options = request.options;
-    final port = request.uri.effectivePort;
-
-    return SecureSocket.connect(
-      request.uri.host,
-      port,
-      // timeout: options.connectTimeout,
-      context: SecurityContext(withTrustedRoots: client.withTrustedRoots),
-      supportedProtocols: ['h2'],
-      onBadCertificate: (cert) {
-        return !options.verifySSLCertificate ||
-            (client?.onBadCertificate?.call(
-                  cert,
-                  request.uri.host,
-                  port,
-                ) ??
-                false);
-      },
-    );
   }
 
   static Future<ClientTransportStream> _makeRequest(
@@ -221,6 +193,7 @@ class Http2Transport implements Transport {
           body: null,
           code: code,
           headers: headers.build(),
+          localPort: socket.port,
         );
 
         res = res.copyWith(
@@ -232,8 +205,6 @@ class Http2Transport implements Transport {
         );
 
         completer.complete(res);
-
-        socket.destroy();
       },
       onError: (e) {
         if (!completer.isCompleted) {

@@ -82,6 +82,21 @@ void main() {
     await client.close();
   });
 
+  test('Cancelling a HTTP2 Call', () async {
+    final client = Restio(http2: true);
+    final request = get('https://httpbin.org/delay/10');
+
+    final call = client.newCall(request);
+    Timer(const Duration(seconds: 5), () => call.cancel('Cancelado!'));
+
+    expect(() async {
+      final response = await call.execute();
+      await response.close();
+    }, throwsA(isA<CancelledException>()));
+
+    await client.close();
+  });
+
   test('Posting a String', () async {
     final client = Restio();
     final request = post(
@@ -1107,8 +1122,30 @@ void main() {
     await response2.close();
 
     expect(
-      response1.connectionInfo.localPort,
-      response2.connectionInfo.localPort,
+      response1.localPort,
+      response2.localPort,
+    );
+
+    await client.close();
+  });
+
+  test('HTTP2 Persistent Connection', () async {
+    final client = Restio(http2: true);
+
+    final request = Request.get('https://httpbin.org/get');
+    final call = client.newCall(request);
+
+    final response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    final response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.localPort,
+      response2.localPort,
     );
 
     await client.close();
@@ -1131,8 +1168,32 @@ void main() {
     await response2.close();
 
     expect(
-      response1.connectionInfo.localPort,
-      isNot(response2.connectionInfo.localPort),
+      response1.localPort,
+      isNot(response2.localPort),
+    );
+
+    await client.close();
+  });
+
+  test('HTTP2 Persistent Connection With Short Timeout', () async {
+    final client = Restio(http2: true, idleTimeout: const Duration(seconds: 5));
+
+    final request = Request.get('https://httpbin.org/delay/10');
+    final call = client.newCall(request);
+
+    final response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    await Future.delayed(const Duration(seconds: 6));
+
+    final response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.localPort,
+      isNot(response2.localPort),
     );
 
     await client.close();
@@ -1155,8 +1216,8 @@ void main() {
     await response2.close();
 
     expect(
-      response1.connectionInfo.localPort,
-      isNot(response2.connectionInfo.localPort),
+      response1.localPort,
+      isNot(response2.localPort),
     );
 
     await client.close();
@@ -1178,8 +1239,8 @@ void main() {
     await response2.close();
 
     expect(
-      response1.connectionInfo.localPort,
-      response2.connectionInfo.localPort,
+      response1.localPort,
+      response2.localPort,
     );
 
     await client.close();

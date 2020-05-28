@@ -26,7 +26,7 @@ class Response implements Closeable {
   final List<Cookie> cookies;
   final ResponseBody body;
   final List<Challenge> challenges;
-  final HttpConnectionInfo connectionInfo;
+  final int localPort;
   final List<Redirect> redirects;
 
   /// É o Request criado pelo usuário (não sofreu nenhuma transformação).
@@ -61,7 +61,7 @@ class Response implements Closeable {
     @required this.body,
     this.spentMilliseconds = 0,
     this.totalMilliseconds = 0,
-    this.connectionInfo,
+    this.localPort,
     this.redirects = const [],
     this.originalRequest,
     this.sentAt,
@@ -224,7 +224,7 @@ class Response implements Closeable {
     ResponseBody body,
     int spentMilliseconds,
     int totalMilliseconds,
-    HttpConnectionInfo connectionInfo,
+    int localPort,
     List<Redirect> redirects,
     Request originalRequest,
     DateTime sentAt,
@@ -244,7 +244,7 @@ class Response implements Closeable {
       body: body ?? this.body,
       spentMilliseconds: spentMilliseconds ?? this.spentMilliseconds,
       totalMilliseconds: totalMilliseconds ?? this.totalMilliseconds,
-      connectionInfo: connectionInfo ?? this.connectionInfo,
+      localPort: localPort ?? this.localPort,
       redirects: redirects ?? this.redirects,
       originalRequest: originalRequest ?? this.originalRequest,
       sentAt: sentAt ?? this.sentAt,
@@ -294,7 +294,7 @@ class Response implements Closeable {
         ' spentMilliseconds: $spentMilliseconds,'
         ' sentAt: $sentAt, receivedAt: $receivedAt,'
         ' headers: $headers, cookies: $cookies, message: $message,'
-        ' request: $request, connectionInfo: $connectionInfo,'
+        ' request: $request, localPort: $localPort,'
         ' redirects: $redirects, originalRequest: $originalRequest,'
         ' address: $address, cacheControl: $cacheControl,'
         ' networkResponse: $networkResponse, cacheResponse: $cacheResponse }';

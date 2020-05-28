@@ -1,9 +1,9 @@
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/connection/connection.dart';
 import 'package:restio/src/core/connection/connection_pool.dart';
-import 'package:restio/src/core/connection/http_connection.dart';
 import 'package:restio/src/core/request/request.dart';
 
 class HttpConnectionPool extends ConnectionPool<HttpClient> {
@@ -13,7 +13,7 @@ class HttpConnectionPool extends ConnectionPool<HttpClient> {
   }) : super(client, idleTimeout: idleTimeout);
 
   @override
-  HttpClient makeClient(Request request) {
+  Future<HttpClient> makeClient(Request request) async {
     final options = request.options;
 
     final context =
@@ -64,14 +64,14 @@ class HttpConnectionPool extends ConnectionPool<HttpClient> {
   }
 
   @override
-  Connection<HttpClient> makeConnection(
+  Future<Connection<HttpClient>> makeConnection(
     Request request,
     HttpClient client, [
     String ip,
-  ]) {
+  ]) async {
     final uri = request.uri;
 
-    return HttpConnection(
+    return _HttpConnection(
       scheme: uri.scheme,
       host: uri.host,
       port: uri.effectivePort,
@@ -79,4 +79,27 @@ class HttpConnectionPool extends ConnectionPool<HttpClient> {
       client: client,
     );
   }
+}
+
+class _HttpConnection extends Connection<HttpClient> {
+  var _isClosed = false;
+
+  _HttpConnection({
+    @required String scheme,
+    @required String host,
+    @required int port,
+    String ip,
+    @required HttpClient client,
+  }) : super(scheme: scheme, host: host, port: port, ip: ip, client: client);
+
+  @override
+  Future<void> close() async {
+    if (!isClosed) {
+      _isClosed = true;
+      client.close();
+    }
+  }
+
+  @override
+  bool get isClosed => _isClosed;
 }

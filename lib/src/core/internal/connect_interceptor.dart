@@ -47,6 +47,11 @@ class ConnectInterceptor implements Interceptor {
       final response = await transport.send(request);
       final receivedAt = DateTime.now();
 
+      if (cancellable != null && cancellable.isCancelled) {
+        await response?.close();
+        throw cancellable.exception;
+      }
+
       final spentMilliseconds =
           receivedAt.millisecondsSinceEpoch - sentAt.millisecondsSinceEpoch;
 

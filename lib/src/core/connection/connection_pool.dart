@@ -36,25 +36,32 @@ abstract class ConnectionPool<T> implements Closeable {
       }
     }
 
-    final client = makeClient(request);
+    final client = await makeClient(request);
 
-    final connection = makeConnection(
+    final connection = await makeConnection(
       request,
       client,
       ip,
     );
 
-    _connectionStates[key] =
-        ConnectionState(connection, idleTimeout, onTimeout: () {
+    _connectionStates[key] = await makeState(key, connection, () {
       _connectionStates.remove(key);
     });
 
     return _connectionStates[key];
   }
 
-  T makeClient(Request request);
+  Future<T> makeClient(Request request);
 
-  Connection<T> makeConnection(
+  Future<ConnectionState<T>> makeState(
+    String key,
+    Connection<T> connection,
+    void Function() onTimeout,
+  ) async {
+    return ConnectionState(connection, idleTimeout, onTimeout: onTimeout);
+  }
+
+  Future<Connection<T>> makeConnection(
     Request request,
     T client, [
     String ip,
