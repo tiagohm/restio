@@ -657,6 +657,94 @@ void main() {
     expect(json['protocol'], 'HTTP/2.0');
     expect(json['push'], 0);
     expect(response.headers.value(HttpHeaders.contentEncodingHeader), 'br');
+
+    await client.close();
+  });
+
+  test('HTTP2 Server Push Is Enabled', () async {
+    final client = Restio(http2: true, allowServerPushes: true);
+
+    final request = get('https://http2.pro/api/v1');
+    final call = client.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+
+    final json = await response.body.json();
+    await response.close();
+
+    expect(json['http2'], 1);
+    expect(json['protocol'], 'HTTP/2.0');
+    expect(json['push'], 1);
+    expect(response.headers.value(HttpHeaders.contentEncodingHeader), 'br');
+    await client.close();
+  });
+
+  test('HTTP2 Server Push', () async {
+    final client = Restio(http2: true, allowServerPushes: true);
+
+    final request = get('https://nghttp2.org/');
+    final call = client.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+
+    final body = await response.body.string();
+    final pushPaths = <String>[];
+    final futures = <Future<Response>>[];
+
+    await response.pushes.listen((push) async {
+      futures.add(push.response.then(
+        (response) {
+          pushPaths.add(push.headers.first(':path')?.value);
+          return response;
+        },
+      ));
+    }).asFuture();
+
+    expect(body, contains('<!DOCTYPE html>'));
+    expect(body, contains('nghttp2'));
+
+    expect(pushPaths, isNotEmpty);
+    expect(pushPaths[0], '/stylesheets/screen.css');
+    expect(futures, isNotEmpty);
+    expect(await (await futures[0]).body.string(), contains('audio,video{'));
+
+    await response.close();
+
+    await client.close();
+  });
+
+  test('HTTP2 Server Push Is Disabled', () async {
+    final client = Restio(http2: true, allowServerPushes: false);
+
+    final request = get('https://nghttp2.org/');
+    final call = client.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+
+    final body = await response.body.string();
+    final pushPaths = <String>[];
+    final futures = <Future<Response>>[];
+
+    await response.pushes.listen((push) {
+      futures.add(push.response.then(
+        (response) {
+          pushPaths.add(push.headers.first(':path')?.value);
+          return response;
+        },
+      ));
+    }).asFuture();
+
+    expect(body, contains('<!DOCTYPE html>'));
+    expect(body, contains('nghttp2'));
+
+    expect(pushPaths, isEmpty);
+    expect(futures, isEmpty);
+
+    await response.close();
+
     await client.close();
   });
 

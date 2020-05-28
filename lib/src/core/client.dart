@@ -43,6 +43,8 @@ class Restio implements Closeable {
   final List<RedirectPolicy> redirectPolicies;
   final RequestOptions options;
   final Duration idleTimeout;
+  final bool allowServerPushes;
+
   HttpConnectionPool _httpConnectionPool;
   Http2ConnectionPool _http2ConnectionPool;
 
@@ -60,6 +62,7 @@ class Restio implements Closeable {
     this.redirectPolicies,
     RequestOptions options,
     this.idleTimeout,
+    this.allowServerPushes = false,
   }) : options = options ?? RequestOptions.empty {
     _httpConnectionPool = HttpConnectionPool(this, idleTimeout: idleTimeout);
     _http2ConnectionPool = Http2ConnectionPool(this, idleTimeout: idleTimeout);
@@ -116,6 +119,7 @@ class Restio implements Closeable {
     List<RedirectPolicy> redirectPolicies,
     RequestOptions options,
     Duration idleTimeout,
+    bool allowServerPushes,
   }) {
     return Restio(
       interceptors: interceptors ?? this.interceptors,
@@ -131,6 +135,7 @@ class Restio implements Closeable {
       redirectPolicies: redirectPolicies ?? this.redirectPolicies,
       options: options ?? this.options,
       idleTimeout: idleTimeout ?? this.idleTimeout,
+      allowServerPushes: allowServerPushes ?? this.allowServerPushes,
     );
   }
 

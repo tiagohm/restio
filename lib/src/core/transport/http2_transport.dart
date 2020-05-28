@@ -11,6 +11,7 @@ import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
+import 'package:restio/src/core/response/server_push.dart';
 import 'package:restio/src/core/transport/transport.dart';
 
 class Http2Transport implements Transport {
@@ -18,13 +19,14 @@ class Http2Transport implements Transport {
   final Restio client;
 
   ClientTransportStream _stream;
+  Socket _socket;
   ClientTransportConnection _transport;
 
   Http2Transport(this.client);
 
   @override
   Future<void> cancel() async {
-    _stream?.terminate();
+    _socket?.destroy();
   }
 
   @override
@@ -34,6 +36,7 @@ class Http2Transport implements Transport {
     try {
       final state = (await client.http2ConnectionPool.get(request));
 
+      _socket = state.connection.client[0];
       _transport = state.connection.client[1];
 
       final uri = request.uri.toUri();
@@ -110,7 +113,7 @@ class Http2Transport implements Transport {
           !options.receiveTimeout.isNegative) {
         return await response.timeout(options.receiveTimeout);
       } else {
-        return response;
+        return await response;
       }
     } on TimeoutException {
       throw const TimedOutException(''); // Connect time out.
@@ -162,80 +165,157 @@ class Http2Transport implements Transport {
     ClientTransportStream stream,
     SecureSocket socket,
   ) {
+    StreamController<ServerPush> serverPushController;
     final completer = Completer<Response>();
-    final data = StreamController<List<int>>();
-    final headers = HeadersBuilder();
-    var code = 0;
+    final dataController = StreamController<List<int>>();
+    final allowServerPushes = client.allowServerPushes ?? false;
+
+    if (allowServerPushes) {
+      serverPushController = StreamController<ServerPush>(sync: true);
+    }
 
     stream.incomingMessages.listen(
-      (message) async {
-        // Headers.
-        if (message is HeadersStreamMessage) {
-          for (final header in message.headers) {
-            final name = utf8.decode(header.name);
-            final value = utf8.decode(header.value);
+      (msg) {
+        if (msg is HeadersStreamMessage) {
+          final headersBuilder = _convertHeaders(msg.headers);
+          final code = headersBuilder.first(':status')?.getInt() ?? 0;
+          headersBuilder.removeAll(':status');
 
-            // Status.
-            if (name == ':status') {
-              code = int.parse(value);
-            } else {
-              headers.add(name, value);
-            }
-          }
-        } else if (message is DataStreamMessage) {
-          data.add(message.bytes);
+          final headers = headersBuilder?.build() ?? Headers.empty;
+          final contentType = _mediaType(headers);
+          final contentLength = _contentLength(headers);
+
+          final res = Response(
+            body: ResponseBody.stream(
+              dataController.stream,
+              contentType: contentType,
+              contentLength: contentLength,
+            ),
+            code: code,
+            headers: headers,
+            localPort: socket.port,
+            pushes: allowServerPushes
+                ? serverPushController.stream
+                : const Stream.empty(),
+          );
+
+          completer.complete(res);
+        } else if (msg is DataStreamMessage) {
+          dataController.add(msg.bytes);
         }
       },
-      onDone: () {
-        data.close();
-
-        var res = Response(
-          body: null,
-          code: code,
-          headers: headers.build(),
-          localPort: socket.port,
-        );
-
-        res = res.copyWith(
-          body: ResponseBody.stream(
-            data.stream,
-            contentType: _obtainMediaType(res.headers),
-            contentLength: _obtainContentLength(res.headers),
-          ),
-        );
-
-        completer.complete(res);
-      },
-      onError: (e) {
+      onDone: dataController.close,
+      onError: (e, stackTrace) {
         if (!completer.isCompleted) {
-          completer.completeError(e, StackTrace.current);
-        } else {
-          data.addError(e);
+          completer.completeError(e, stackTrace);
         }
+
+        dataController.addError(e, stackTrace);
       },
       cancelOnError: true,
     );
 
+    if (allowServerPushes) {
+      _handlePeerPushes(stream.peerPushes, socket.port)
+          .pipe(serverPushController);
+    }
+
     return completer.future;
   }
+}
 
-  static MediaType _obtainMediaType(Headers headers) {
-    final contentType = headers.value(HttpHeaders.contentTypeHeader);
+MediaType _mediaType(Headers headers) {
+  final contentType = headers.value(HttpHeaders.contentTypeHeader);
 
-    try {
-      return MediaType.fromContentType(ContentType.parse(contentType));
-    } catch (e) {
-      return MediaType.octetStream;
-    }
+  try {
+    return MediaType.fromContentType(ContentType.parse(contentType));
+  } catch (e) {
+    return MediaType.octetStream;
+  }
+}
+
+int _contentLength(Headers headers) {
+  final contentLength = headers.value(HttpHeaders.contentLengthHeader);
+
+  try {
+    return int.parse(contentLength);
+  } catch (e) {
+    return -1;
+  }
+}
+
+HeadersBuilder _convertHeaders(List<Header> headers) {
+  final builder = HeadersBuilder();
+
+  for (final header in headers) {
+    final name = ascii.decode(header.name);
+    final value = ascii.decode(header.value);
+    builder.add(name, value);
   }
 
-  static int _obtainContentLength(Headers headers) {
-    final contentLength = headers.value(HttpHeaders.contentLengthHeader);
+  return builder;
+}
 
-    try {
-      return int.parse(contentLength);
-    } catch (e) {
-      return -1;
-    }
-  }
+Stream<ServerPush> _handlePeerPushes(
+  Stream<TransportStreamPush> serverPushes,
+  int localPort,
+) {
+  final pushesController = StreamController<ServerPush>();
+
+  serverPushes.listen(
+    (push) {
+      final responseCompleter = Completer<Response>();
+
+      final serverPush = ServerPush(
+        _convertHeaders(push.requestHeaders).build(),
+        responseCompleter.future,
+      );
+
+      pushesController.add(serverPush);
+
+      final dataController = StreamController<List<int>>();
+
+      push.stream.incomingMessages.listen(
+        (msg) {
+          if (msg is HeadersStreamMessage) {
+            final headersBuilder = _convertHeaders(msg.headers);
+            final code = headersBuilder.first(':status')?.getInt() ?? 0;
+            headersBuilder.removeAll(':status');
+
+            final headers = headersBuilder?.build() ?? Headers.empty;
+            final contentType = _mediaType(headers);
+            final contentLength = _contentLength(headers);
+
+            final res = Response(
+              body: ResponseBody.stream(
+                dataController.stream,
+                contentType: contentType,
+                contentLength: contentLength,
+              ),
+              code: code,
+              headers: headers,
+              localPort: localPort,
+              pushes: const Stream.empty(),
+            );
+
+            responseCompleter.complete(res);
+          } else {
+            dataController.add((msg as DataStreamMessage).bytes);
+          }
+        },
+        onDone: dataController.close,
+        onError: (e, stackTrace) {
+          if (!responseCompleter.isCompleted) {
+            responseCompleter.completeError(e, stackTrace);
+          }
+
+          dataController.addError(e, stackTrace);
+        },
+      );
+    },
+    onDone: pushesController.close,
+    onError: pushesController.addError,
+  );
+
+  return pushesController.stream;
 }

@@ -16,6 +16,7 @@ import 'package:restio/src/core/request/http_method.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/challenge.dart';
+import 'package:restio/src/core/response/server_push.dart';
 
 part 'response_body.dart';
 
@@ -28,6 +29,7 @@ class Response implements Closeable {
   final List<Challenge> challenges;
   final int localPort;
   final List<Redirect> redirects;
+  final Stream<ServerPush> pushes;
 
   /// É o Request criado pelo usuário (não sofreu nenhuma transformação).
   final Request originalRequest;
@@ -72,6 +74,7 @@ class Response implements Closeable {
     this.networkResponse,
     this.cacheResponse,
     this.onClose,
+    this.pushes,
   })  : challenges = _challenges(code, headers),
         cacheControl = cacheControl ??
             CacheControl.fromHeaders(headers) ??
@@ -235,6 +238,7 @@ class Response implements Closeable {
     Response networkResponse,
     Response cacheResponse,
     Future<void> Function() onClose,
+    Stream<ServerPush> pushes,
   }) {
     return Response(
       request: request ?? this.request,
@@ -255,6 +259,7 @@ class Response implements Closeable {
       networkResponse: networkResponse ?? this.networkResponse,
       cacheResponse: cacheResponse ?? this.cacheResponse,
       onClose: onClose ?? this.onClose,
+      pushes: pushes ?? this.pushes,
     );
   }
 
@@ -268,7 +273,14 @@ class Response implements Closeable {
 
     try {
       // Libera a conexão para a próxima requisição.
-      await body.drain();
+      await body?.drain();
+    } catch (e) {
+      // nada.
+    }
+
+    try {
+      // Libera os Server Pushes.
+      await pushes?.drain();
     } catch (e) {
       // nada.
     }

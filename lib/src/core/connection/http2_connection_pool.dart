@@ -26,7 +26,13 @@ class Http2ConnectionPool extends ConnectionPool<List> {
       socket = await _createSocket(request);
     }
 
-    return [socket, ClientTransportConnection.viaSocket(socket)];
+    final settings =
+        ClientSettings(allowServerPushes: client.allowServerPushes ?? false);
+
+    return [
+      socket,
+      ClientTransportConnection.viaSocket(socket, settings: settings)
+    ];
   }
 
   Future<Socket> _createSocket(Request request) {
