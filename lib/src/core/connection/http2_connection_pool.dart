@@ -18,7 +18,7 @@ class Http2ConnectionPool extends ConnectionPool<List> {
   Future<List> makeClient(Request request) async {
     final options = request.options;
 
-    SecureSocket socket;
+    Socket socket;
 
     if (options.connectTimeout != null && !options.connectTimeout.isNegative) {
       socket = await _createSocket(request).timeout(options.connectTimeout);
@@ -29,25 +29,33 @@ class Http2ConnectionPool extends ConnectionPool<List> {
     return [socket, ClientTransportConnection.viaSocket(socket)];
   }
 
-  Future<SecureSocket> _createSocket(Request request) {
+  Future<Socket> _createSocket(Request request) {
     final options = request.options;
     final port = request.uri.effectivePort;
 
-    return SecureSocket.connect(
-      request.uri.host,
-      port,
-      context: SecurityContext(withTrustedRoots: client.withTrustedRoots),
-      supportedProtocols: ['h2'],
-      onBadCertificate: (cert) {
-        return !options.verifySSLCertificate ||
-            (client?.onBadCertificate?.call(
-                  cert,
-                  request.uri.host,
-                  port,
-                ) ??
-                false);
-      },
-    );
+    return request.uri.scheme == 'https'
+        ? SecureSocket.connect(
+            request.uri.host,
+            port,
+            context: SecurityContext(withTrustedRoots: client.withTrustedRoots),
+            supportedProtocols: const [
+              'h2-14',
+              'h2-15',
+              'h2-16',
+              'h2-17',
+              'h2'
+            ],
+            onBadCertificate: (cert) {
+              return !options.verifySSLCertificate ||
+                  (client?.onBadCertificate?.call(
+                        cert,
+                        request.uri.host,
+                        port,
+                      ) ??
+                      false);
+            },
+          )
+        : Socket.connect(request.uri.host, port);
   }
 
   @override
