@@ -49,6 +49,7 @@ class HttpTransport implements Transport {
     }
 
     final state = (await client.httpConnectionPool.get(
+      client,
       request,
       address?.toString(),
     ));

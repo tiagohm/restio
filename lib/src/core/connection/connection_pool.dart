@@ -5,23 +5,24 @@ import 'package:restio/src/core/connection/connection_state.dart';
 import 'package:restio/src/core/request/request.dart';
 
 abstract class ConnectionPool<T> implements Closeable {
-  final Restio client;
   final Duration idleTimeout;
   final _connectionStates = <String, ConnectionState<T>>{};
   var _closed = false;
 
-  ConnectionPool(
-    this.client, {
+  ConnectionPool({
     Duration idleTimeout,
-  }) : idleTimeout = idleTimeout ?? const Duration(seconds: 5 * 60) {
+  }) : idleTimeout = idleTimeout ?? defaultIdleTimeout {
     if (this.idleTimeout.isNegative || this.idleTimeout.inSeconds == 0) {
       throw ArgumentError.value(this.idleTimeout, 'idleTimeout');
     }
   }
 
+  static const defaultIdleTimeout = Duration(minutes: 5);
+
   int get length => _connectionStates.length;
 
   Future<ConnectionState<T>> get(
+    Restio restio,
     Request request, [
     String ip,
   ]) async {
@@ -36,7 +37,7 @@ abstract class ConnectionPool<T> implements Closeable {
       }
     }
 
-    final client = await makeClient(request);
+    final client = await makeClient(restio, request);
 
     final connection = await makeConnection(
       request,
@@ -51,7 +52,7 @@ abstract class ConnectionPool<T> implements Closeable {
     return _connectionStates[key];
   }
 
-  Future<T> makeClient(Request request);
+  Future<T> makeClient(Restio restio, Request request);
 
   Future<ConnectionState<T>> makeState(
     String key,

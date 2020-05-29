@@ -9,21 +9,24 @@ import 'package:restio/src/core/connection/connection_state.dart';
 import 'package:restio/src/core/request/request.dart';
 
 class Http2ConnectionPool extends ConnectionPool<List> {
-  Http2ConnectionPool(
-    Restio client, {
+  Http2ConnectionPool({
     Duration idleTimeout,
-  }) : super(client, idleTimeout: idleTimeout);
+  }) : super(idleTimeout: idleTimeout);
 
   @override
-  Future<List> makeClient(Request request) async {
+  Future<List> makeClient(
+    Restio restio,
+    Request request,
+  ) async {
     final options = request.options;
 
     Socket socket;
 
     if (options.connectTimeout != null && !options.connectTimeout.isNegative) {
-      socket = await _createSocket(request).timeout(options.connectTimeout);
+      socket =
+          await _createSocket(restio, request).timeout(options.connectTimeout);
     } else {
-      socket = await _createSocket(request);
+      socket = await _createSocket(restio, request);
     }
 
     final settings =
@@ -35,7 +38,10 @@ class Http2ConnectionPool extends ConnectionPool<List> {
     ];
   }
 
-  Future<Socket> _createSocket(Request request) {
+  Future<Socket> _createSocket(
+    Restio restio,
+    Request request,
+  ) {
     final options = request.options;
     final port = request.uri.effectivePort;
 
@@ -43,7 +49,7 @@ class Http2ConnectionPool extends ConnectionPool<List> {
         ? SecureSocket.connect(
             request.uri.host,
             port,
-            context: SecurityContext(withTrustedRoots: client.withTrustedRoots),
+            context: SecurityContext(withTrustedRoots: restio.withTrustedRoots),
             supportedProtocols: const [
               'h2-14',
               'h2-15',
@@ -53,7 +59,7 @@ class Http2ConnectionPool extends ConnectionPool<List> {
             ],
             onBadCertificate: (cert) {
               return !options.verifySSLCertificate ||
-                  (client?.onBadCertificate?.call(
+                  (restio?.onBadCertificate?.call(
                         cert,
                         request.uri.host,
                         port,

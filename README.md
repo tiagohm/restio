@@ -26,6 +26,7 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * DNS-over-UDP and DNS-over-HTTPS.
 * WebSocket and SSE.
 * Redirect Policy.
+* HTTP/HTTPS/HTTP2 Connection Pool.
 
 ## Installation
 

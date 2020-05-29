@@ -34,7 +34,7 @@ class Http2Transport implements Transport {
     final options = request.options;
 
     try {
-      final state = (await client.http2ConnectionPool.get(request));
+      final state = (await client.http2ConnectionPool.get(client, request));
 
       _socket = state.connection.client[0];
       _transport = state.connection.client[1];

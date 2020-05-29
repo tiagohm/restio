@@ -7,21 +7,23 @@ import 'package:restio/src/core/connection/connection_pool.dart';
 import 'package:restio/src/core/request/request.dart';
 
 class HttpConnectionPool extends ConnectionPool<HttpClient> {
-  HttpConnectionPool(
-    Restio client, {
+  HttpConnectionPool({
     Duration idleTimeout,
-  }) : super(client, idleTimeout: idleTimeout);
+  }) : super(idleTimeout: idleTimeout);
 
   @override
-  Future<HttpClient> makeClient(Request request) async {
+  Future<HttpClient> makeClient(
+    Restio restio,
+    Request request,
+  ) async {
     final options = request.options;
 
     final context =
-        SecurityContext(withTrustedRoots: client.withTrustedRoots ?? true);
+        SecurityContext(withTrustedRoots: restio.withTrustedRoots ?? true);
 
     // Busca o certificado.
     final certificate = options.certificate ??
-        client.certificates?.firstWhere(
+        restio.certificates?.firstWhere(
           (certificate) {
             return certificate.matches(
               request.uri.host,
@@ -57,7 +59,7 @@ class HttpConnectionPool extends ConnectionPool<HttpClient> {
 
     httpClient.badCertificateCallback = (cert, host, port) {
       return !options.verifySSLCertificate ||
-          (client.onBadCertificate?.call(cert, host, port) ?? false);
+          (restio.onBadCertificate?.call(cert, host, port) ?? false);
     };
 
     return httpClient;

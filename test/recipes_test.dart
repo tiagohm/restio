@@ -1255,7 +1255,10 @@ void main() {
   });
 
   test('Persistent Connection With Short Timeout', () async {
-    final client = Restio(idleTimeout: const Duration(seconds: 5));
+    final client = Restio(
+      httpConnectionPool:
+          HttpConnectionPool(idleTimeout: const Duration(seconds: 5)),
+    );
 
     final request = Request.get('https://httpbin.org/delay/10');
     final call = client.newCall(request);
@@ -1281,7 +1284,8 @@ void main() {
   test('HTTP2 Persistent Connection With Short Timeout', () async {
     final client = Restio(
       options: const RequestOptions(http2: true),
-      idleTimeout: const Duration(seconds: 5),
+      http2ConnectionPool:
+          Http2ConnectionPool(idleTimeout: const Duration(seconds: 5)),
     );
 
     final request = Request.get('https://httpbin.org/delay/10');

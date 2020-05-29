@@ -41,10 +41,8 @@ class Restio implements Closeable {
   final Cache cache;
   final List<RedirectPolicy> redirectPolicies;
   final RequestOptions options;
-  final Duration idleTimeout;
-
-  HttpConnectionPool _httpConnectionPool;
-  Http2ConnectionPool _http2ConnectionPool;
+  final HttpConnectionPool httpConnectionPool;
+  final Http2ConnectionPool http2ConnectionPool;
 
   Restio({
     this.interceptors,
@@ -58,17 +56,13 @@ class Restio implements Closeable {
     this.cache,
     this.redirectPolicies,
     RequestOptions options,
-    this.idleTimeout,
-  }) : options = options ?? RequestOptions.empty {
-    _httpConnectionPool = HttpConnectionPool(this, idleTimeout: idleTimeout);
-    _http2ConnectionPool = Http2ConnectionPool(this, idleTimeout: idleTimeout);
-  }
+    HttpConnectionPool httpConnectionPool,
+    Http2ConnectionPool http2ConnectionPool,
+  })  : options = options ?? RequestOptions.empty,
+        httpConnectionPool = httpConnectionPool ?? HttpConnectionPool(),
+        http2ConnectionPool = http2ConnectionPool ?? Http2ConnectionPool();
 
   static const version = '0.7.1';
-
-  HttpConnectionPool get httpConnectionPool => _httpConnectionPool;
-
-  Http2ConnectionPool get http2ConnectionPool => _http2ConnectionPool;
 
   Call newCall(Request request) {
     return _Call(client: this, request: request);
@@ -113,7 +107,8 @@ class Restio implements Closeable {
     Cache cache,
     List<RedirectPolicy> redirectPolicies,
     RequestOptions options,
-    Duration idleTimeout,
+    HttpConnectionPool httpConnectionPool,
+    Http2ConnectionPool http2ConnectionPool,
   }) {
     return Restio(
       interceptors: interceptors ?? this.interceptors,
@@ -127,15 +122,18 @@ class Restio implements Closeable {
       cache: cache ?? this.cache,
       redirectPolicies: redirectPolicies ?? this.redirectPolicies,
       options: options ?? this.options,
-      idleTimeout: idleTimeout ?? this.idleTimeout,
+      httpConnectionPool: httpConnectionPool ?? this.httpConnectionPool,
+      http2ConnectionPool: http2ConnectionPool ?? this.http2ConnectionPool,
     );
   }
 
   @override
   Future<void> close() async {
-    await _httpConnectionPool.close();
+    await httpConnectionPool.close();
+    await http2ConnectionPool.close();
   }
 
   @override
-  bool get isClosed => _httpConnectionPool.isClosed;
+  bool get isClosed =>
+      httpConnectionPool.isClosed && http2ConnectionPool.isClosed;
 }
