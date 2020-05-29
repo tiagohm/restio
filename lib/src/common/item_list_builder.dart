@@ -55,89 +55,93 @@ abstract class ItemListBuilder<T extends Item> {
     add(name, value);
   }
 
-  void remove(
+  List<T> remove(
     String name,
     Object value,
   ) {
+    final removed = <T>[];
+
     for (var i = 0; i < length; i++) {
       final item = items[i];
 
       if (compareName(item.name, name) && item.value == value) {
-        items.removeAt(i);
+        removed.add(items.removeAt(i));
         i--;
       }
     }
+
+    return removed;
   }
 
-  void removeAll(String name) {
+  bool removeItem(T item) {
+    return items.remove(item);
+  }
+
+  List<T> removeAll(String name) {
+    final removed = <T>[];
+
     for (var i = 0; i < length; i++) {
       final item = items[i];
 
       if (compareName(item.name, name)) {
-        items.removeAt(i);
+        removed.add(items.removeAt(i));
         i--;
       }
     }
+
+    return removed;
   }
 
-  void removeAt(int index) {
+  T removeAt(int index) {
     if (index < length) {
-      items.removeAt(index);
-    }
-  }
-
-  T at(int index) {
-    if (index < length) {
-      return items[index];
+      return items.removeAt(index);
     } else {
       return null;
     }
   }
 
+  T at(int index) {
+    return index < length ? items[index] : null;
+  }
+
   T first(String name) {
-    for (var i = 0; i < length; i++) {
-      final item = items[i];
-
-      if (compareName(item.name, name)) {
-        return item;
-      }
+    try {
+      return items.firstWhere((item) => compareName(item.name, name));
+    } catch (e) {
+      return null;
     }
-
-    return null;
   }
 
   T last(String name) {
-    for (var i = length - 1; i >= 0; i--) {
+    try {
+      return items.lastWhere((item) => compareName(item.name, name));
+    } catch (e) {
+      return null;
+    }
+  }
+
+  T removeFirst(String name) {
+    for (var i = 0; i < length; i++) {
       final item = items[i];
 
       if (compareName(item.name, name)) {
-        return item;
+        return items.removeAt(i);
       }
     }
 
     return null;
   }
 
-  void removeFirst(String name) {
-    for (var i = 0; i < length; i++) {
-      final item = items[i];
-
-      if (compareName(item.name, name)) {
-        items.removeAt(i);
-        break;
-      }
-    }
-  }
-
-  void removeLast(String name) {
+  T removeLast(String name) {
     for (var i = length - 1; i >= 0; i--) {
       final item = items[i];
 
       if (compareName(item.name, name)) {
-        items.removeAt(i);
-        break;
+        return items.removeAt(i);
       }
     }
+
+    return null;
   }
 
   ItemList<T> build();

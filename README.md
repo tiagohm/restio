@@ -105,7 +105,7 @@ final options = RequestOptions(
   allowServerPushes: false,
 );
 
-// At Client level.
+// At Client level. (Applies to all requests)
 final client = Restio(options: options);
 
 // Override at Request Level.
@@ -363,10 +363,10 @@ class MyCookieJar implements CookieJar {
 final client = Restio(
   certificates: [
     Certificate(
-      host: 'client.badssl.com', // supports wildcard too!
-      certificate: File('./test/assets/badssl.com-client.pem').readAsBytesSync(),
-      privateKey: File('./test/assets/badssl.com-client.p12').readAsBytesSync(),
-      port: 443, // Optional.
+      host: 'client.badssl.com', // Supports wildcard too!
+      certificate: File('./badssl.com-client.pem').readAsBytesSync(),
+      privateKey: File('./badssl.com-client.p12').readAsBytesSync(),
+      port: 443, // Optional. (null matches any port)
       password: 'badssl.com',
     ),
   ],

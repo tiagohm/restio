@@ -20,13 +20,29 @@ abstract class ItemList<T extends Item> extends Equatable {
 
   T operator [](int index) => items[index];
 
-  String nameAt(int index) => items[index]?.name;
+  String nameAt(int index) {
+    if (index < length) {
+      return items[index].name;
+    } else {
+      return null;
+    }
+  }
 
-  String valueAt(int index) => items[index]?.value;
+  String valueAt(int index) {
+    if (index < length) {
+      return items[index].value;
+    } else {
+      return null;
+    }
+  }
 
   bool has(String name) => first(name) != null;
 
   String value(String name) => first(name)?.value;
+
+  T at(int index) {
+    return index < length ? items[index] : null;
+  }
 
   T first(String name) {
     try {
