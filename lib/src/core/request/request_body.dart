@@ -10,7 +10,8 @@ abstract class RequestBody {
 
   Stream<List<int>> write();
 
-  factory RequestBody.empty() => RequestBody.bytes(const []);
+  factory RequestBody.empty() =>
+      RequestBody.stream(const Stream.empty(), contentLength: 0);
 
   factory RequestBody.stream(
     Stream<List<int>> data, {

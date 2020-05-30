@@ -6,13 +6,14 @@ import 'package:restio/src/common/closeable.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/connection/connection.dart';
 import 'package:restio/src/core/connection/connection_state.dart';
+import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/request/request.dart';
 
 /// Manages reuse of HTTP and HTTP/2 connections for reduced network latency.
 class ConnectionPool implements Closeable {
   final Duration idleTimeout;
   final _connectionStates = <String, ConnectionState>{};
-  var _closed = false;
+  var _isClosed = false;
 
   ConnectionPool({
     Duration idleTimeout,
@@ -26,11 +27,19 @@ class ConnectionPool implements Closeable {
 
   int get length => _connectionStates.length;
 
+  bool get isEmpty => length == 0;
+
+  bool get isNotEmpty => !isEmpty;
+
   Future<ConnectionState> get(
     Restio restio,
     Request request, [
     String ip,
   ]) async {
+    if (isClosed) {
+      throw const RestioException('ConnectionPool is closed');
+    }
+
     final uri = request.uri;
     final port = uri.effectivePort;
     final version = request.options.http2 ? '2' : '1';
@@ -237,14 +246,7 @@ class ConnectionPool implements Closeable {
     }
   }
 
-  @override
-  Future<void> close() async {
-    if (isClosed) {
-      return;
-    }
-
-    _closed = true;
-
+  Future<void> clear() async {
     try {
       for (final state in _connectionStates.values) {
         await state.close();
@@ -255,7 +257,18 @@ class ConnectionPool implements Closeable {
   }
 
   @override
-  bool get isClosed => _closed;
+  Future<void> close() async {
+    if (isClosed) {
+      return;
+    }
+
+    _isClosed = true;
+
+    await clear();
+  }
+
+  @override
+  bool get isClosed => _isClosed;
 }
 
 // ignore: must_be_immutable

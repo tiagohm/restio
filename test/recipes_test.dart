@@ -74,7 +74,7 @@ void main() {
     final call = client.newCall(request);
     Timer(const Duration(seconds: 5), () => call.cancel('Cancelado!'));
 
-    expect(() async {
+    await expectLater(() async {
       final response = await call.execute();
       await response.close();
     }, throwsA(isA<CancelledException>()));
@@ -89,9 +89,9 @@ void main() {
     final call = client.newCall(request);
     Timer(const Duration(seconds: 5), () => call.cancel('Cancelado!'));
 
-    expect(() async {
+    await expectLater(() async {
       final response = await call.execute();
-      await response.close();
+      return response.close();
     }, throwsA(isA<CancelledException>()));
 
     await client.close();
@@ -577,9 +577,9 @@ void main() {
     final client = Restio();
     var isDone = false;
 
-    void onProgress(Response entity, int rcv, int total, bool done) {
-      final pc = total / entity.headers.contentLength * 100;
-      print('received: $rcv, total: $total, done: $done, %: $pc');
+    void onProgress(Response entity, int received, int total, bool done) {
+      final p = total * 100 ~/ 36001;
+      print('received: $received, total: $total, done: $done, $p%');
       isDone = done;
     }
 
@@ -1186,7 +1186,7 @@ void main() {
     final request = Request.get('https://httpbin.org/delay/10');
     final call = client.newCall(request);
 
-    expect(() async => await call.execute(), throwsA(isA<TimedOutException>()));
+    await expectLater(call.execute, throwsA(isA<TimedOutException>()));
 
     await client.close();
   });
