@@ -521,7 +521,8 @@ void main() {
   group('Redirects with DNS', () {
     test('Absolute redirects n times', () async {
       final client = Restio(
-        options: RequestOptions(maxRedirects: 9, dns: DnsOverUdp.google()),
+        options:
+            const RequestOptions(maxRedirects: 9, dns: DnsOverUdp.google()),
       );
       final request = get('https://httpbin.org/absolute-redirect/7');
       final call = client.newCall(request);
@@ -536,7 +537,8 @@ void main() {
 
     test('Relative redirects n times', () async {
       final client = Restio(
-        options: RequestOptions(maxRedirects: 9, dns: DnsOverUdp.google()),
+        options:
+            const RequestOptions(maxRedirects: 9, dns: DnsOverUdp.google()),
       );
       final request = get('https://httpbin.org/relative-redirect/7');
       final call = client.newCall(request);
@@ -552,7 +554,8 @@ void main() {
 
     test('Too many redirects exception', () async {
       final client = Restio(
-        options: RequestOptions(maxRedirects: 9, dns: DnsOverUdp.google()),
+        options:
+            const RequestOptions(maxRedirects: 9, dns: DnsOverUdp.google()),
       );
       final request = get('https://httpbin.org/absolute-redirect/10');
       final call = client.newCall(request);
@@ -851,8 +854,8 @@ void main() {
   });
 
   test('DNS-Over-UDP', () async {
-    final dns = DnsOverUdp.google();
-    final client = Restio(options: RequestOptions(dns: dns));
+    const dns = DnsOverUdp.google();
+    final client = Restio(options: const RequestOptions(dns: dns));
     final request = get('https://httpbin.org/get?a=b');
     final call = client.newCall(request);
     final response = await call.execute();
@@ -870,8 +873,8 @@ void main() {
   });
 
   test('DNS-Over-HTTPS', () async {
-    final dns = DnsOverUdp.google();
-    final client = Restio(options: RequestOptions(dns: dns));
+    const dns = DnsOverUdp.google();
+    final client = Restio(options: const RequestOptions(dns: dns));
     final request = get('https://httpbin.org/get?a=b');
     final call = client.newCall(request);
     final response = await call.execute();
@@ -926,8 +929,8 @@ void main() {
   });
 
   test('Fix DNS timeout bug', () async {
-    final dns = DnsOverUdp.ip('1.1.1.1');
-    final client = Restio(options: RequestOptions(dns: dns));
+    const dns = DnsOverUdp.ip('1.1.1.1');
+    final client = Restio(options: const RequestOptions(dns: dns));
 
     final request = get('https://httpbin.org/absolute-redirect/5');
     final call = client.newCall(request);

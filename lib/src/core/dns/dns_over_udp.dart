@@ -17,24 +17,22 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:math';
 
-import 'package:ip/ip.dart';
 import 'package:meta/meta.dart';
 import 'package:raw/raw.dart';
+import 'package:restio/restio.dart';
 import 'package:restio/src/core/dns/dns.dart';
 import 'package:restio/src/core/dns/dns_packet.dart';
 
 class DnsOverUdp extends PacketBasedDns {
-  static final _portRandom = Random.secure();
-  final InternetAddress remoteAddress;
+  final String remoteAddress;
   final int remotePort;
-  final InternetAddress localAddress;
+  final String localAddress;
   final int localPort;
   final Duration timeout;
-  Future<RawDatagramSocket> _socket;
 
-  final _responseWaiters = <String, _DnsResponseWaiter>{};
+  static final _portRandom = Random.secure();
 
-  DnsOverUdp({
+  const DnsOverUdp({
     @required this.remoteAddress,
     this.remotePort = 53,
     this.localAddress,
@@ -43,154 +41,90 @@ class DnsOverUdp extends PacketBasedDns {
   })  : assert(remoteAddress != null),
         assert(remotePort != null);
 
-  factory DnsOverUdp.ip(String ip) {
-    return DnsOverUdp(remoteAddress: InternetAddress(ip));
-  }
+  const DnsOverUdp.ip(String ip) : this(remoteAddress: ip);
 
-  factory DnsOverUdp.google() {
-    return DnsOverUdp.ip('8.8.8.8');
-  }
+  const DnsOverUdp.google() : this(remoteAddress: '8.8.8.8');
 
-  factory DnsOverUdp.cloudflare() {
-    return DnsOverUdp.ip('1.1.1.1');
-  }
+  const DnsOverUdp.cloudflare() : this(remoteAddress: '1.1.1.1');
 
-  factory DnsOverUdp.openDns() {
-    return DnsOverUdp.ip('208.67.222.222');
-  }
+  const DnsOverUdp.openDns() : this(remoteAddress: '208.67.222.222');
 
-  factory DnsOverUdp.norton() {
-    return DnsOverUdp.ip('199.85.126.10');
-  }
+  const DnsOverUdp.norton() : this(remoteAddress: '199.85.126.10');
 
-  factory DnsOverUdp.comodo() {
-    return DnsOverUdp.ip('8.26.56.26');
-  }
+  const DnsOverUdp.comodo() : this(remoteAddress: '8.26.56.26');
 
   @override
   Future<DnsPacket> lookupPacket(
     String name, {
     InternetAddressType type = InternetAddressType.any,
   }) async {
-    final socket = await _getSocket();
+    final completer = Completer<DnsPacket>();
+
     final dnsPacket = DnsPacket();
     dnsPacket.questions = [DnsQuestion(host: name)];
 
-    if (_responseWaiters.containsKey(name)) {
-      return _responseWaiters[name].completer.future;
-    }
-
-    _responseWaiters[name] = _DnsResponseWaiter(name);
-    final responseWaiter = _responseWaiters[name];
+    final socket = await _getSocket();
 
     // Send query.
     socket.send(
       dnsPacket.toImmutableBytes(),
-      remoteAddress,
+      InternetAddress(remoteAddress),
       remotePort,
     );
 
-    // Get timeout for response.
-    final timeout = this.timeout ?? Dns.defaultTimeout;
-
-    // Set timer.
-    responseWaiter.timer = Timer(timeout, () {
-      // Ignore if already completed.
-      if (responseWaiter.completer.isCompleted) {
-        return;
-      }
-
-      // Remove from the list of response waiters.
-      _responseWaiters.remove(name);
-
-      // Complete the future.
-      responseWaiter.completer.completeError(
-        TimeoutException("DNS query '$name' timeout"),
-      );
+    final timer = Timer(timeout ?? Dns.defaultTimeout, () {
+      completer.completeError(TimedOutException("DNS query '$name' timeout"));
     });
+
+    socket.listen(
+      (event) {
+        if (event == RawSocketEvent.read) {
+          // Read UDP packet.
+          final datagram = socket.receive();
+
+          // No datagram available.
+          if (datagram == null) {
+            return;
+          }
+
+          timer.cancel();
+          completer.complete(_receiveUdpPacket(datagram));
+        }
+      },
+      onError: completer.completeError,
+      cancelOnError: true,
+    );
 
     // Return future.
-    return responseWaiter.completer.future;
+    return completer.future;
   }
 
-  Future<RawDatagramSocket> _getSocket() async {
-    if (_socket != null) {
-      return _socket;
-    }
-
-    final socket = await _bindSocket(localAddress, localPort);
-
-    socket.listen((event) {
-      if (event == RawSocketEvent.read) {
-        // Read UDP packet.
-        final datagram = socket.receive();
-
-        if (datagram == null) {
-          return;
-        }
-
-        _receiveUdpPacket(datagram);
-      }
-    });
-
-    return socket;
+  Future<RawDatagramSocket> _getSocket() {
+    final address = localAddress == null
+        ? InternetAddress.anyIPv4
+        : InternetAddress(localAddress);
+    return _bindSocket(address, localPort);
   }
 
-  void _receiveUdpPacket(Datagram datagram) {
+  DnsPacket _receiveUdpPacket(Datagram datagram) {
     // Read DNS packet.
     final dnsPacket = DnsPacket();
     dnsPacket.decodeSelf(RawReader.withBytes(datagram.data));
-
-    // Read answers.
-    for (final answer in dnsPacket.answers) {
-      final host = answer.name;
-
-      final names = _responseWaiters.keys;
-
-      for (final name in names) {
-        final query = _responseWaiters[name];
-
-        if (query.completer.isCompleted == false && query.host == host) {
-          query.timer.cancel();
-          query.completer.complete(dnsPacket);
-          _responseWaiters.remove(name);
-          break;
-        }
-      }
-    }
+    return dnsPacket;
   }
 
   static Future<RawDatagramSocket> _bindSocket(
     InternetAddress address,
     int port,
   ) async {
-    address ??= InternetAddress.anyIPv4;
-
-    for (var n = 3; n > 0; n--) {
-      try {
-        return await RawDatagramSocket.bind(address, port ?? _randomPort());
-      } catch (e) {
-        if (port == null && n > 1 && e.toString().contains('port')) {
-          return null;
-        }
-        rethrow;
-      }
-    }
-
-    throw StateError('impossible state');
+    return await RawDatagramSocket.bind(
+      address,
+      port ?? _randomPort(),
+    );
   }
 
   static int _randomPort() {
     const min = 10000;
     return min + _portRandom.nextInt((1 << 16) - min);
   }
-}
-
-class _DnsResponseWaiter {
-  final String host;
-  final Completer<DnsPacket> completer = Completer<DnsPacket>();
-  Timer timer;
-  final List<IpAddress> result = <IpAddress>[];
-
-  _DnsResponseWaiter(this.host);
 }

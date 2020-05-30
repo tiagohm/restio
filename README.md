@@ -479,7 +479,7 @@ await conn.close();
 Thanks to [dart-protocol](https://github.com/dart-protocol) for this great [dns](https://github.com/dart-protocol/dns) library!
 
 ```dart
-final dns = DnsOverUdp.google();
+const dns = DnsOverUdp.google();
 final client = Restio(options: RequestOptions(dns: dns));
 final request = get('https://postman-echo.com/get');
 final call = client.newCall(request);

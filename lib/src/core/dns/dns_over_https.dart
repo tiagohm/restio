@@ -113,7 +113,7 @@ class DnsOverHttps extends PacketBasedDns {
   }) async {
     //  Are we are resolving host of the DNS-over-HTTPS service?
     if (name == uri.host) {
-      final dns = this.dns ?? DnsOverUdp.google();
+      final dns = this.dns ?? const DnsOverUdp.google();
       return dns.lookupPacket(name, type: type);
     }
 
