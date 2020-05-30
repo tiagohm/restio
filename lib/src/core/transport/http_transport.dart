@@ -58,7 +58,7 @@ class HttpTransport implements Transport {
     state.stop();
 
     _connection = state.connection;
-    _httpClient = _connection.data['client'];
+    _httpClient = _connection.data[0];
 
     final proxy = options.proxy;
     var hasProxy = false;

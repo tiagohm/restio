@@ -8,7 +8,7 @@ abstract class Connection extends Equatable implements Closeable {
   final String host;
   final int port;
   final String ip;
-  final Map<String, dynamic> data;
+  final List data;
 
   const Connection({
     @required this.http2,

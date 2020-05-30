@@ -64,15 +64,16 @@ class ConnectionPool implements Closeable {
     Request request,
   ) {
     if (request.options.http2) {
-      return _makeHttp2Client(restio, request);
+      return makeHttp2Client(restio, request);
     } else {
-      return _makeHttpClient(restio, request);
+      return makeHttpClient(restio, request);
     }
   }
 
   // HTTP/HTTPS.
 
-  Future<HttpClient> _makeHttpClient(
+  @protected
+  Future<HttpClient> makeHttpClient(
     Restio restio,
     Request request,
   ) async {
@@ -127,7 +128,8 @@ class ConnectionPool implements Closeable {
 
   // HTTP2.
 
-  Future<List> _makeHttp2Client(
+  @protected
+  Future<List> makeHttp2Client(
     Restio restio,
     Request request,
   ) async {
@@ -273,7 +275,7 @@ class _HttpConnection extends Connection {
           host: host,
           port: port,
           ip: ip,
-          data: {'client': client},
+          data: [client],
         );
 
   @override
@@ -305,7 +307,7 @@ class _Http2Connection extends Connection {
           host: host,
           port: port,
           ip: ip,
-          data: {'socket': socket, 'transport': transport},
+          data: [socket, transport],
         );
 
   @override

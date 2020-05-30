@@ -36,8 +36,8 @@ class Http2Transport implements Transport {
     try {
       final state = (await client.connectionPool.get(client, request));
 
-      _socket = state.connection.data['socket'];
-      _transport = state.connection.data['transport'];
+      _socket = state.connection.data[0];
+      _transport = state.connection.data[1];
 
       final uri = request.uri.toUri();
       var path = uri.path;
