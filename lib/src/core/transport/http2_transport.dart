@@ -34,10 +34,10 @@ class Http2Transport implements Transport {
     final options = request.options;
 
     try {
-      final state = (await client.http2ConnectionPool.get(client, request));
+      final state = (await client.connectionPool.get(client, request));
 
-      _socket = state.connection.client[0];
-      _transport = state.connection.client[1];
+      _socket = state.connection.data['socket'];
+      _transport = state.connection.data['transport'];
 
       final uri = request.uri.toUri();
       var path = uri.path;
@@ -74,8 +74,7 @@ class Http2Transport implements Transport {
       await _stream.outgoingMessages.close();
 
       // Monta a resposta.
-      final response =
-          _makeResponse(client, request, _stream, state.connection.client[0]);
+      final response = _makeResponse(client, request, _stream, _socket);
 
       if (options.receiveTimeout != null &&
           !options.receiveTimeout.isNegative) {

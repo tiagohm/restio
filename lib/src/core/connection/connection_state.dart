@@ -3,8 +3,8 @@ import 'dart:async';
 import 'package:restio/src/common/closeable.dart';
 import 'package:restio/src/core/connection/connection.dart';
 
-class ConnectionState<T> implements Closeable {
-  final Connection<T> connection;
+class ConnectionState implements Closeable {
+  final Connection connection;
   final Duration timeout;
   Timer _timer;
   final void Function() onTimeout;

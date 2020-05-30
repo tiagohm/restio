@@ -17,14 +17,15 @@ class HttpTransport implements Transport {
   @override
   final Restio client;
 
-  Connection<HttpClient> _connection;
+  Connection _connection;
+  HttpClient _httpClient;
 
   HttpTransport(this.client) : assert(client != null);
 
   @override
   Future<void> cancel() async {
     // Irá fechar todas as conexões para um determinado [scheme:host:port].
-    _connection?.client?.close(force: true);
+    _httpClient?.close(force: true);
   }
 
   @override
@@ -48,7 +49,7 @@ class HttpTransport implements Transport {
       }
     }
 
-    final state = (await client.httpConnectionPool.get(
+    final state = (await client.connectionPool.get(
       client,
       request,
       address?.toString(),
@@ -57,7 +58,7 @@ class HttpTransport implements Transport {
     state.stop();
 
     _connection = state.connection;
-    final httpClient = _connection.client;
+    _httpClient = _connection.data['client'];
 
     final proxy = options.proxy;
     var hasProxy = false;
@@ -67,7 +68,7 @@ class HttpTransport implements Transport {
         (proxy.http && uri.scheme == 'http' ||
             proxy.https && uri.scheme == 'https')) {
       hasProxy = true;
-      httpClient.findProxy = (uri) {
+      _httpClient.findProxy = (uri) {
         return 'PROXY ${proxy.host}:${proxy.port};';
       };
     }
@@ -75,11 +76,11 @@ class HttpTransport implements Transport {
     try {
       if (options.connectTimeout != null &&
           !options.connectTimeout.isNegative) {
-        clientRequest = await httpClient
+        clientRequest = await _httpClient
             .openUrl(request.method, uri.toUri())
             .timeout(options.connectTimeout);
       } else {
-        clientRequest = await httpClient.openUrl(
+        clientRequest = await _httpClient.openUrl(
           request.method,
           uri.toUri(),
         );
@@ -97,7 +98,7 @@ class HttpTransport implements Transport {
       clientRequest.followRedirects = false;
 
       // Não descomprimir a resposta.
-      httpClient.autoUncompress = false;
+      _httpClient.autoUncompress = false;
 
       // Connection.
       if (!request.headers.has(HttpHeaders.connectionHeader)) {

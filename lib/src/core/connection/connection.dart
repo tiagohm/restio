@@ -2,27 +2,31 @@ import 'package:equatable/equatable.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/src/common/closeable.dart';
 
-abstract class Connection<T> with EquatableMixin implements Closeable {
+abstract class Connection extends Equatable implements Closeable {
+  final bool http2;
   final String scheme;
   final String host;
   final int port;
   final String ip;
-  final T client;
+  final Map<String, dynamic> data;
 
-  Connection({
+  const Connection({
+    @required this.http2,
     @required this.scheme,
     @required this.host,
     @required this.port,
     this.ip,
-    @required this.client,
-  })  : assert(scheme != null),
+    @required this.data,
+  })  : assert(http2 != null),
+        assert(scheme != null),
         assert(host != null),
         assert(port != null),
-        assert(client != null);
+        assert(data != null);
 
-  String get key => makeKey(scheme, host, port, ip);
+  String get key => makeKey(http2 ? '2' : '1', scheme, host, port, ip);
 
   static String makeKey(
+    String version,
     String scheme,
     String host,
     int port, [
@@ -30,7 +34,7 @@ abstract class Connection<T> with EquatableMixin implements Closeable {
   ]) {
     final sb = StringBuffer();
 
-    sb.write('$scheme:$host:$port');
+    sb.write('$version:$scheme:$host:$port');
 
     if (ip != null) {
       sb.write(':$ip');
@@ -40,5 +44,5 @@ abstract class Connection<T> with EquatableMixin implements Closeable {
   }
 
   @override
-  List<Object> get props => [scheme, host, ip, port];
+  List<Object> get props => [http2, scheme, host, ip, port];
 }

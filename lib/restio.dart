@@ -27,8 +27,6 @@ export 'package:restio/src/core/client.dart';
 export 'package:restio/src/core/connection/connection.dart';
 export 'package:restio/src/core/connection/connection_pool.dart';
 export 'package:restio/src/core/connection/connection_state.dart';
-export 'package:restio/src/core/connection/http2_connection_pool.dart';
-export 'package:restio/src/core/connection/http_connection_pool.dart';
 export 'package:restio/src/core/cookie/cookie_jar.dart';
 export 'package:restio/src/core/dns/dns.dart';
 export 'package:restio/src/core/dns/dns_over_https.dart';
