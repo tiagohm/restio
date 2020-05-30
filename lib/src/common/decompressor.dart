@@ -42,10 +42,9 @@ class _ChunkReceivedSink extends ByteConversionSinkBase {
       return;
     }
 
-    if (!_isClosed) {
-      _isClosed = true;
-      onChunkReceived?.call(null);
-      sink.close();
-    }
+    _isClosed = true;
+    
+    onChunkReceived?.call(null);
+    sink.close();
   }
 }

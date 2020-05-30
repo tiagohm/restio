@@ -222,12 +222,16 @@ class RequestUri extends Equatable {
     'wss': 443,
   };
 
-  int get effectivePort {
-    final schemePort = _defaultPortMap[scheme?.toLowerCase()] ?? 0;
-    return port == null ? schemePort : int.tryParse(port) ?? 0;
+  static int defaultPort(String scheme) {
+    return _defaultPortMap[scheme?.toLowerCase()] ?? -1;
   }
 
-  bool get hasDefaultPort => _defaultPortMap[scheme] == effectivePort;
+  int get effectivePort {
+    final schemePort = defaultPort(scheme) ?? -1;
+    return port == null ? schemePort : int.tryParse(port) ?? -1;
+  }
+
+  bool get hasDefaultPort => defaultPort(scheme) == effectivePort;
 
   bool get hasAuthority => username != null || password != null;
 
@@ -237,6 +241,11 @@ class RequestUri extends Equatable {
     return (scheme == null || scheme.isEmpty) && paths.isEmpty
         ? null
         : paths.isNotEmpty ? '/${paths.join('/')}' : '/';
+  }
+
+  String toHostHeader({bool includeDefaultPort = false}) {
+    final host = this.host.contains(':') ? '[${this.host}]' : this.host;
+    return includeDefaultPort || !hasDefaultPort ? '$host:$port' : host;
   }
 
   @override

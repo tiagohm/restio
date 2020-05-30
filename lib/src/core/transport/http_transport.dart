@@ -99,42 +99,6 @@ class HttpTransport implements Transport {
       // Não descomprimir a resposta.
       httpClient.autoUncompress = false;
 
-      // User-Agent.
-      if (!request.headers.has(HttpHeaders.userAgentHeader)) {
-        if (options.userAgent != null) {
-          clientRequest.headers.set(
-            'User-Agent',
-            options.userAgent,
-            preserveHeaderCase: true,
-          );
-        } else {
-          clientRequest.headers.set(
-            'User-Agent',
-            'Restio/${Restio.version}',
-            preserveHeaderCase: true,
-          );
-        }
-      }
-
-      // Content-Type.
-      if (!request.headers.has(HttpHeaders.contentTypeHeader) &&
-          request.body?.contentType != null) {
-        clientRequest.headers.set(
-          'Content-Type',
-          request.body.contentType.toHeaderString(),
-          preserveHeaderCase: true,
-        );
-      }
-
-      // Accept-Encoding.
-      if (!request.headers.has(HttpHeaders.acceptEncodingHeader)) {
-        clientRequest.headers.set(
-          'Accept-Encoding',
-          'gzip, deflate, br',
-          preserveHeaderCase: true,
-        );
-      }
-
       // Connection.
       if (!request.headers.has(HttpHeaders.connectionHeader)) {
         clientRequest.persistentConnection = true;
@@ -163,7 +127,7 @@ class HttpTransport implements Transport {
       if (!request.headers.has(HttpHeaders.hostHeader) && address != null) {
         clientRequest.headers.set(
           'Host',
-          request.uri.host,
+          request.uri.toHostHeader(),
           preserveHeaderCase: true,
         );
       }

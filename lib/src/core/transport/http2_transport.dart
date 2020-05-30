@@ -57,38 +57,6 @@ class Http2Transport implements Transport {
         Header.ascii(':authority', uri.host),
       ];
 
-      // User-Agent.
-      if (!request.headers.has(HttpHeaders.userAgentHeader)) {
-        if (options.userAgent != null) {
-          headers.add(
-              Header.ascii(HttpHeaders.userAgentHeader, options.userAgent));
-        } else {
-          headers.add(Header.ascii(
-              HttpHeaders.userAgentHeader, 'Restio/${Restio.version}'));
-        }
-      }
-
-      // Content-Type.
-      if (!request.headers.has(HttpHeaders.contentTypeHeader) &&
-          request.body?.contentType != null) {
-        headers.add(
-          Header.ascii(
-            HttpHeaders.contentTypeHeader,
-            request.body.contentType.toHeaderString(),
-          ),
-        );
-      }
-
-      // Accept-Encoding.
-      if (!request.headers.has(HttpHeaders.acceptEncodingHeader)) {
-        headers.add(
-          Header.ascii(
-            HttpHeaders.acceptEncodingHeader,
-            'gzip, deflate, br',
-          ),
-        );
-      }
-
       // Headers.
       request.headers?.forEach((item) {
         // https://tools.ietf.org/html/rfc7540#section-8.1.2

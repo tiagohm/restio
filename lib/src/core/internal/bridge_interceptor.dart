@@ -17,15 +17,37 @@ class BridgeInterceptor implements Interceptor {
   Future<Response> intercept(Chain chain) async {
     final request = chain.request;
 
+    final headersBuilder = request.headers.toBuilder();
+
+    // If we add an "Accept-Encoding" header field
+    // we're responsible for also decompressing the transfer stream.
     var transparentDecoding = false;
 
     // Accept-Encoding.
     if (!request.headers.has(HttpHeaders.acceptEncodingHeader) &&
         !request.headers.has(HttpHeaders.rangeHeader)) {
       transparentDecoding = true;
+      headersBuilder.set('Accept-Encoding', 'gzip, deflate, br');
     }
 
-    final response = await chain.proceed(request);
+    // Content-Type.
+    if (!request.headers.has(HttpHeaders.contentTypeHeader) &&
+        request.body?.contentType != null) {
+      headersBuilder.set(
+          'Content-Type', request.body.contentType.toHeaderString());
+    }
+
+    // User-Agent.
+    if (!request.headers.has(HttpHeaders.userAgentHeader)) {
+      if (request.options.userAgent != null) {
+        headersBuilder.set('User-Agent', request.options.userAgent);
+      } else {
+        headersBuilder.set('User-Agent', 'Restio/${Restio.version}');
+      }
+    }
+
+    final response =
+        await chain.proceed(request.copyWith(headers: headersBuilder.build()));
     dynamic decoder;
 
     final contentEncoding = response.headers
