@@ -154,7 +154,7 @@ class Response implements Closeable {
     return !cacheControl.noStore && !request.cacheControl.noStore;
   }
 
-  /// Returns true if the response headers and status indicate that 
+  /// Returns true if the response headers and status indicate that
   /// this response has a body.
   bool get hasBody {
     if (body == null) {

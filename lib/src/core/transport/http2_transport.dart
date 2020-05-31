@@ -131,7 +131,7 @@ class Http2Transport implements Transport {
     Restio client,
     Request request,
     ClientTransportStream stream,
-    SecureSocket socket,
+    Socket socket,
   ) {
     StreamController<ServerPush> serverPushController;
     final completer = Completer<Response>();

@@ -24,6 +24,7 @@ export 'package:restio/src/core/call/cancellable.dart';
 export 'package:restio/src/core/certificate/certificate.dart';
 export 'package:restio/src/core/chain.dart';
 export 'package:restio/src/core/client.dart';
+export 'package:restio/src/core/connection/address.dart';
 export 'package:restio/src/core/connection/connection.dart';
 export 'package:restio/src/core/connection/connection_pool.dart';
 export 'package:restio/src/core/connection/connection_state.dart';
@@ -65,4 +66,3 @@ export 'package:restio/src/core/response/challenge.dart';
 export 'package:restio/src/core/response/response.dart';
 export 'package:restio/src/core/response/server_push.dart';
 export 'package:restio/src/extensions.dart';
-

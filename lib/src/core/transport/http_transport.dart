@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:ip/ip.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/connection/connection.dart';
@@ -34,44 +33,18 @@ class HttpTransport implements Transport {
 
     HttpClientRequest clientRequest;
     HttpClientResponse response;
-    IpAddress address;
 
     var uri = request.uri;
 
-    // Verificar se não é um IP.
-    // Busca o real endereço (IP) do host através de um DNS.
-    if (options.dns != null && !isIp(uri.host)) {
-      final addresses = await options.dns.lookup(uri.host);
+    final state = (await client.connectionPool.get(client, request))..stop();
+    final address = state.connection.address.ip;
 
-      if (addresses != null && addresses.isNotEmpty) {
-        address = addresses[0];
-        uri = uri.copyWith(host: address.toString());
-      }
+    if (address != null) {
+      uri = uri.copyWith(host: address.toString());
     }
-
-    final state = (await client.connectionPool.get(
-      client,
-      request,
-      address?.toString(),
-    ));
-
-    state.stop();
 
     _connection = state.connection;
     _httpClient = _connection.data[0];
-
-    final proxy = options.proxy;
-    var hasProxy = false;
-
-    // Proxy.
-    if (proxy != null &&
-        (proxy.http && uri.scheme == 'http' ||
-            proxy.https && uri.scheme == 'https')) {
-      hasProxy = true;
-      _httpClient.findProxy = (uri) {
-        return 'PROXY ${proxy.host}:${proxy.port};';
-      };
-    }
 
     try {
       if (options.connectTimeout != null &&
@@ -83,14 +56,6 @@ class HttpTransport implements Transport {
         clientRequest = await _httpClient.openUrl(
           request.method,
           uri.toUri(),
-        );
-      }
-
-      if (hasProxy) {
-        clientRequest.headers.add(
-          'Proxy-Connection',
-          'Keep-Alive',
-          preserveHeaderCase: true,
         );
       }
 
@@ -123,6 +88,15 @@ class HttpTransport implements Transport {
             );
         }
       });
+
+      // Proxy.
+      if (state.connection.address.proxy != null) {
+        clientRequest.headers.set(
+          'Proxy-Connection',
+          'Keep-Alive',
+          preserveHeaderCase: true,
+        );
+      }
 
       // Host.
       if (!request.headers.has(HttpHeaders.hostHeader) && address != null) {

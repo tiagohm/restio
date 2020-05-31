@@ -1,13 +1,17 @@
 import 'dart:io';
 
 import 'package:http2/http2.dart';
+import 'package:ip/ip.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/src/common/closeable.dart';
+import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/client.dart';
+import 'package:restio/src/core/connection/address.dart';
 import 'package:restio/src/core/connection/connection.dart';
 import 'package:restio/src/core/connection/connection_state.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_options.dart';
 
 /// Manages reuse of HTTP and HTTP/2 connections for reduced network latency.
 class ConnectionPool implements Closeable {
@@ -33,17 +37,22 @@ class ConnectionPool implements Closeable {
 
   Future<ConnectionState> get(
     Restio restio,
-    Request request, [
-    String ip,
-  ]) async {
+    Request request,
+  ) async {
     if (isClosed) {
       throw const RestioException('ConnectionPool is closed');
     }
 
+    final options = request.options;
     final uri = request.uri;
     final port = uri.effectivePort;
-    final version = request.options.http2 ? '2' : '1';
-    final key = Connection.makeKey(version, uri.scheme, uri.host, port, ip);
+    final version = options.http2 ? '2' : '1';
+    final key = Connection.makeKey(version, uri.scheme, uri.host, port);
+    final proxy = options.proxy != null &&
+            (options.proxy.http && request.uri.scheme == 'http' ||
+                options.proxy.https && request.uri.scheme == 'https')
+        ? options.proxy
+        : null;
 
     if (_connectionStates.containsKey(key)) {
       final state = _connectionStates[key];
@@ -53,12 +62,33 @@ class ConnectionPool implements Closeable {
       }
     }
 
-    final client = await makeClient(restio, request);
+    // DNS.
+    IpAddress ip;
+
+    // Verificar se não é um IP.
+    // Busca o real endereço (IP) do host através de um DNS.
+    if (options.dns != null && !isIp(uri.host)) {
+      final addresses = await options.dns.lookup(uri.host);
+
+      if (addresses != null && addresses.isNotEmpty) {
+        ip = addresses[0];
+      }
+    }
+
+    final address = Address(
+      scheme: request.uri.scheme,
+      host: request.uri.host,
+      port: request.uri.effectivePort,
+      proxy: proxy,
+      ip: ip,
+    );
+
+    final client = await makeClient(restio, options, address);
 
     final connection = await makeConnection(
-      request,
+      options,
       client,
-      ip,
+      address,
     );
 
     _connectionStates[key] = await makeState(key, connection, () {
@@ -70,12 +100,13 @@ class ConnectionPool implements Closeable {
 
   Future makeClient(
     Restio restio,
-    Request request,
+    RequestOptions options,
+    Address address,
   ) {
-    if (request.options.http2) {
-      return makeHttp2Client(restio, request);
+    if (options.http2) {
+      return makeHttp2Client(restio, options, address);
     } else {
-      return makeHttpClient(restio, request);
+      return makeHttpClient(restio, options, address);
     }
   }
 
@@ -84,10 +115,9 @@ class ConnectionPool implements Closeable {
   @protected
   Future<HttpClient> makeHttpClient(
     Restio restio,
-    Request request,
+    RequestOptions options,
+    Address address,
   ) async {
-    final options = request.options;
-
     final context =
         SecurityContext(withTrustedRoots: restio.withTrustedRoots ?? true);
 
@@ -96,8 +126,8 @@ class ConnectionPool implements Closeable {
         restio.certificates?.firstWhere(
           (certificate) {
             return certificate.matches(
-              request.uri.host,
-              request.uri.effectivePort,
+              address.host,
+              address.port,
             );
           },
           orElse: () => null,
@@ -125,6 +155,13 @@ class ConnectionPool implements Closeable {
 
     final httpClient = HttpClient(context: context);
 
+    // Proxy.
+    if (address.proxy != null) {
+      httpClient.findProxy = (uri) {
+        return 'PROXY ${address.proxy.host}:${address.proxy.port};';
+      };
+    }
+
     // TODO: CertificatePinners: https://github.com/dart-lang/sdk/issues/35981.
 
     httpClient.badCertificateCallback = (cert, host, port) {
@@ -140,17 +177,16 @@ class ConnectionPool implements Closeable {
   @protected
   Future<List> makeHttp2Client(
     Restio restio,
-    Request request,
+    RequestOptions options,
+    Address address,
   ) async {
-    final options = request.options;
-
     Socket socket;
 
     if (options.connectTimeout != null && !options.connectTimeout.isNegative) {
-      socket =
-          await _createSocket(restio, request).timeout(options.connectTimeout);
+      socket = await _createSocket(restio, options, address)
+          .timeout(options.connectTimeout);
     } else {
-      socket = await _createSocket(restio, request);
+      socket = await _createSocket(restio, options, address);
     }
 
     final settings =
@@ -164,15 +200,13 @@ class ConnectionPool implements Closeable {
 
   Future<Socket> _createSocket(
     Restio restio,
-    Request request,
+    RequestOptions options,
+    Address address,
   ) {
-    final options = request.options;
-    final port = request.uri.effectivePort;
-
-    return request.uri.scheme == 'https'
+    return address.scheme == 'https'
         ? SecureSocket.connect(
-            request.uri.host,
-            port,
+            address.host,
+            address.port,
             context: SecurityContext(withTrustedRoots: restio.withTrustedRoots),
             supportedProtocols: const [
               'h2-14',
@@ -185,13 +219,13 @@ class ConnectionPool implements Closeable {
               return !options.verifySSLCertificate ||
                   (restio?.onBadCertificate?.call(
                         cert,
-                        request.uri.host,
-                        port,
+                        address.host,
+                        address.port,
                       ) ??
                       false);
             },
           )
-        : Socket.connect(request.uri.host, port);
+        : Socket.connect(address.host, address.port);
   }
 
   Future<ConnectionState> makeState(
@@ -218,29 +252,19 @@ class ConnectionPool implements Closeable {
   }
 
   Future<Connection> makeConnection(
-    Request request,
-    dynamic client, [
-    String ip,
-  ]) async {
-    final uri = request.uri;
-
-    if (request.options.http2) {
-      final uri = request.uri;
-
+    RequestOptions options,
+    dynamic client,
+    Address address,
+  ) async {
+    if (options.http2) {
       return _Http2Connection(
-        scheme: uri.scheme,
-        host: uri.host,
-        port: uri.effectivePort,
-        ip: ip,
+        address: address,
         socket: client[0],
         transport: client[1],
       );
     } else {
       return _HttpConnection(
-        scheme: uri.scheme,
-        host: uri.host,
-        port: uri.effectivePort,
-        ip: ip,
+        address: address,
         client: client,
       );
     }
@@ -277,17 +301,11 @@ class _HttpConnection extends Connection {
   var _isClosed = false;
 
   _HttpConnection({
-    @required String scheme,
-    @required String host,
-    @required int port,
-    String ip,
+    @required Address address,
     @required this.client,
   }) : super(
           http2: false,
-          scheme: scheme,
-          host: host,
-          port: port,
-          ip: ip,
+          address: address,
           data: [client],
         );
 
@@ -308,18 +326,12 @@ class _Http2Connection extends Connection {
   final ClientTransportConnection transport;
 
   _Http2Connection({
-    @required String scheme,
-    @required String host,
-    @required int port,
-    String ip,
+    @required Address address,
     @required this.socket,
     @required this.transport,
   }) : super(
           http2: true,
-          scheme: scheme,
-          host: host,
-          port: port,
-          ip: ip,
+          address: address,
           data: [socket, transport],
         );
 

@@ -797,14 +797,10 @@ void main() {
           host: 'localhost',
           port: 3004,
         ),
-        auth: BasicAuthenticator(
-          username: 'c',
-          password: 'd',
-        ),
       ),
     );
 
-    final request = get('http://httpbin.org/basic-auth/c/d');
+    final request = get('http://httpbin.org/get');
     final call = client.newCall(request);
     final response = await call.execute();
 
@@ -815,8 +811,8 @@ void main() {
 
     print(json);
 
-    expect(json['authenticated'], true);
-    expect(json['user'], 'c');
+    expect(json['headers']['Proxy-Connection'], 'Keep-Alive');
+    expect(json['origin'], contains('127.0.0.1'));
 
     await client.close();
   });
@@ -832,14 +828,10 @@ void main() {
             password: 'b',
           ),
         ),
-        auth: BasicAuthenticator(
-          username: 'c',
-          password: 'd',
-        ),
       ),
     );
 
-    final request = get('http://httpbin.org/basic-auth/c/d');
+    final request = get('http://httpbin.org/get');
     final call = client.newCall(request);
     final response = await call.execute();
 
@@ -848,7 +840,8 @@ void main() {
     final json = await response.body.json();
     await response.close();
 
-    expect(json['authenticated'], true);
+    expect(json['headers']['Proxy-Connection'], 'Keep-Alive');
+    expect(json['origin'], contains('127.0.0.1'));
 
     await client.close();
   });
