@@ -1206,7 +1206,7 @@ void main() {
     await client.close();
   });
 
-  test('Persistent Connection', () async {
+  test('HTTP Persistent Connection', () async {
     final client = Restio();
 
     final request = Request.get('https://httpbin.org/get');
@@ -1223,6 +1223,29 @@ void main() {
     expect(
       response1.localPort,
       response2.localPort,
+    );
+
+    await client.close();
+  });
+
+  test('HTTP Persistent Connection Is Disabled', () async {
+    final client = Restio();
+
+    const options = RequestOptions(persistentConnection: false);
+    final request = Request.get('https://httpbin.org/get', options: options);
+    final call = client.newCall(request);
+
+    final response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    final response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.localPort,
+      isNot(response2.localPort),
     );
 
     await client.close();
@@ -1250,7 +1273,30 @@ void main() {
     await client.close();
   });
 
-  test('Persistent Connection With Short Timeout', () async {
+  test('HTTP2 Persistent Connection Is Disabled', () async {
+    final client = Restio(options: const RequestOptions(http2: true));
+
+    const options = RequestOptions(persistentConnection: false);
+    final request = Request.get('https://httpbin.org/get', options: options);
+    final call = client.newCall(request);
+
+    final response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    final response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.localPort,
+      isNot(response2.localPort),
+    );
+
+    await client.close();
+  });
+
+  test('HTTP Persistent Connection With Short Timeout', () async {
     final client = Restio(
       connectionPool: ConnectionPool(idleTimeout: const Duration(seconds: 5)),
     );

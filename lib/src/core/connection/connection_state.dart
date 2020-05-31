@@ -16,6 +16,10 @@ class ConnectionState implements Closeable {
   });
 
   void start() {
+    if (isClosed) {
+      throw StateError('Connection is closed');
+    }
+
     _timer?.cancel();
 
     _timer = Timer(timeout, () async {

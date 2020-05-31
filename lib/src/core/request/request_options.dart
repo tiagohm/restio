@@ -19,6 +19,7 @@ class RequestOptions extends Equatable {
   final Certificate certificate;
   final bool http2;
   final bool allowServerPushes;
+  final bool persistentConnection;
 
   const RequestOptions({
     this.connectTimeout,
@@ -35,6 +36,7 @@ class RequestOptions extends Equatable {
     this.followSslRedirects,
     this.http2,
     this.allowServerPushes,
+    this.persistentConnection,
   });
 
   static const empty = RequestOptions();
@@ -47,6 +49,7 @@ class RequestOptions extends Equatable {
     verifySSLCertificate: false,
     http2: false,
     allowServerPushes: false,
+    persistentConnection: true,
   );
 
   RequestOptions copyWith({
@@ -64,6 +67,7 @@ class RequestOptions extends Equatable {
     Certificate certificate,
     bool http2,
     bool allowServerPushes,
+    bool persistentConnection,
   }) {
     return RequestOptions(
       connectTimeout: connectTimeout ?? this.connectTimeout,
@@ -80,6 +84,7 @@ class RequestOptions extends Equatable {
       certificate: certificate ?? this.certificate,
       http2: http2 ?? this.http2,
       allowServerPushes: allowServerPushes ?? this.allowServerPushes,
+      persistentConnection: persistentConnection ?? this.persistentConnection,
     );
   }
 
@@ -99,6 +104,7 @@ class RequestOptions extends Equatable {
       certificate: options.certificate,
       http2: options.http2,
       allowServerPushes: options.allowServerPushes,
+      persistentConnection: options.persistentConnection,
     );
   }
 
@@ -118,6 +124,7 @@ class RequestOptions extends Equatable {
         certificate,
         http2,
         allowServerPushes,
+        persistentConnection,
       ];
 
   @override
@@ -127,6 +134,7 @@ class RequestOptions extends Equatable {
         ' followRedirects: $followRedirects, maxRedirects: $maxRedirects,'
         ' verifySSLCertificate: $verifySSLCertificate, userAgent: $userAgent,'
         ' proxy: $proxy, dns: $dns, followSslRedirects: $followSslRedirects,'
-        ' http2: $http2, allowServerPushes: $allowServerPushes }';
+        ' http2: $http2, allowServerPushes: $allowServerPushes'
+        ' persistentConnection: $persistentConnection }';
   }
 }

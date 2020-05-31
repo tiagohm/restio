@@ -67,7 +67,8 @@ class HttpTransport implements Transport {
 
       // Connection.
       if (!request.headers.has(HttpHeaders.connectionHeader)) {
-        clientRequest.persistentConnection = true;
+        clientRequest.persistentConnection =
+            request.options.persistentConnection;
       }
 
       // Headers.
@@ -135,7 +136,9 @@ class HttpTransport implements Transport {
         certificate: response.certificate,
         address: address,
         onClose: () async {
-          state.start();
+          if (!state.isClosed) {
+            state.start();
+          }
         },
       );
 
@@ -158,6 +161,10 @@ class HttpTransport implements Transport {
         }
 
         rethrow;
+      }
+    } finally {
+      if (!request.options.persistentConnection) {
+        await _connection.close();
       }
     }
   }

@@ -63,7 +63,7 @@ class ConnectInterceptor implements Interceptor {
         totalMilliseconds: spentMilliseconds,
       );
     } finally {
-      cancellable?.remove(cancelTransport);
+      cancellable?.remove(cancelTransport);       
     }
   }
 }

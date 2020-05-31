@@ -91,11 +91,17 @@ class ConnectionPool implements Closeable {
       address,
     );
 
-    _connectionStates[key] = await makeState(key, connection, () {
-      _connectionStates.remove(key);
+    final state = await makeState(key, connection, () {
+      if (options.persistentConnection) {
+        _connectionStates.remove(key);
+      }
     });
 
-    return _connectionStates[key];
+    if (options.persistentConnection) {
+      _connectionStates[key] = state;
+    }
+
+    return state;
   }
 
   Future makeClient(
@@ -240,10 +246,12 @@ class ConnectionPool implements Closeable {
       final transport = connection.transport;
 
       transport.onActiveStateChanged = (active) {
-        if (active) {
-          state.stop();
-        } else {
-          state.start();
+        if (!state.isClosed) {
+          if (active) {
+            state.stop();
+          } else {
+            state.start();
+          }
         }
       };
     }

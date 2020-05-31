@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:http2/http2.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/client.dart';
+import 'package:restio/src/core/connection/connection.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
@@ -19,6 +20,7 @@ class Http2Transport implements Transport {
   final Restio client;
 
   ClientTransportStream _stream;
+  Connection _connection;
   Socket _socket;
   ClientTransportConnection _transport;
 
@@ -36,6 +38,7 @@ class Http2Transport implements Transport {
     try {
       final state = (await client.connectionPool.get(client, request));
 
+      _connection = state.connection;
       _socket = state.connection.data[0];
       _transport = state.connection.data[1];
 
@@ -84,6 +87,10 @@ class Http2Transport implements Transport {
       }
     } on TimeoutException {
       throw const TimedOutException(''); // Connect time out.
+    } finally {
+      if (!request.options.persistentConnection) {
+        await _connection.close();
+      }
     }
   }
 
