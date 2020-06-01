@@ -12,6 +12,7 @@ import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
+import 'package:restio/src/core/response/response_stream.dart';
 import 'package:restio/src/core/response/server_push.dart';
 import 'package:restio/src/core/transport/transport.dart';
 
@@ -263,7 +264,7 @@ Stream<ServerPush> _handlePeerPushes(
 
             final res = Response(
               body: ResponseBody.stream(
-                dataController.stream,
+                ResponseStream(dataController.stream),
                 contentType: contentType,
                 contentLength: contentLength,
               ),

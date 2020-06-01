@@ -15,25 +15,46 @@ import 'package:restio/src/core/request/request_options.dart';
 
 /// Manages reuse of HTTP and HTTP/2 connections for reduced network latency.
 class ConnectionPool implements Closeable {
-  final Duration idleTimeout;
   final _connectionStates = <String, ConnectionState>{};
+  Duration _idleTimeout;
   var _isClosed = false;
 
   ConnectionPool({
     Duration idleTimeout,
-  }) : idleTimeout = idleTimeout ?? defaultIdleTimeout {
-    if (this.idleTimeout.isNegative || this.idleTimeout.inSeconds == 0) {
-      throw ArgumentError.value(this.idleTimeout, 'idleTimeout');
-    }
-  }
+  })  : assert(idleTimeout == null ||
+            (!idleTimeout.isNegative && idleTimeout.inSeconds > 0)),
+        _idleTimeout = idleTimeout ?? defaultIdleTimeout;
 
   static const defaultIdleTimeout = Duration(minutes: 5);
 
-  int get length => _connectionStates.length;
+  /// Returns total number of connections in the pool.
+  int get connectionCount => _connectionStates.length;
 
-  bool get isEmpty => length == 0;
+  /// Returns the number of idle connections in the pool.
+  int get idleConnectionCount =>
+      _connectionStates.values.where((c) => c.isIdle).length;
+
+  bool get isEmpty => connectionCount == 0;
 
   bool get isNotEmpty => !isEmpty;
+
+  Duration get idleTimeout => _idleTimeout;
+
+  set idleTimeout(Duration value) {
+    _idleTimeout = value;
+
+    for (final state in _connectionStates.values) {
+      state.timeout = _idleTimeout;
+    }
+  }
+
+  String _key(Request request) {
+    final options = request.options;
+    final uri = request.uri;
+    final port = uri.effectivePort;
+    final version = options.http2 ? '2' : '1';
+    return Connection.makeKey(version, uri.scheme, uri.host, port);
+  }
 
   Future<ConnectionState> get(
     Restio restio,
@@ -45,9 +66,7 @@ class ConnectionPool implements Closeable {
 
     final options = request.options;
     final uri = request.uri;
-    final port = uri.effectivePort;
-    final version = options.http2 ? '2' : '1';
-    final key = Connection.makeKey(version, uri.scheme, uri.host, port);
+    final key = _key(request);
     final proxy = options.proxy != null &&
             (options.proxy.http && request.uri.scheme == 'http' ||
                 options.proxy.https && request.uri.scheme == 'https')
@@ -76,9 +95,9 @@ class ConnectionPool implements Closeable {
     }
 
     final address = Address(
-      scheme: request.uri.scheme,
-      host: request.uri.host,
-      port: request.uri.effectivePort,
+      scheme: uri.scheme,
+      host: uri.host,
+      port: uri.effectivePort,
       proxy: proxy,
       ip: ip,
     );
@@ -278,25 +297,20 @@ class ConnectionPool implements Closeable {
     }
   }
 
-  Future<void> clear() async {
-    try {
-      for (final state in _connectionStates.values) {
-        await state.close();
-      }
-    } finally {
-      _connectionStates.clear();
-    }
-  }
-
+  /// Closes and removes all connections in the pool.
   @override
   Future<void> close() async {
     if (isClosed) {
       return;
     }
 
-    _isClosed = true;
+    for (final state in _connectionStates.values) {
+      await state.close();
+    }
 
-    await clear();
+    _connectionStates.clear();
+
+    _isClosed = true;
   }
 
   @override

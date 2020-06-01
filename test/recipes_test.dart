@@ -705,27 +705,23 @@ void main() {
 
     final body = await response.body.string();
     final pushPaths = <String>[];
-    final futures = <Future<Response>>[];
+    final responses = <Response>[];
 
-    await response.pushes.listen((push) async {
-      futures.add(push.response.then(
-        (response) {
-          pushPaths.add(push.headers.first(':path')?.value);
-          return response;
-        },
-      ));
-    }).asFuture();
+    await for (final push in response.pushes) {
+      pushPaths.add(push.headers.first(':path')?.value);
+      responses.add(await push.response);
+    }
 
     expect(body, contains('<!DOCTYPE html>'));
     expect(body, contains('nghttp2'));
 
     expect(pushPaths, isNotEmpty);
     expect(pushPaths[0], '/stylesheets/screen.css');
-    expect(futures, isNotEmpty);
-    expect(await (await futures[0]).body.string(), contains('audio,video{'));
+    expect(responses, isNotEmpty);
+    expect(await responses[0].body.string(), contains('audio,video{'));
 
+    await responses[0].close();
     await response.close();
-
     await client.close();
   });
 
@@ -1240,6 +1236,45 @@ void main() {
     await response1.close();
 
     final response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.localPort,
+      isNot(response2.localPort),
+    );
+
+    await client.close();
+  });
+
+  test('HTTP Persistent Connection Timeout Change', () async {
+    final client = Restio(); // 5 min.
+
+    final request = Request.get('https://httpbin.org/get');
+    final call = client.newCall(request);
+
+    var response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    var response2 = await call.execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    expect(
+      response1.localPort,
+      response2.localPort,
+    );
+
+    client.connectionPool.idleTimeout = const Duration(seconds: 5);
+
+    response1 = await call.execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    await Future.delayed(const Duration(seconds: 6));
+
+    response2 = await call.execute();
     print(await response2.body.json());
     await response2.close();
 
