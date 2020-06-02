@@ -123,6 +123,7 @@ class ConnectionPool implements Closeable {
     return state;
   }
 
+  @protected
   Future makeClient(
     Restio restio,
     RequestOptions options,
@@ -138,11 +139,11 @@ class ConnectionPool implements Closeable {
   // HTTP/HTTPS.
 
   @protected
-  Future<HttpClient> makeHttpClient(
+  SecurityContext createContext(
     Restio restio,
     RequestOptions options,
     Address address,
-  ) async {
+  ) {
     final context =
         SecurityContext(withTrustedRoots: restio.withTrustedRoots ?? true);
 
@@ -178,6 +179,16 @@ class ConnectionPool implements Closeable {
       }
     }
 
+    return context;
+  }
+
+  @protected
+  Future<HttpClient> makeHttpClient(
+    Restio restio,
+    RequestOptions options,
+    Address address,
+  ) async {
+    final context = options.context ?? createContext(restio, options, address);
     final httpClient = HttpClient(context: context);
 
     // Proxy.
@@ -208,10 +219,10 @@ class ConnectionPool implements Closeable {
     Socket socket;
 
     if (options.connectTimeout != null && !options.connectTimeout.isNegative) {
-      socket = await _createSocket(restio, options, address)
+      socket = await createSocket(restio, options, address)
           .timeout(options.connectTimeout);
     } else {
-      socket = await _createSocket(restio, options, address);
+      socket = await createSocket(restio, options, address);
     }
 
     final settings =
@@ -223,7 +234,8 @@ class ConnectionPool implements Closeable {
     ];
   }
 
-  Future<Socket> _createSocket(
+  @protected
+  Future<Socket> createSocket(
     Restio restio,
     RequestOptions options,
     Address address,
@@ -253,6 +265,7 @@ class ConnectionPool implements Closeable {
         : Socket.connect(address.host, address.port);
   }
 
+  @protected
   Future<ConnectionState> makeState(
     String key,
     Connection connection,
@@ -278,6 +291,7 @@ class ConnectionPool implements Closeable {
     return state;
   }
 
+  @protected
   Future<Connection> makeConnection(
     RequestOptions options,
     dynamic client,

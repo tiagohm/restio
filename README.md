@@ -105,6 +105,7 @@ final options = RequestOptions(
   http2: false,
   allowServerPushes: false,
   persistentConnection: true,
+  context: SecurityContext(...),  // default is null (created automatically).
 );
 
 // At Client level. (Applies to all requests)

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:equatable/equatable.dart';
 import 'package:restio/src/core/auth/authenticator.dart';
 import 'package:restio/src/core/certificate/certificate.dart';
@@ -20,6 +22,7 @@ class RequestOptions extends Equatable {
   final bool http2;
   final bool allowServerPushes;
   final bool persistentConnection;
+  final SecurityContext context;
 
   const RequestOptions({
     this.connectTimeout,
@@ -37,6 +40,7 @@ class RequestOptions extends Equatable {
     this.http2,
     this.allowServerPushes,
     this.persistentConnection,
+    this.context,
   });
 
   static const empty = RequestOptions();
@@ -68,6 +72,7 @@ class RequestOptions extends Equatable {
     bool http2,
     bool allowServerPushes,
     bool persistentConnection,
+    SecurityContext context,
   }) {
     return RequestOptions(
       connectTimeout: connectTimeout ?? this.connectTimeout,
@@ -85,6 +90,7 @@ class RequestOptions extends Equatable {
       http2: http2 ?? this.http2,
       allowServerPushes: allowServerPushes ?? this.allowServerPushes,
       persistentConnection: persistentConnection ?? this.persistentConnection,
+      context: context ?? this.context,
     );
   }
 
@@ -105,6 +111,7 @@ class RequestOptions extends Equatable {
       http2: options.http2,
       allowServerPushes: options.allowServerPushes,
       persistentConnection: options.persistentConnection,
+      context: options.context,
     );
   }
 
@@ -125,6 +132,7 @@ class RequestOptions extends Equatable {
         http2,
         allowServerPushes,
         persistentConnection,
+        context,
       ];
 
   @override
