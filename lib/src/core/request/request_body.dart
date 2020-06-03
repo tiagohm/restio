@@ -55,7 +55,8 @@ abstract class RequestBody {
   }) {
     return _FileRequestBody(
       file: file,
-      contentType: contentType ?? MediaType.fromFile(file.path, charset),
+      contentType:
+          contentType ?? MediaType.fromFile(file.path, charset: charset),
       start: start,
       end: end,
     );

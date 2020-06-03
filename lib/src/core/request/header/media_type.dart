@@ -61,8 +61,8 @@ class MediaType extends Item {
   const MediaType({
     this.type,
     this.subType,
-    this.parameters = const {},
-  });
+    Map<String, String> parameters,
+  }) : parameters = parameters ?? const {};
 
   factory MediaType.fromContentType(ContentType contentType) {
     return MediaType(
@@ -81,14 +81,14 @@ class MediaType extends Item {
   }
 
   factory MediaType.fromFile(
-    String path, [
+    String path, {
     String charset,
-  ]) {
+  }) {
     final ext = extension(path)?.replaceAll('.', '');
     final mimeType = mimeFromExtension(ext);
-    return mimeType != null
-        ? MediaType.parse(mimeType).copyWith(charset: charset)
-        : MediaType.octetStream;
+    final mediaType =
+        mimeType != null ? MediaType.parse(mimeType) : MediaType.octetStream;
+    return mediaType.copyWith(charset: charset);
   }
 
   @override
@@ -104,16 +104,20 @@ class MediaType extends Item {
     String boundary,
     Map<String, String> parameters,
   }) {
-    final p = {
-      if (parameters != null) ...parameters else ...this.parameters,
-      if (charset != null) 'charset': charset,
-      if (boundary != null) 'boundary': boundary,
-    };
+    Map<String, String> p;
+
+    if (charset != null || boundary != null || parameters != null) {
+      p = {
+        if (parameters != null) ...parameters,
+        if (charset != null) 'charset': charset,
+        if (boundary != null) 'boundary': boundary,
+      };
+    }
 
     return MediaType(
       type: type ?? this.type,
       subType: subType ?? this.subType,
-      parameters: p,
+      parameters: p ?? this.parameters,
     );
   }
 
