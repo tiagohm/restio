@@ -58,9 +58,7 @@ class MultipartBody implements RequestBody {
           MediaType(
             type: _contentType.type,
             subType: _contentType.subType,
-            charset: _contentType.charset,
             parameters: Map.of(_contentType.parameters)
-              ..remove('charset')
               ..remove('boundary'),
           ),
       boundary: boundary ?? _boundary,

@@ -10,8 +10,7 @@ abstract class RequestBody {
 
   Stream<List<int>> write();
 
-  factory RequestBody.empty() =>
-      RequestBody.stream(const Stream.empty(), contentLength: 0);
+  factory RequestBody.empty() => const _EmptyRequestBody();
 
   factory RequestBody.stream(
     Stream<List<int>> data, {
@@ -99,6 +98,20 @@ class _StreamRequestBody implements RequestBody {
   String toString() {
     return 'StreamRequestBody { contentType: $contentType,'
         ' contentLength: $contentLength }';
+  }
+}
+
+class _EmptyRequestBody implements RequestBody {
+  @override
+  final int contentLength = 0;
+  @override
+  final MediaType contentType = MediaType.octetStream;
+
+  const _EmptyRequestBody();
+
+  @override
+  Stream<List<int>> write() async* {
+    // nada.
   }
 }
 

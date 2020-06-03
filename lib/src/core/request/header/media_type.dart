@@ -11,85 +11,66 @@ class MediaType extends Item {
   final String subType;
   final Map<String, String> parameters;
 
-  static const formUrlEncoded = MediaType._(
+  static const formUrlEncoded = MediaType(
     type: 'application',
     subType: 'x-www-form-urlencoded',
   );
 
-  static const multipartMixed = MediaType._(
+  static const multipartMixed = MediaType(
     type: 'multipart',
     subType: 'mixed',
   );
 
-  static const multipartAlternative = MediaType._(
+  static const multipartAlternative = MediaType(
     type: 'multipart',
     subType: 'alternative',
   );
 
-  static const multipartDigest = MediaType._(
+  static const multipartDigest = MediaType(
     type: 'multipart',
     subType: 'digest',
   );
 
-  static const multipartParallel = MediaType._(
+  static const multipartParallel = MediaType(
     type: 'multipart',
     subType: 'parallel',
   );
 
-  static const multipartFormData = MediaType._(
+  static const multipartFormData = MediaType(
     type: 'multipart',
     subType: 'form-data',
   );
 
-  static const json = MediaType._(
+  static const json = MediaType(
     type: 'application',
     subType: 'json',
     parameters: {'charset': 'utf-8'},
   );
 
-  static const octetStream = MediaType._(
+  static const octetStream = MediaType(
     type: 'application',
     subType: 'octet-stream',
   );
 
-  static const text = MediaType._(
+  static const text = MediaType(
     type: 'text',
     subType: 'plain',
     parameters: {'charset': 'utf-8'},
   );
 
-  const MediaType._({
+  const MediaType({
     this.type,
     this.subType,
     this.parameters = const {},
   });
 
-  factory MediaType({
-    String type,
-    String subType,
-    String charset,
-    String boundary,
-    Map<String, String> parameters,
-  }) {
-    parameters = {
-      if (parameters != null) ...parameters,
-      if (charset != null) 'charset': charset,
-      if (boundary != null) 'boundary': boundary,
-    };
-
-    return MediaType._(
-      type: type,
-      subType: subType,
-      parameters: parameters,
-    );
-  }
-
   factory MediaType.fromContentType(ContentType contentType) {
     return MediaType(
       type: contentType?.primaryType ?? 'application',
       subType: contentType?.subType ?? 'octet-stream',
-      charset: contentType?.charset,
-      parameters: contentType?.parameters,
+      parameters: {
+        if (contentType?.parameters != null) ...contentType.parameters,
+      },
     );
   }
 
@@ -123,12 +104,16 @@ class MediaType extends Item {
     String boundary,
     Map<String, String> parameters,
   }) {
+    final p = {
+      if (parameters != null) ...parameters else ...this.parameters,
+      if (charset != null) 'charset': charset,
+      if (boundary != null) 'boundary': boundary,
+    };
+
     return MediaType(
       type: type ?? this.type,
       subType: subType ?? this.subType,
-      charset: charset ?? this.parameters['charset'],
-      boundary: boundary ?? this.parameters['boundary'],
-      parameters: parameters ?? this.parameters,
+      parameters: p,
     );
   }
 
