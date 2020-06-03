@@ -242,4 +242,51 @@ void main() {
     expect(uri.fragment, isNull);
     expect(uri.toUriString(), isEmpty);
   });
+
+  group('Base Uri', () {
+    test('Slash', () {
+      var uri = RequestUri.parse('users/tiagohm/repos',
+          baseUri: 'https://api.github.com/');
+      expect(uri.toUriString(), 'https://api.github.com/users/tiagohm/repos');
+
+      uri = RequestUri.parse('/users/tiagohm/repos',
+          baseUri: 'https://api.github.com/');
+      expect(uri.toUriString(), 'https://api.github.com/users/tiagohm/repos');
+
+      uri = RequestUri.parse('/users/tiagohm/repos',
+          baseUri: 'https://api.github.com');
+      expect(uri.toUriString(), 'https://api.github.com/users/tiagohm/repos');
+
+      uri = RequestUri.parse('users/tiagohm/repos',
+          baseUri: 'https://api.github.com');
+      expect(uri.toUriString(), 'https://api.github.com/users/tiagohm/repos');
+    });
+
+    test('Path', () {
+      var uri = RequestUri.parse('/tiagohm/repos',
+          baseUri: 'https://api.github.com/users');
+      expect(uri.toUriString(), 'https://api.github.com/users/tiagohm/repos');
+    });
+
+    test('Query', () {
+      var uri = RequestUri.parse('/users/tiagohm/repos?a=b',
+          baseUri: 'https://api.github.com?c=d');
+      expect(uri.toUriString(),
+          'https://api.github.com/users/tiagohm/repos?c=d&a=b');
+    });
+
+    test('Username & Password', () {
+      var uri = RequestUri.parse('/users/tiagohm/repos',
+          baseUri: 'https://user:pass@api.github.com');
+      expect(uri.toUriString(),
+          'https://user:pass@api.github.com/users/tiagohm/repos');
+    });
+
+    test('Port', () {
+      var uri = RequestUri.parse('/users/tiagohm/repos',
+          baseUri: 'https://api.github.com:1234');
+      expect(
+          uri.toUriString(), 'https://api.github.com:1234/users/tiagohm/repos');
+    });
+  });
 }

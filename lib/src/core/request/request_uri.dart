@@ -47,19 +47,49 @@ class RequestUri extends Equatable {
   factory RequestUri.parse(
     String uri, {
     bool keepEqualSign = false,
+    String baseUri,
   }) {
-    final p =
-        uri == null || uri.isEmpty ? const <String, dynamic>{} : parseUri(uri);
+    final p = parseUri(uri) ?? const {};
+    final base = parseUri(baseUri) ?? const {};
+    final paths = <String>[];
+    final queries = <String>[];
+
+    if (base.containsKey('path')) {
+      paths.addAll(base['path']);
+    }
+
+    if (p.containsKey('path')) {
+      paths.addAll(p['path']);
+    }
+
+    // Remove duplicates.
+    if (baseUri != null &&
+        baseUri.endsWith('/') &&
+        paths.isNotEmpty &&
+        paths[0].isEmpty) {
+      paths.removeAt(0);
+    }
+
+    if (base.containsKey('query')) {
+      queries.addAll(base['query']);
+    }
+
+    if (p.containsKey('query')) {
+      queries.addAll(p['query']);
+    }
+
+    print(queries);
+    print(base['host']);
 
     return RequestUri(
       fragment: p['fragment'],
-      host: p['host'],
-      paths: p['path'],
-      port: p['port'],
-      scheme: p['scheme'],
-      username: p['username'],
-      password: p['password'],
-      queries: _obtainQueriesFromList(p['query'], keepEqualSign),
+      host: p['host'] ?? base['host'],
+      paths: paths,
+      port: p['port'] ?? base['port'],
+      scheme: p['scheme'] ?? base['scheme'],
+      username: p['username'] ?? base['username'],
+      password: p['password'] ?? base['password'],
+      queries: _obtainQueriesFromList(queries, keepEqualSign),
     );
   }
 
@@ -126,16 +156,12 @@ class RequestUri extends Equatable {
   String toUriString() {
     final sb = StringBuffer();
 
-    if (scheme != null && scheme.isNotEmpty) {
+    if (scheme != null) {
       sb.write(scheme);
-      sb.write(':');
+      sb.write('://');
     }
 
     if (host != null) {
-      if (scheme != null) {
-        sb.write('//');
-      }
-
       if (hasAuthority) {
         if (username != null) {
           sb.write(username);
