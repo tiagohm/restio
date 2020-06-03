@@ -1,8 +1,8 @@
 import 'package:restio/restio.dart';
 
-final client = Restio();
-
 Future<void> main() async {
+  final client = Restio();
+
   final request = Request.get('https://api.ipify.org?format=json');
   final call = client.newCall(request);
   final response = await call.execute();
@@ -10,4 +10,6 @@ Future<void> main() async {
   await response.close();
 
   print(data['ip']);
+
+  await client.close();
 }

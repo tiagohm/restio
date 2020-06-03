@@ -27,6 +27,7 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * WebSocket and SSE.
 * Redirect Policy.
 * HTTP/HTTPS/HTTP2 Connection Pool.
+* Client generator inspired by [Retrofit](https://square.github.io/retrofit/). (WIP)
 
 ## Installation
 
@@ -428,10 +429,28 @@ final response = await call.execute();
 ### HTTP2
 
 ```dart
-final client = Restio(options: const RequestOptions(http2: true));
-final request = get('https://www.google.com/');
+final client = Restio();
+const options = RequestOptions(http2: true);
+final request = get('https://www.google.com/', options: options);
 final call = client.newCall(request);
 final response = await call.execute();
+```
+
+### HTTP2 Server Push
+
+```dart
+final client = Restio();
+const options = RequestOptions(http2: true, allowServerPushes: true);
+final request = get('https://nghttp2.org/', options: options);
+final call = client.newCall(request);
+final response = await call.execute();
+
+await for(final push in response.pushes) {
+  final headers = push.headers;
+  final response = await push.response;
+  print(await response.body.string());
+  await response.close();
+}
 ```
 
 ### WebSocket

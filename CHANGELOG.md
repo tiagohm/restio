@@ -11,7 +11,6 @@
  - [Breaking]: Rename `increaseMaxSize()` to `setMaxSize()`.
  - [Breaking]: Rename `dnsIp` to `address`.
  - [Breaking]: Replace `connectionInfo` with `localPort`.
- - [Breaking]: Move `http2` property from `Restio` to `RequestOptions`.
  - Require min Dart SDK version 2.8.
  - Bug fixes.
 
