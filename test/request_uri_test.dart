@@ -54,6 +54,15 @@ void main() {
 
     p = parseUri('https://example.com/a/b');
     expect(p['path'], const ['a', 'b']);
+
+    p = parseUri('/a/b');
+    expect(p['path'], const ['a', 'b']);
+
+    p = parseUri('a/b');
+    expect(p['path'], const ['a', 'b']);
+
+    p = parseUri('/');
+    expect(p['path'], const ['']);
   });
 
   test('Query', () {
@@ -156,6 +165,21 @@ void main() {
     expect(p['path'], const ['+1-816-555-1212']);
     expect(p['query'], isEmpty);
     expect(p['fragment'], isNull);
+  });
+
+  test('File', () {
+    final p = parseUri('file:///home/user/folder');
+    expect(p['scheme'], 'file');
+    expect(p['username'], isNull);
+    expect(p['password'], isNull);
+    expect(p['host'], isNull);
+    expect(p['port'], isNull);
+    expect(p['path'], const ['home', 'user', 'folder']);
+    expect(p['query'], isEmpty);
+    expect(p['fragment'], isNull);
+
+    final uri = RequestUri.parse('file:///home/user/folder');
+    expect(uri.toUriString(), 'file:///home/user/folder');
   });
 
   test('To String', () {

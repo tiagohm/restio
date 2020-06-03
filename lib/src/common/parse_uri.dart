@@ -1,6 +1,7 @@
 final _schemeRegex = RegExp(r'^([^:]*):');
+final _authoritySlashRegex = RegExp(r'^//');
 final _authorityRegex = RegExp(
-    r'^//(?:(?<userinfo>.*)@)?(?<host>(?:(?!\[)[^:/?#]+)|\[.*\])(?::(?<port>[^/?#]*))?');
+    r'^(?:(?<userinfo>.*)@)?(?<host>(?:(?!\[)[^:/?#]+)|\[.*\])(?::(?<port>[^/?#]*))?');
 final _pathRegex = RegExp(r'^([^?#]*)');
 final _queryRegex = RegExp(r'^\?([^#]*)');
 final _fragmentRegex = RegExp(r'^#(.*)');
@@ -22,23 +23,29 @@ Map<String, dynamic> parseUri(String uri) {
   }
 
   // Authority.
-  m = _authorityRegex.firstMatch(uri);
+  m = _authoritySlashRegex.firstMatch(uri);
 
   if (m != null) {
-    final userInfo = m.namedGroup('userinfo');
-    final host = m.namedGroup('host');
-    final port = m.namedGroup('port');
+    uri = uri.substring(2);
 
-    if (userInfo != null) {
-      final parts = userInfo.split(':');
-      res['username'] = parts.isNotEmpty ? parts[0] : '';
-      res['password'] = parts.length == 2 ? parts[1] : null;
+    m = _authorityRegex.firstMatch(uri);
+
+    if (m != null) {
+      final userInfo = m.namedGroup('userinfo');
+      final host = m.namedGroup('host');
+      final port = m.namedGroup('port');
+
+      if (userInfo != null) {
+        final parts = userInfo.split(':');
+        res['username'] = parts.isNotEmpty ? parts[0] : '';
+        res['password'] = parts.length == 2 ? parts[1] : null;
+      }
+
+      res['host'] = host;
+      res['port'] = port;
+
+      uri = uri.substring(m.end);
     }
-
-    res['host'] = host;
-    res['port'] = port;
-
-    uri = uri.substring(m.end);
   }
 
   // Path.
