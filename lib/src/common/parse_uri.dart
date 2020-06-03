@@ -1,11 +1,15 @@
 final _schemeRegex = RegExp(r'^([^:]*):');
 final _authorityRegex = RegExp(
-    r'^//(?:(?<userinfo>.*)@)?(?<host>(?:(?!\[)[^:/]+)|\[.*\])(?::(?<port>[^/?#]*))?');
+    r'^//(?:(?<userinfo>.*)@)?(?<host>(?:(?!\[)[^:/?#]+)|\[.*\])(?::(?<port>[^/?#]*))?');
 final _pathRegex = RegExp(r'^([^?#]*)');
 final _queryRegex = RegExp(r'^\?([^#]*)');
 final _fragmentRegex = RegExp(r'^#(.*)');
 
 Map<String, dynamic> parseUri(String uri) {
+  if (uri == null || uri.isEmpty) {
+    return null;
+  }
+
   final res = <String, dynamic>{};
 
   // Scheme.
@@ -15,8 +19,6 @@ Map<String, dynamic> parseUri(String uri) {
     final scheme = m.group(1);
     uri = uri.substring(m.end);
     res['scheme'] = scheme;
-  } else {
-    throw ArgumentError('Invalid scheme');
   }
 
   // Authority.

@@ -57,7 +57,16 @@ void main() {
   });
 
   test('Query', () {
-    final uri = RequestUri.parse('https://httpbin.org/get?a=b&c=d');
+    var uri = RequestUri.parse('https://httpbin.org/get?a=b&c=d');
+    expect(uri.host, 'httpbin.org');
+    expect(uri.queries.length, 2);
+    expect(uri.queries.nameAt(0), 'a');
+    expect(uri.queries.valueAt(0), 'b');
+    expect(uri.queries.nameAt(1), 'c');
+    expect(uri.queries.valueAt(1), 'd');
+
+    uri = RequestUri.parse('https://httpbin.org?a=b&c=d');
+    expect(uri.host, 'httpbin.org');
     expect(uri.queries.length, 2);
     expect(uri.queries.nameAt(0), 'a');
     expect(uri.queries.valueAt(0), 'b');
