@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:restio/src/common/encoding.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/common/item_list.dart';
 import 'package:restio/src/core/request/form/form_builder.dart';
@@ -13,17 +14,20 @@ class FormBody extends ItemList<FormItem> implements RequestBody {
   @override
   final int contentLength;
 
-  FormBody({
+  final String _charset;
+
+  const FormBody({
     List<FormItem> items,
     String charset,
-  })  : contentType = MediaType.formUrlEncoded.copyWith(charset: charset),
+  })  : contentType = MediaType.formUrlEncoded,
         contentLength = -1,
+        _charset = charset,
         super(items ?? const []);
 
   factory FormBody.fromMap(
-    Map<String, dynamic> items, [
+    Map<String, dynamic> items, {
     String charset,
-  ]) {
+  }) {
     final builder = FormBuilder();
     builder.charset = charset;
     items.forEach(builder.add);
@@ -32,7 +36,7 @@ class FormBody extends ItemList<FormItem> implements RequestBody {
 
   @override
   Stream<List<int>> write() async* {
-    final encoding = contentType.encoding;
+    final encoding = encodingByName(_charset, latin1);
 
     for (var i = 0; i < items.length; i++) {
       final item = items[i];
