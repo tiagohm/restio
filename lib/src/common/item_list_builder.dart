@@ -47,6 +47,22 @@ abstract class ItemListBuilder<T extends Item> {
     }
   }
 
+  void addMap(Map<String, dynamic> items) {
+    items?.forEach(add);
+  }
+
+  void addItemList(ItemList<T> items) {
+    items.toBuilder().copyTo(this);
+  }
+
+  void addAll(List<T> items) {
+    this.items.addAll(items);
+  }
+
+  void copyTo(ItemListBuilder<T> builder) {
+    builder.addAll(items);
+  }
+
   void set(
     String name,
     Object value,
