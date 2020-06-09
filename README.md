@@ -8,16 +8,16 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * Request Body can be List&lt;int&gt;, String, Stream, File or JSON Object.
   * Auto detects Content-Type.
   * Buffer less processing for List&lt;int&gt; and File.
-* Response Body gives you access as raw or decompressed data (List&lt;int&gt;), String and JSON Object too.
+* Response Body gives you access as raw or decompressed data (List&lt;int&gt;, String and JSON Object).
   * Supports Gzip, Deflate and Brotli.
 * Easy to upload one or more file(s) via multipart/form-data.
   * Auto detects file content type.
 * Interceptors using [Chain of responsibility](https://en.wikipedia.org/wiki/Chain-of-responsibility_pattern).
 * Basic, Digest, Bearer and Hawk authorization methods.
-* Send and save cookies for your request via CookieJar.
+* Send and store cookies for your request via CookieJar.
 * Allows GET request with payload.
 * Works fine with `HTTP/2` and `HTTP/1.1`.
-* HTTP/2 Server Push support.
+  * HTTP/2 Server Push support.
 * Have Client level options and also override at Request level if you want to.
 * Caching applying [RFC 7234](https://tools.ietf.org/html/rfc7234) and Lru Replacement Strategy.
    * Supports encryption.
@@ -26,8 +26,8 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * DNS-over-UDP and DNS-over-HTTPS.
 * WebSocket and SSE.
 * Redirect Policy.
-* HTTP/HTTPS/HTTP2 Connection Pool.
-* Client generator inspired by [Retrofit](https://square.github.io/retrofit/). (WIP)
+* HTTP/HTTP2 Connection Pool.
+* HTTP client generator inspired by [Retrofit](https://square.github.io/retrofit/). ([Work in Progress](https://github.com/tiagohm/restio/tree/retrofit))
 
 ## Installation
 
@@ -80,7 +80,7 @@ final response = await call.execute();
 await response.close();
 ```
 
-6. To close all persistent connections:
+6. To close all persistent connections and no more make requests:
 ```dart
 await client.close();
 ```
@@ -126,7 +126,7 @@ final request = Request.get(
 );
 ```
 
-You can use `HeadersBuilder` and `QueriesBuilder` too.
+> You can use `HeadersBuilder` and `QueriesBuilder` too.
 
 ```dart
 final builder = HeadersBuilder();
@@ -203,6 +203,8 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
+> You can use `FormBuilder` too.
+
 ### Sending multipart data
 
 ```dart
@@ -256,8 +258,8 @@ final response = await call.execute();
 ### Listening for download progress
 
 ```dart
-void onProgress(Response res, int length, int total, bool done) {
-  print('length: $length, total: $total, done: $done');
+void onProgress(Response res, int received, int total, bool done) {
+  print('received: $received, total: $total, done: $done');
 };
 
 final client = Restio(onDownloadProgress: onProgress);
@@ -271,8 +273,8 @@ await response.close();
 ### Listening for upload progress
 
 ```dart
-void onProgress(Request req, int length, int total, bool done) {
-  print('length: $length, total: $total, done: $done');
+void onProgress(Request req, int sent, int total, bool done) {
+  print('sent: $sent, total: $total, done: $done');
 };
 
 final client = Restio(onUploadProgress: onProgress);
@@ -294,7 +296,6 @@ await response.close();
 
 // Called from any callback.
 body.pause();
-
 body.resume();
 ```
 
@@ -302,8 +303,8 @@ body.resume();
 
 ```dart
 final client = Restio(
-  interceptors: const [MyInterceptor()],
-  networkInterceptors: const [MyInterceptor()],
+  interceptors: const [MyInterceptor()], // Called before internal interceptors.
+  networkInterceptors: const [MyInterceptor()], // Called after internal interceptor (before starting connection).
 );
 
 class MyInterceptor implements Interceptor {
@@ -319,6 +320,8 @@ class MyInterceptor implements Interceptor {
   }
 }
 ```
+
+> You can add `LogInterceptor` to `interceptors` property to print request/response logs.
 
 ### Authentication
 
@@ -338,7 +341,7 @@ final call = client.newCall(request);
 final response = await call.execute();
 ```
 
-> Supports Bearer, Digest and Hawk Authorization Method too.
+> Supports `Bearer`, `Digest` and `Hawk` Authorization method too.
 
 ### Cookie Manager
 
@@ -350,13 +353,13 @@ class MyCookieJar implements CookieJar {
 
   @override
   Future<List<Cookie>> load(Request request) async {
-    // TODO:
+    // Your code.
   }
 
   @override
   Future<void> save(Response response) async {
     final cookies = response.cookies;
-    // TODO:
+    // Your code.
   }
 }
 ```
@@ -381,7 +384,7 @@ final response = await call.execute();
 await response.close();
 ```
 
-You can pass in RequestOptions too. The `host` and `port` will be ignored.
+> You can pass in RequestOptions too. The `host` and `port` will be ignored.
 
 ### Handling Errors
 
@@ -405,8 +408,8 @@ try {
 final call = client.newCall(request);
 final response = await call.execute();
 
-// Cancel the request with 'cancelled' message.
-call.cancel('cancelled');
+// Cancel the request with 'Cancelled' message. This is throw a CancelledException with the message.
+call.cancel('Cancelled');
 ```
 
 ### Proxy
@@ -467,7 +470,7 @@ conn.stream.listen((dynamic data) {
 });
 
 // Send.
-conn.addString('💖 Larichan 💖');
+conn.addString('🌿🐨💤');
 
 await conn.close();
 ```
@@ -509,9 +512,9 @@ final response = await call.execute();
 print(response.address); // Prints the resolved IP address.
 ```
 
-> Supports DnsOverHttps too.
+> Supports `DnsOverHttps` too.
 
-### Caching (RFC 7234)
+### Caching ([RFC 7234](https://tools.ietf.org/html/rfc7234))
 
 ```dart
 final store = await LruCacheStore.local('./cache');
@@ -526,9 +529,9 @@ final networkResponse = response.networkResponse; // From network validation.
 final cacheResponse = response.cacheResponse; // From cache.
 ```
 
-> Supports LruCacheStore.memory() too.
+> Supports `LruCacheStore.memory()` too.
 
-with encryption:
+With encryption using [encrypt](https://pub.dev/packages/encrypt) package:
 
 ```dart
 import 'dart:convert';
@@ -564,7 +567,7 @@ final mockClient = Restio(
   ],
 );
 
-final request = Request.get('http://mock.test.io');
+final request = Request.get('http://mock.test.io'); // Use any URI.
 final call = mockClient.newCall(request);
 final response = await call.execute();
 
@@ -574,5 +577,7 @@ await response.close();
 ```
 
 ## Projects using this library
+
+Using Restio in your project? Let me know!
 
 * [Restler](https://play.google.com/store/apps/details?id=br.tiagohm.restler): Restler is an Android app built with simplicity and ease of use in mind. It allows you send custom HTTP/HTTPS requests and test your REST API anywhere and anytime.
