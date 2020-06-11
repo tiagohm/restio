@@ -159,3 +159,8 @@ class Part {
 class Extra {
   const Extra();
 }
+
+@immutable
+class Raw {
+  const Raw();
+}

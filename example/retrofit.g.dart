@@ -16,65 +16,155 @@ class _RestApi implements RestApi {
   final String baseUri;
 
   @override
-  get() async {
+  Future<String> getAsString() async {
     final _request =
         Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    final _body = await _response.body.string();
+    await _response.close();
+    return _body;
   }
 
   @override
-  post() async {
+  Future<List<int>> getAsBytes() async {
+    final _request =
+        Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    final _body = await _response.body.decompressed();
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<List<int>> getAsRawBytes() async {
+    final _request =
+        Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    final _body = await _response.body.raw();
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<dynamic> getAsJson() async {
+    final _request =
+        Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Stream<List<int>> getAsStream() async* {
+    final _request =
+        Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    final _body = _response.body.data;
+    yield* _body;
+  }
+
+  @override
+  Future<Response> getAsResponse() async {
+    final _request =
+        Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    final _body = _response;
+    return _body;
+  }
+
+  @override
+  Future<Task> getTask(String id) async {
+    final _request = Request(
+        method: 'GET', uri: RequestUri.parse('/tasks/$id', baseUri: baseUri));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    final _json = await _response.body.json();
+    final _body = Task.fromJson(_json);
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<List<Task>> getTaskList() async {
+    final _request = Request(
+        method: 'GET', uri: RequestUri.parse('/tasks', baseUri: baseUri));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    final _json = await _response.body.json();
+    final _body = _json.map((item) => Task.fromJson(item));
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<int> post() async {
     final _request = Request(
         method: 'POST', uri: RequestUri.parse('/post', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    final _body = _response.code;
+    await _response.close();
+    return _body;
   }
 
   @override
-  put() async {
+  Future<void> put() async {
     final _request =
         Request(method: 'PUT', uri: RequestUri.parse('/put', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  delete() async {
+  Future<void> delete() async {
     final _request = Request(
         method: 'DELETE', uri: RequestUri.parse('/delete', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  patch() async {
+  Future<void> patch() async {
     final _request = Request(
         method: 'PATCH', uri: RequestUri.parse('/patch', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  status(int code) async {
+  Future<void> status(int code) async {
     final _request = Request(
         method: 'GET',
         uri: RequestUri.parse('/status/$code', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  bytes(int numberOfBytes) async {
+  Future<List<int>> bytes(int numberOfBytes) async {
     final _request = Request(
         method: 'GET',
         uri: RequestUri.parse('/bytes/$numberOfBytes', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    final _body = await _response.body.decompressed();
+    await _response.close();
+    return _body;
   }
 
   @override
-  header0(String a, String b) async {
+  Future<void> header0(String a, String b) async {
     final _headers = HeadersBuilder();
     _headers.add('a', '$a');
     _headers.add('B', '$b');
@@ -84,10 +174,11 @@ class _RestApi implements RestApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  header1(Map<String, dynamic> headers) async {
+  Future<void> header1(Map<String, dynamic> headers) async {
     final _headers = HeadersBuilder();
     _headers.addMap(headers);
     final _request = Request(
@@ -96,10 +187,11 @@ class _RestApi implements RestApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  header2(Headers headers) async {
+  Future<void> header2(Headers headers) async {
     final _headers = HeadersBuilder();
     _headers.addItemList(headers);
     final _request = Request(
@@ -108,10 +200,11 @@ class _RestApi implements RestApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  header3(List<Header> headers) async {
+  Future<void> header3(List<Header> headers) async {
     final _headers = HeadersBuilder();
     _headers.addAll(headers);
     final _request = Request(
@@ -120,10 +213,11 @@ class _RestApi implements RestApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  query0(String a, String b) async {
+  Future<void> query0(String a, String b) async {
     final _queries = QueriesBuilder();
     _queries.add('a', '$a');
     _queries.add('B', '$b');
@@ -133,10 +227,11 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  query1(Map<String, dynamic> queries) async {
+  Future<void> query1(Map<String, dynamic> queries) async {
     final _queries = QueriesBuilder();
     _queries.addMap(queries);
     final _request = Request(
@@ -145,10 +240,11 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  query2(Queries queries) async {
+  Future<void> query2(Queries queries) async {
     final _queries = QueriesBuilder();
     _queries.addItemList(queries);
     final _request = Request(
@@ -157,10 +253,11 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  query3({queries = const []}) async {
+  Future<void> query3({queries = const []}) async {
     final _queries = QueriesBuilder();
     _queries.addAll(queries);
     final _request = Request(
@@ -169,110 +266,121 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  stringAsBody(String body) async {
+  Future<void> stringAsBody(String body) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: RequestBody.string(body, contentType: MediaType.json));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  bytesAsBody(List<int> body) async {
+  Future<void> bytesAsBody(List<int> body) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: RequestBody.bytes(body, contentType: MediaType.json));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  streamAsBody(Stream<List<int>> body) async {
+  Future<void> streamAsBody(Stream<List<int>> body) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: RequestBody.stream(body, contentType: MediaType.json));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  fileAsBody(File body) async {
+  Future<void> fileAsBody(File body) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: RequestBody.file(body, contentType: MediaType.json));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  form0(String a, String b) async {
+  Future<void> form0(String a, String b) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: FormBody(items: [FormItem('a', '$a'), FormItem('c', '$b')]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  form1(Map<String, dynamic> form) async {
+  Future<void> form1(Map<String, dynamic> form) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: FormBody.fromMap(form));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  form2(FormBody form) async {
+  Future<void> form2(FormBody form) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: form);
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart0(String a) async {
+  Future<void> multipart0(String a) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: MultipartBody(parts: [Part.form('a', '$a')]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart1(File b) async {
+  Future<void> multipart1(File b) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: MultipartBody(parts: [Part.fromFile('b', b, filename: null)]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart2(File b) async {
+  Future<void> multipart2(File b) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: MultipartBody(parts: [Part.fromFile('b', b, filename: 'b.txt')]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart3(File b) async {
+  Future<void> multipart3(File b) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
@@ -281,30 +389,33 @@ class _RestApi implements RestApi {
         ]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart4(Part b) async {
+  Future<void> multipart4(Part b) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: MultipartBody(parts: [b]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart5(List<Part> a, Part b) async {
+  Future<void> multipart5(List<Part> a, Part b) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: MultipartBody(parts: [...a, b]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart6(List<Part> a) async {
+  Future<void> multipart6(List<Part> a) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
@@ -314,35 +425,39 @@ class _RestApi implements RestApi {
             boundary: '12345678'));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart7(List<Part> a) async {
+  Future<void> multipart7(List<Part> a) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: MultipartBody(parts: a, contentType: MediaType.multipartMixed));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart8(Map<String, dynamic> a) async {
+  Future<void> multipart8(Map<String, dynamic> a) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: MultipartBody.fromMap(a, boundary: '12345678'));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 
   @override
-  multipart9(MultipartBody a) async {
+  Future<void> multipart9(MultipartBody a) async {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
         body: a);
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    await _response.close();
   }
 }

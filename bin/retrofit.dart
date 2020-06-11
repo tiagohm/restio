@@ -10,6 +10,8 @@ import 'package:restio/src/retrofit/annotations.dart' as annotations;
 import 'package:restio/restio.dart';
 import 'package:source_gen/source_gen.dart';
 
+// TODO: Passar RequestOptions, Extra.
+// TODO: Retornar o code junto com a resposta.
 class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   @override
   String generateForAnnotatedElement(
@@ -156,6 +158,14 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return _methodAnnotation(m) != null;
   }
 
+  /// Checks if the method has an [annotation].
+  static bool _hasAnnotation(
+    MethodElement m,
+    Type annotation,
+  ) {
+    return _findAnnotation(m, annotation) != null;
+  }
+
   /// Returns the all generated methods.
   static List<Method> _generateMethods(ClassElement element) {
     return [
@@ -173,7 +183,9 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       // Name.
       m.name = element.displayName;
       // Async method.
-      m.modifier = MethodModifier.async;
+      m.modifier = element.returnType.isDartStream
+          ? MethodModifier.asyncStar
+          : MethodModifier.async;
       // Override.
       m.annotations.addAll(const [CodeExpression(Code('override'))]);
       // Parameters.
@@ -202,6 +214,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       );
       // Body.
       m.body = _generateRequest(element, httpMethod);
+      // Return Type.
+      m.returns = refer(element.returnType.getDisplayString());
     });
   }
 
@@ -262,6 +276,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     final requestHeaders = _generateRequestHeaders(element);
     final requestQueries = _generateRequestQueries(element);
     final requestBody = _generateRequestBody(element);
+    final response = _generateResponse(element);
 
     if (requestHeaders != null) {
       blocks.add(requestHeaders);
@@ -294,10 +309,6 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         .statement;
     blocks.add(call);
     // Response.
-    final response = refer('await _call.execute')
-        .call(const [])
-        .assignFinal('_response')
-        .statement;
     blocks.add(response);
 
     return Block.of(blocks);
@@ -349,7 +360,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     headers.forEach((p, a) {
       // Map<String, dynamic>.
-      if (p.type.isExactlyType(Map, [String, dynamic])) {
+      if (p.type.isExactlyType(Map, [String, 'dynamic'])) {
         blocks.add(
             refer('_headers.addMap').call([refer(p.displayName)]).statement);
       }
@@ -401,7 +412,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     queries.forEach((p, a) {
       // Map<String, dynamic>.
-      if (p.type.isExactlyType(Map, [String, dynamic])) {
+      if (p.type.isExactlyType(Map, [String, 'dynamic'])) {
         blocks.add(
             refer('_queries.addMap').call([refer(p.displayName)]).statement);
       }
@@ -515,7 +526,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
       for (final p in parameters) {
         // Map<String, dynamic>.
-        if (p.type.isExactlyType(Map, [String, dynamic])) {
+        if (p.type.isExactlyType(Map, [String, 'dynamic'])) {
           return refer('FormBody.fromMap').call([refer(p.displayName)]);
         }
         // FormBody.
@@ -626,7 +637,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           return refer(p.displayName);
         }
         // Map<String, dynamic>.
-        else if (p.type.isExactlyType(Map, [String, dynamic])) {
+        else if (p.type.isExactlyType(Map, [String, 'dynamic'])) {
           return refer('MultipartBody.fromMap').call(
             [refer(p.displayName)],
             {
@@ -641,6 +652,132 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     return null;
+  }
+
+  static Block _generateResponse(MethodElement element) {
+    final isRaw = _hasAnnotation(element, annotations.Raw);
+    final blocks = <Code>[];
+
+    blocks.add(
+      refer('_call.execute')
+          .call(const [])
+          .awaited
+          .assignFinal('_response')
+          .statement,
+    );
+
+    final returnType = element.returnType;
+    var hasReturn = true;
+    var hasYield = false;
+    var closeable = true;
+
+    if (returnType.isExactlyType(Future, ['void']) || returnType.isVoid) {
+      hasReturn = false;
+    }
+    // Future<String> returns String.
+    else if (returnType.isExactlyType(Future, [String])) {
+      blocks.add(
+        refer('_response.body.string')
+            .call(const [])
+            .awaited
+            .assignFinal('_body')
+            .statement,
+      );
+    }
+    // Future<List<int>> returns raw or decompressed data.
+    else if (returnType.isExactlyType(Future, [List, int])) {
+      blocks.add(
+        (isRaw
+                ? refer('_response.body.raw')
+                : refer('_response.body.decompressed'))
+            .call(const [])
+            .awaited
+            .assignFinal('_body')
+            .statement,
+      );
+    }
+    // Future<Response> returns Response.
+    else if (returnType.isExactlyType(Future, [Response])) {
+      closeable = false;
+
+      blocks.add(
+        refer('_response').assignFinal('_body').statement,
+      );
+    }
+    // Future<dynamic> returns JSON-decoded data.
+    else if (returnType.isExactlyType(Future, ['dynamic'])) {
+      blocks.add(
+        refer('_response.body.json')
+            .call(const [])
+            .awaited
+            .assignFinal('_body')
+            .statement,
+      );
+    }
+    // Stream<List<int>>.
+    else if (returnType.isExactlyType(Stream, [List, int])) {
+      hasYield = true;
+      closeable = false;
+
+      blocks.add(
+        refer('_response.body.data').assignFinal('_body').statement,
+      );
+    }
+    // Future<int> returns status code.
+    else if (returnType.isExactlyType(Future, [int])) {
+      blocks.add(
+        refer('_response.code').assignFinal('_body').statement,
+      );
+    }
+    // Future<?> or Future<List<?>> return custom object from JSON.
+    else if (returnType.isExactlyType(Future, [null]) ||
+        returnType.isExactlyType(Future, [List, null])) {
+      blocks.add(
+        refer('_response.body.json')
+            .call(const [])
+            .awaited
+            .assignFinal('_json')
+            .statement,
+      );
+
+      final types = returnType.extractTypes();
+
+      if (types.length == 2) {
+        blocks.add(
+          refer('${types[1].getDisplayString()}.fromJson')
+              .call([refer('_json')])
+              .assignFinal('_body')
+              .statement,
+        );
+      } else if (types.length == 3) {
+        final map = Method((m) {
+          m.requiredParameters.add(_generateParameter(name: 'item'));
+          m.lambda = true;
+          m.body = refer('${types[2].getDisplayString()}.fromJson')
+              .call([refer('item')]).code;
+        });
+
+        blocks.add(
+          refer('_json.map').call([map.closure]).assignFinal('_body').statement,
+        );
+      } else {
+        throw RetrofitError('Invalid return type', element);
+      }
+    } else {
+      throw RetrofitError('Invalid return type', element);
+    }
+
+    if (closeable) {
+      blocks.add(refer('_response.close').call(const []).awaited.statement);
+    }
+
+    if (hasYield) {
+      blocks.add(refer('yield* _body').statement);
+    } else if (hasReturn) {
+      blocks.add(refer('_body').returned.statement);
+    }
+
+    return Block.of(blocks);
   }
 
   static Expression _generateMediaType(
@@ -737,22 +874,32 @@ extension DartTypeExtenstion on DartType {
 
   bool isExactlyType(
     Type type, [
-    List<Type> types = const [],
+    List types = const [],
   ]) {
-    final genericTypes = extractParameterTypes().sublist(1);
+    final parameterTypes = extractTypes().sublist(1);
 
     if (!type.isExactlyType(this)) {
       return false;
     }
 
-    if (genericTypes.length != types.length) {
+    if (parameterTypes.length != types.length) {
       return false;
     }
 
-    for (var i = 0; i < genericTypes.length; i++) {
-      if (types[i] != null &&
-          types[i] != dynamic &&
-          !types[i].isExactlyType(genericTypes[i])) {
+    for (var i = 0; i < parameterTypes.length; i++) {
+      if (types[i] == null) {
+        continue;
+      } else if (types[i] == 'void') {
+        if (!parameterTypes[i].isVoid) {
+          return false;
+        }
+      } else if (types[i] == 'dynamic') {
+        if (!parameterTypes[i].isDynamic) {
+          return false;
+        }
+      } else if (types[i] is String || types[i] is! Type) {
+        return false;
+      } else if (!(types[i] as Type).isExactlyType(parameterTypes[i])) {
         return false;
       }
     }
@@ -760,15 +907,15 @@ extension DartTypeExtenstion on DartType {
     return true;
   }
 
-  List<DartType> extractParameterTypes() {
-    return _extractParameterTypes(this);
+  List<DartType> extractTypes() {
+    return _extractTypes(this);
   }
 
-  static List<DartType> _extractParameterTypes(DartType type) {
+  static List<DartType> _extractTypes(DartType type) {
     if (type is ParameterizedType) {
       return [
         type,
-        for (final a in type.typeArguments) ..._extractParameterTypes(a),
+        for (final a in type.typeArguments) ..._extractTypes(a),
       ];
     } else {
       return [type];
