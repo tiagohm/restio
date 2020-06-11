@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
@@ -11,7 +10,6 @@ import 'package:restio/src/retrofit/annotations.dart' as annotations;
 import 'package:restio/restio.dart';
 import 'package:source_gen/source_gen.dart';
 
-// TODO: Melhorar o uso do método isExactlyType.
 class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   @override
   String generateForAnnotatedElement(
@@ -21,83 +19,86 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   ) {
     // Must be a class.
     if (element is! ClassElement) {
-      final name = element.displayName;
-      throw InvalidGenerationSourceError('Generator cannot target `$name`.');
+      final name = element.name;
+      throw RetrofitError('Generator can not target `$name`.', element);
     }
-
+    // Returns the generated API class.
     return _generate(element, annotation);
   }
 
+  /// Returns the generated API class as [String].
   static String _generate(
-    Element element,
+    ClassElement element,
     ConstantReader annotation,
   ) {
-    final classBuilder = Class((c) => _generateClass(element, annotation, c));
+    final classBuilder = _generateApi(element, annotation);
     final emitter = DartEmitter();
-    return DartFormatter().format('${classBuilder.accept(emitter)}');
+    final text = classBuilder.accept(emitter).toString();
+    return DartFormatter().format(text);
   }
 
-  static void _generateClass(
-    Element element,
+  /// Returns the generated API class.
+  static Class _generateApi(
+    ClassElement element,
     ConstantReader annotation,
-    ClassBuilder builder,
   ) {
+    // Name.
     final className = element.name;
     final name = '_$className';
+    // Base URI.
     final baseUri = annotation.peek('baseUri')?.stringValue;
 
-    // Class name.
-    builder.name = name;
-
-    // Fields.
-    builder.fields.addAll([
-      _generateField(
-        name: 'client',
-        type: refer('Restio'),
-        modifier: FieldModifier.final$,
-      ),
-      _generateField(
-        name: 'baseUri',
-        type: refer('String'),
-        modifier: FieldModifier.final$,
-      ),
-    ]);
-
-    // Constructors.
-    builder.constructors
-        .add(Constructor((c) => _generateConstructor(baseUri, c)));
-
-    // Implementents.
-    builder.implements.addAll([refer(className)]);
-
-    // Methods.
-    builder.methods.addAll(_generateMethods(element));
+    return Class((c) {
+      // Name.
+      c.name = name;
+      // Fields.
+      c.fields.addAll([
+        _generateField(
+          name: 'client',
+          type: refer('Restio'),
+          modifier: FieldModifier.final$,
+        ),
+        _generateField(
+          name: 'baseUri',
+          type: refer('String'),
+          modifier: FieldModifier.final$,
+        ),
+      ]);
+      // Constructors.
+      c.constructors.add(_generateConstructor(baseUri));
+      // Implementents.
+      c.implements.addAll([refer(className)]);
+      // Methods.
+      c.methods.addAll(_generateMethods(element));
+    });
   }
 
-  static void _generateConstructor(
-    String baseUri,
-    ConstructorBuilder builder,
-  ) {
-    // Parameters.
-    builder.optionalParameters
-        .add(_generateParameter(name: 'client', type: refer('Restio')));
-    if (baseUri != null) {
-      builder.optionalParameters.add(_generateParameter(
-          name: 'baseUri', type: refer('String'), named: true));
-    } else {
-      builder.optionalParameters
-          .add(_generateParameter(name: 'baseUri', toThis: true, named: true));
-    }
-    // Initializers.
-    builder.initializers.addAll([
-      refer('client')
-          .assign(
-              refer('client').ifNullThen(refer('Restio').newInstance(const [])))
-          .code,
-      if (baseUri != null) Code("baseUri = baseUri ?? '$baseUri'"),
-    ]);
+  /// Returns the generated API class' constructor.
+  static Constructor _generateConstructor(String baseUri) {
+    return Constructor((c) {
+      // Parameters.
+      c.optionalParameters
+          .add(_generateParameter(name: 'client', type: refer('Restio')));
+
+      if (baseUri != null) {
+        c.optionalParameters.add(_generateParameter(
+            name: 'baseUri', type: refer('String'), named: true));
+      } else {
+        c.optionalParameters.add(
+            _generateParameter(name: 'baseUri', toThis: true, named: true));
+      }
+      // Initializers.
+      c.initializers.addAll([
+        refer('client')
+            .assign(refer('client')
+                .ifNullThen(refer('Restio').newInstance(const [])))
+            .code,
+        if (baseUri != null) Code("baseUri = baseUri ?? '$baseUri'"),
+      ]);
+    });
   }
 
+  /// Returns a generic parameter.
   static Parameter _generateParameter({
     String name,
     bool named,
@@ -116,6 +117,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     });
   }
 
+  /// Returns a generic field.
   static Field _generateField({
     String name,
     FieldModifier modifier,
@@ -143,83 +145,102 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     annotations.Method,
   ];
 
-  static bool _hasMethodAnnotation(MethodElement m) {
-    final a = _methodAnnotation(m);
-    return a != null &&
-        m.isAbstract &&
+  /// Checks if the method is valid.
+  static bool _isValidMethod(MethodElement m) {
+    return m.isAbstract &&
         (m.returnType.isDartAsyncFuture || m.returnType.isDartAsyncStream);
   }
 
+  /// Checks if the method has a @Method annotation.
+  static bool _hasMethodAnnotation(MethodElement m) {
+    return _methodAnnotation(m) != null;
+  }
+
+  /// Returns the all generated methods.
   static List<Method> _generateMethods(ClassElement element) {
     return [
       for (final m in element.methods)
-        if (_hasMethodAnnotation(m)) _generateMethod(m),
+        if (_isValidMethod(m) && _hasMethodAnnotation(m)) _generateMethod(m),
     ];
   }
 
+  /// Returns the generated method for an API endpoint method.
   static Method _generateMethod(MethodElement element) {
+    // The HTTP method annotation.
     final httpMethod = _methodAnnotation(element);
 
     return Method((m) {
+      // Name.
       m.name = element.displayName;
+      // Async method.
       m.modifier = MethodModifier.async;
+      // Override.
       m.annotations.addAll(const [CodeExpression(Code('override'))]);
-
+      // Parameters.
       m.requiredParameters.addAll(
         element.parameters
             .where((p) => p.isRequiredPositional || p.isRequiredNamed)
-            .map((p) => _generateParameter(
+            .map(
+              (p) => _generateParameter(
                 name: p.name,
                 named: p.isNamed,
-                type: refer(p.type.getDisplayString()))),
+                type: refer(p.type.getDisplayString()),
+              ),
+            ),
       );
 
       m.optionalParameters.addAll(
-        element.parameters.where((p) => p.isOptional).map((p) =>
-            _generateParameter(
+        element.parameters.where((p) => p.isOptional).map(
+              (p) => _generateParameter(
                 name: p.name,
                 named: p.isNamed,
                 defaultTo: p.defaultValueCode == null
                     ? null
-                    : Code(p.defaultValueCode))),
+                    : Code(p.defaultValueCode),
+              ),
+            ),
       );
-
+      // Body.
       m.body = _generateRequest(element, httpMethod);
     });
   }
 
-  static Map<ParameterElement, ConstantReader> _annotations(
-    MethodElement m,
+  /// Returns the all parameters from a method with your
+  /// first [type] annotation.
+  static Map<ParameterElement, ConstantReader> _parametersOfAnnotation(
+    MethodElement element,
     Type type,
   ) {
-    final res = <ParameterElement, ConstantReader>{};
+    final annotations = <ParameterElement, ConstantReader>{};
 
-    for (final p in m.parameters) {
-      final a = type.firstAnnotationOf(p);
+    for (final p in element.parameters) {
+      final a = type.toTypeChecker().firstAnnotationOf(p);
 
       if (a != null) {
-        res[p] = ConstantReader(a);
+        annotations[p] = ConstantReader(a);
       }
     }
 
-    return res;
+    return annotations;
   }
 
-  // Gera a URI usando os @Path encontrados nos parâmetros.
+  /// Returns the generated path from @Path annotated parameters.
   static Expression _generatePath(
     MethodElement element,
     ConstantReader method,
   ) {
-    final paths = _annotations(element, annotations.Path);
+    // Parameters annotated with @Path.
+    final paths = _parametersOfAnnotation(element, annotations.Path);
+    // Path value from the @Method annotation.
     var path = method.peek("path")?.stringValue ?? '';
-
+    // Replaces the path named-segments by the @Path parameter.
     if (path.isNotEmpty) {
-      paths.forEach((field, a) {
-        final name = a.peek("name")?.stringValue ?? field.displayName;
-        path = path.replaceFirst("{$name}", "\$${field.displayName}");
+      paths.forEach((p, a) {
+        final name = a.peek("name")?.stringValue ?? p.displayName;
+        path = path.replaceFirst("{$name}", "\$${p.displayName}");
       });
     }
-
+    // Returns the path as String literal.
     return literal(path);
   }
 
@@ -257,18 +278,27 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             'method': requestMethod,
             'uri': requestUri,
             if (requestHeaders != null)
-              'headers': refer('_hb.build').call(const []).expression,
+              'headers': refer('_headers.build').call(const []).expression,
             if (requestQueries != null)
-              'queries': refer('_qb.build').call(const []).expression,
+              'queries': refer('_queries.build').call(const []).expression,
             if (requestBody != null) 'body': requestBody,
           },
         )
-        .assignFinal('request')
+        .assignFinal('_request')
         .statement;
     blocks.add(request);
     // Call.
-
+    final call = refer('client.newCall')
+        .call([refer('_request')])
+        .assignFinal('_call')
+        .statement;
+    blocks.add(call);
     // Response.
+    final response = refer('await _call.execute')
+        .call(const [])
+        .assignFinal('_response')
+        .statement;
+    blocks.add(response);
 
     return Block.of(blocks);
   }
@@ -295,49 +325,47 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   static Code _generateRequestHeaders(MethodElement element) {
     final blocks = <Code>[];
 
-    blocks.add(refer('HeadersBuilder')
-        .newInstance(const [])
-        .assignFinal('_hb')
-        .statement);
+    blocks.add(
+      refer('HeadersBuilder')
+          .newInstance(const [])
+          .assignFinal('_headers')
+          .statement,
+    );
 
-    // @Param.
-    var params = _annotations(element, annotations.Header);
+    var headers = _parametersOfAnnotation(element, annotations.Header);
 
-    if (params.isNotEmpty) {
-      final fields = params.keys;
+    headers?.forEach((p, a) {
+      final name = a.peek('name')?.stringValue ?? p.displayName;
+      blocks.add(refer('_headers.add')
+          .call([literal(name), literal('\$${p.displayName}')]).statement);
+    });
 
-      for (final field in fields) {
-        final a = params[field];
+    headers = _parametersOfAnnotation(element, annotations.Headers);
 
-        final name = a.peek('name')?.stringValue ?? field.displayName;
-        blocks.add(refer('_hb.add').call(
-            [literal(name), literal('\$${field.displayName}')]).statement);
-      }
+    if (headers.length > 1) {
+      throw RetrofitError(
+          'Only should have one @Headers-annotated parameter', element);
     }
 
-    // @List.
-    params = _annotations(element, annotations.Headers);
-
-    // TODO: Exibir aviso de que apenas um parâmetro pode ser anotado com @Form.
-
-    if (params.isNotEmpty) {
-      final fields = params.keys;
-
-      for (final field in fields) {
-        if ((Map).isExactlyType(field.type)) {
-          blocks.add(
-              refer('_hb.addMap').call([refer(field.displayName)]).statement);
-        } else if ((Headers).isExactlyType(field.type)) {
-          blocks.add(refer('_hb.addItemList')
-              .call([refer(field.displayName)]).statement);
-        } else if ((List).isExactlyType(field.type)) {
-          blocks.add(
-              refer('_hb.addAll').call([refer(field.displayName)]).statement);
-        } else {
-          // TODO:
-        }
+    headers.forEach((p, a) {
+      // Map<String, dynamic>.
+      if (p.type.isExactlyType(Map, [String, dynamic])) {
+        blocks.add(
+            refer('_headers.addMap').call([refer(p.displayName)]).statement);
       }
-    }
+      // Headers.
+      else if (p.type.isExactlyType(Headers)) {
+        blocks.add(refer('_headers.addItemList')
+            .call([refer(p.displayName)]).statement);
+      }
+      // List<Header>.
+      else if (p.type.isExactlyType(List, [Header])) {
+        blocks.add(
+            refer('_headers.addAll').call([refer(p.displayName)]).statement);
+      } else {
+        throw RetrofitError('Invalid type: ${p.type}', p);
+      }
+    });
 
     if (blocks.length > 1) {
       return Block.of(blocks);
@@ -353,47 +381,43 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     blocks.add(refer('QueriesBuilder')
         .newInstance(const [])
-        .assignFinal('_qb')
+        .assignFinal('_queries')
         .statement);
 
-    // @Param.
-    var params = _annotations(element, annotations.Query);
+    var queries = _parametersOfAnnotation(element, annotations.Query);
 
-    if (params.isNotEmpty) {
-      final fields = params.keys;
+    queries?.forEach((p, a) {
+      final name = a.peek('name')?.stringValue ?? p.displayName;
+      blocks.add(refer('_queries.add')
+          .call([literal(name), literal('\$${p.displayName}')]).statement);
+    });
 
-      for (final field in fields) {
-        final a = params[field];
+    queries = _parametersOfAnnotation(element, annotations.Queries);
 
-        final name = a.peek('name')?.stringValue ?? field.displayName;
-        blocks.add(refer('_qb.add').call(
-            [literal(name), literal('\$${field.displayName}')]).statement);
-      }
+    if (queries.length > 1) {
+      throw RetrofitError(
+          'Only should have one @Queries-annotated parameter', element);
     }
 
-    // @List.
-    params = _annotations(element, annotations.Queries);
-
-    // TODO: Exibir aviso de que apenas um parâmetro pode ser anotado com @Form.
-
-    if (params.isNotEmpty) {
-      final fields = params.keys;
-
-      for (final field in fields) {
-        if ((Map).isExactlyType(field.type)) {
-          blocks.add(
-              refer('_qb.addMap').call([refer(field.displayName)]).statement);
-        } else if ((Queries).isExactlyType(field.type)) {
-          blocks.add(refer('_qb.addItemList')
-              .call([refer(field.displayName)]).statement);
-        } else if ((List).isExactlyType(field.type)) {
-          blocks.add(
-              refer('_qb.addAll').call([refer(field.displayName)]).statement);
-        } else {
-          // TODO:
-        }
+    queries.forEach((p, a) {
+      // Map<String, dynamic>.
+      if (p.type.isExactlyType(Map, [String, dynamic])) {
+        blocks.add(
+            refer('_queries.addMap').call([refer(p.displayName)]).statement);
       }
-    }
+      // Queries.
+      else if (p.type.isExactlyType(Queries)) {
+        blocks.add(refer('_queries.addItemList')
+            .call([refer(p.displayName)]).statement);
+      }
+      // List<Query>.
+      else if (p.type.isExactlyType(List, [Query])) {
+        blocks.add(
+            refer('_queries.addAll').call([refer(p.displayName)]).statement);
+      } else {
+        throw RetrofitError('Invalid type: ${p.type}', p);
+      }
+    });
 
     if (blocks.length > 1) {
       return Block.of(blocks);
@@ -403,49 +427,47 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   }
 
   static Expression _generateRequestBody(MethodElement element) {
-    // @Body. (Parameter) (File, String, List<int>, Stream<List<int>>)
-    // @Multipart (Method, Parameter) (Multipart)
-    // @Part (Parameter) (Primitive, File)
-    // @Form (Method, Parameter) (Multipart)
-    // @Field (Parameter) (Primitive)
-
+    // @Multipart.
     final multipart = _multiPartAnnotation(element);
 
     if (multipart != null) {
-      // return _generateRequestMultiPartBody(element, multipart);
+      return _generateRequestMultipartBody(element, multipart);
     }
 
+    // @Form.
     final form = _formAnnotation(element);
 
     if (form != null) {
       return _generateRequestFormBody(element, form);
     }
 
-    final body = _annotations(element, annotations.Body);
+    // @Body.
+    final body = _parametersOfAnnotation(element, annotations.Body);
 
     if (body != null && body.isNotEmpty) {
-      final fields = body.keys;
+      final parameters = body.keys;
 
-      for (final field in fields) {
-        final a = body[field];
+      for (final p in parameters) {
+        final a = body[p];
         final contentType = _generateMediaType(a);
-        final type = (String).isExactlyType(field.type)
+        // String, List<int>, Stream<List<int>>, File.
+        final type = p.type.isExactlyType(String)
             ? 'string'
-            : (List).isExactlyType(field.type)
+            : p.type.isExactlyType(List, [int])
                 ? 'bytes'
-                : (Stream).isExactlyType(field.type)
+                : p.type.isExactlyType(Stream, [List, int])
                     ? 'stream'
-                    : (File).isExactlyType(field.type) ? 'file' : null;
+                    : p.type.isExactlyType(File) ? 'file' : null;
 
         if (type != null) {
           return refer('RequestBody.$type').call(
-            [refer(field.displayName)],
+            [refer(p.displayName)],
             {
               if (contentType != null) 'contentType': contentType,
             },
           );
         } else {
-          // TODO: throw
+          throw RetrofitError('Invalid type: ${p.type}', p);
         }
       }
     }
@@ -457,18 +479,19 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     MethodElement element,
     ConstantReader annotation,
   ) {
-    var list = _annotations(element, annotations.Field);
+    // @Field.
+    var form = _parametersOfAnnotation(element, annotations.Field);
 
-    if (list.isNotEmpty) {
+    if (form.isNotEmpty) {
       final values = [];
-      final fields = list.keys;
+      final parameters = form.keys;
 
-      for (final field in fields) {
-        final a = list[field];
+      for (final p in parameters) {
+        final a = form[p];
 
-        final name = a.peek('name')?.stringValue ?? field.displayName;
+        final name = a.peek('name')?.stringValue ?? p.displayName;
         final header = refer('FormItem')
-            .newInstance([literal(name), literal('\$${field.displayName}')]);
+            .newInstance([literal(name), literal('\$${p.displayName}')]);
         values.add(header);
       }
 
@@ -480,20 +503,26 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       );
     }
 
-    list = _annotations(element, annotations.Form);
+    form = _parametersOfAnnotation(element, annotations.Form);
 
-    // TODO: Exibir aviso de que apenas um parâmetro pode ser anotado com @Form.
+    if (form.length > 1) {
+      throw RetrofitError(
+          'Only should have one @Form-annotated parameter', element);
+    }
 
-    if (list.isNotEmpty) {
-      final fields = list.keys;
+    if (form.isNotEmpty) {
+      final parameters = form.keys;
 
-      for (final field in fields) {
-        if ((Map).isExactlyType(field.type)) {
-          return refer('FormBody.fromMap').call([refer(field.displayName)]);
-        } else if ((FormBody).isExactlyType(field.type)) {
-          return refer(field.displayName);
+      for (final p in parameters) {
+        // Map<String, dynamic>.
+        if (p.type.isExactlyType(Map, [String, dynamic])) {
+          return refer('FormBody.fromMap').call([refer(p.displayName)]);
+        }
+        // FormBody.
+        else if (p.type.isExactlyType(FormBody)) {
+          return refer(p.displayName);
         } else {
-          // TODO:
+          throw RetrofitError('Invalid type: ${p.type}', p);
         }
       }
     }
@@ -501,8 +530,125 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return null;
   }
 
-  static Expression _generateMediaType(ConstantReader annotation) {
-    final contentType = annotation.peek('contentType')?.stringValue;
+  static Expression _generateRequestMultipartBody(
+    MethodElement element,
+    ConstantReader annotation,
+  ) {
+    // @Part.
+    var parts = _parametersOfAnnotation(element, annotations.Part);
+    final contentType = _generateMediaType(annotation);
+    final boundary = annotation.peek('boundary')?.stringValue;
+
+    if (parts.isNotEmpty) {
+      final values = [];
+      final parameters = parts.keys;
+
+      for (final p in parameters) {
+        final a = parts[p];
+
+        final displayName = p.displayName;
+        final name = a.peek('name')?.stringValue ?? displayName;
+        final filename = a.peek('filename')?.stringValue;
+        final contentType = _generateMediaType(a);
+        Expression part;
+
+        // String.
+        if (p.type.isExactlyType(String)) {
+          part = refer('Part.form')
+              .newInstance([literal(name), literal('\$$displayName')]);
+        }
+        // File.
+        else if (p.type.isExactlyType(File)) {
+          // TODO: Charset.
+          part = refer('Part.fromFile').newInstance(
+            [
+              literal(name),
+              refer('$displayName'),
+            ],
+            {
+              'filename': literal(filename),
+              if (contentType != null) 'contentType': contentType,
+            },
+          );
+        }
+        // Part.
+        else if (p.type.isExactlyType(Part)) {
+          part = refer(displayName);
+        }
+        // List<Part>.
+        else if (p.type.isExactlyType(List, [Part])) {
+          part = refer('...$displayName');
+        } else {
+          throw RetrofitError('Invalid type: ${p.type}', p);
+        }
+
+        values.add(part);
+      }
+
+      return refer('MultipartBody').newInstance(
+        const [],
+        {
+          'parts': literalList(values),
+          if (contentType != null) 'contentType': contentType,
+          if (boundary != null) 'boundary': literal(boundary),
+        },
+      );
+    }
+
+    parts = _parametersOfAnnotation(element, annotations.MultiPart);
+
+    if (parts.length > 1) {
+      throw RetrofitError(
+          'Only should have one @MultiPart-annotated parameter', element);
+    }
+
+    if (parts.isNotEmpty) {
+      final parameters = parts.keys;
+
+      for (final p in parameters) {
+        final a = parts[p];
+        final pContentType = _generateMediaType(a) ?? contentType;
+        final pBoundary = a.peek('boundary')?.stringValue ?? boundary;
+
+        // List<Part>.
+        if (p.type.isExactlyType(List, [Part])) {
+          return refer('MultipartBody').newInstance(
+            [],
+            {
+              'parts': refer(p.displayName),
+              if (pContentType != null) 'contentType': pContentType,
+              if (pBoundary != null) 'boundary': literal(pBoundary),
+            },
+          );
+        }
+        // MultipartBody.
+        else if (p.type.isExactlyType(MultipartBody)) {
+          return refer(p.displayName);
+        }
+        // Map<String, dynamic>.
+        else if (p.type.isExactlyType(Map, [String, dynamic])) {
+          return refer('MultipartBody.fromMap').call(
+            [refer(p.displayName)],
+            {
+              if (pContentType != null) 'contentType': pContentType,
+              if (pBoundary != null) 'boundary': literal(pBoundary),
+            },
+          );
+        } else {
+          throw RetrofitError('Invalid type: ${p.type}', p);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  static Expression _generateMediaType(
+    ConstantReader annotation, [
+    String defaultValue,
+  ]) {
+    final contentType =
+        annotation.peek('contentType')?.stringValue ?? defaultValue;
 
     switch (contentType?.toLowerCase()) {
       case 'application/x-www-form-urlencoded':
@@ -536,7 +682,9 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     MethodElement element,
     Type type,
   ) {
-    final a = type.firstAnnotationOf(element, throwOnUnresolved: false);
+    final a = type
+        .toTypeChecker()
+        .firstAnnotationOf(element, throwOnUnresolved: false);
 
     if (a != null) {
       return ConstantReader(a);
@@ -582,6 +730,52 @@ extension DartTypeExtension on DartType {
   }
 }
 
+extension DartTypeExtenstion on DartType {
+  TypeChecker toTypeChecker() {
+    return TypeChecker.fromStatic(this);
+  }
+
+  bool isExactlyType(
+    Type type, [
+    List<Type> types = const [],
+  ]) {
+    final genericTypes = extractParameterTypes().sublist(1);
+
+    if (!type.isExactlyType(this)) {
+      return false;
+    }
+
+    if (genericTypes.length != types.length) {
+      return false;
+    }
+
+    for (var i = 0; i < genericTypes.length; i++) {
+      if (types[i] != null &&
+          types[i] != dynamic &&
+          !types[i].isExactlyType(genericTypes[i])) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  List<DartType> extractParameterTypes() {
+    return _extractParameterTypes(this);
+  }
+
+  static List<DartType> _extractParameterTypes(DartType type) {
+    if (type is ParameterizedType) {
+      return [
+        type,
+        for (final a in type.typeArguments) ..._extractParameterTypes(a),
+      ];
+    } else {
+      return [type];
+    }
+  }
+}
+
 extension TypeExtension on Type {
   TypeChecker toTypeChecker() {
     return TypeChecker.fromRuntime(this);
@@ -590,12 +784,9 @@ extension TypeExtension on Type {
   bool isExactlyType(DartType type) {
     return toTypeChecker().isExactlyType(type);
   }
+}
 
-  DartObject firstAnnotationOf(
-    Element element, {
-    bool throwOnUnresolved,
-  }) {
-    return toTypeChecker()
-        .firstAnnotationOf(element, throwOnUnresolved: throwOnUnresolved);
-  }
+class RetrofitError extends InvalidGenerationSourceError {
+  RetrofitError(String message, Element element)
+      : super(message, element: element);
 }

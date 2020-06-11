@@ -52,7 +52,7 @@ abstract class RestApi {
   Future query2(@retrofit.Queries() Queries queries);
 
   @retrofit.Post('/post/')
-  Future query3(@retrofit.Queries() List<Query> queries);
+  Future query3({@retrofit.Queries() List<Query> queries = const []});
 
   @retrofit.Post('/post/')
   Future stringAsBody(@retrofit.Body('application/json') String body);
@@ -78,4 +78,45 @@ abstract class RestApi {
   @retrofit.Post('/post/')
   @retrofit.Form()
   Future form2(@retrofit.Form() FormBody form);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart()
+  Future multipart0(@retrofit.Part() String a);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart()
+  Future multipart1(@retrofit.Part() File b);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart()
+  Future multipart2(@retrofit.Part(filename: 'b.txt') File b);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart()
+  Future multipart3(@retrofit.Part(contentType: 'application/json') File b);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart()
+  Future multipart4(@retrofit.Part() Part b);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart()
+  Future multipart5(@retrofit.Part() List<Part> a, @retrofit.Part() Part b);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart(contentType: 'multipart/mixed', boundary: '12345678')
+  Future multipart6(@retrofit.Part() List<Part> a);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart()
+  Future multipart7(
+      @retrofit.MultiPart(contentType: 'multipart/mixed') List<Part> a);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart(boundary: '12345678')
+  Future multipart8(@retrofit.MultiPart() Map<String, dynamic> a);
+
+  @retrofit.Post('/post/')
+  @retrofit.MultiPart()
+  Future multipart9(@retrofit.MultiPart() MultipartBody a);
 }

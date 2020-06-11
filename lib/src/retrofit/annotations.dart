@@ -133,20 +133,24 @@ class Field extends Param {
 /// Also can denote that the parameter is the request's multi-part.
 @immutable
 class MultiPart extends Body {
-  const MultiPart([String contentType = 'multipart/form-data'])
-      : super(contentType);
+  final String boundary;
+
+  const MultiPart({
+    String contentType,
+    this.boundary,
+  }) : super(contentType);
 }
 
 /// Denotes a single part of a multi-part request.
 @immutable
 class Part {
   final String name;
-  final String fileName;
+  final String filename;
   final String contentType;
 
   const Part({
     this.name,
-    this.fileName = '',
+    this.filename,
     this.contentType,
   });
 }
