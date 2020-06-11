@@ -147,4 +147,10 @@ abstract class RestApi {
   @retrofit.Post('/post/')
   @retrofit.MultiPart()
   Future<void> multipart9(@retrofit.MultiPart() MultipartBody a);
+
+  @retrofit.Get('/get')
+  Future<void> extra(@retrofit.Extra() Map<String, dynamic> extra);
+
+  @retrofit.Get('/get')
+  Future<void> requestOptions(RequestOptions options);
 }

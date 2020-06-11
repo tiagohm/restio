@@ -460,4 +460,26 @@ class _RestApi implements RestApi {
     final _response = await _call.execute();
     await _response.close();
   }
+
+  @override
+  Future<void> extra(Map<String, dynamic> extra) async {
+    final _request = Request(
+        method: 'GET',
+        uri: RequestUri.parse('/get', baseUri: baseUri),
+        extra: extra);
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    await _response.close();
+  }
+
+  @override
+  Future<void> requestOptions(RequestOptions options) async {
+    final _request = Request(
+        method: 'GET',
+        uri: RequestUri.parse('/get', baseUri: baseUri),
+        options: options);
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    await _response.close();
+  }
 }

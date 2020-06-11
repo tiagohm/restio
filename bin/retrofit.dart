@@ -10,7 +10,6 @@ import 'package:restio/src/retrofit/annotations.dart' as annotations;
 import 'package:restio/restio.dart';
 import 'package:source_gen/source_gen.dart';
 
-// TODO: Passar RequestOptions, Extra.
 // TODO: Retornar o code junto com a resposta.
 class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   @override
@@ -238,6 +237,23 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return annotations;
   }
 
+  /// Returns the all parameters from a method with your
+  /// first [type] annotation.
+  static List<ParameterElement> _parametersOfType(
+    MethodElement element,
+    Type type,
+  ) {
+    final parameters = <ParameterElement>[];
+
+    for (final p in element.parameters) {
+      if (p.type.isExactlyType(type)) {
+        parameters.add(p);
+      }
+    }
+
+    return parameters;
+  }
+
   /// Returns the generated path from @Path annotated parameters.
   static Expression _generatePath(
     MethodElement element,
@@ -276,6 +292,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     final requestHeaders = _generateRequestHeaders(element);
     final requestQueries = _generateRequestQueries(element);
     final requestBody = _generateRequestBody(element);
+    final requestExtra = _generateRequestExtra(element);
+    final requestOptions = _generateRequestOptions(element);
     final response = _generateResponse(element);
 
     if (requestHeaders != null) {
@@ -297,6 +315,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             if (requestQueries != null)
               'queries': refer('_queries.build').call(const []).expression,
             if (requestBody != null) 'body': requestBody,
+            if (requestExtra != null) 'extra': requestExtra,
+            if (requestOptions != null) 'options': requestOptions,
           },
         )
         .assignFinal('_request')
@@ -355,12 +375,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     if (headers.length > 1) {
       throw RetrofitError(
-          'Only should have one @Headers-annotated parameter', element);
+          'Only should have one @Headers annotated parameter', element);
     }
 
     headers.forEach((p, a) {
-      // Map<String, dynamic>.
-      if (p.type.isExactlyType(Map, [String, 'dynamic'])) {
+      // Map<String, ?>.
+      if (p.type.isExactlyType(Map, [String, null])) {
         blocks.add(
             refer('_headers.addMap').call([refer(p.displayName)]).statement);
       }
@@ -374,7 +394,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         blocks.add(
             refer('_headers.addAll').call([refer(p.displayName)]).statement);
       } else {
-        throw RetrofitError('Invalid type: ${p.type}', p);
+        throw RetrofitError('Invalid parameter type', p);
       }
     });
 
@@ -390,14 +410,16 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   static Code _generateRequestQueries(MethodElement element) {
     final blocks = <Code>[];
 
-    blocks.add(refer('QueriesBuilder')
-        .newInstance(const [])
-        .assignFinal('_queries')
-        .statement);
+    blocks.add(
+      refer('QueriesBuilder')
+          .newInstance(const [])
+          .assignFinal('_queries')
+          .statement,
+    );
 
     var queries = _parametersOfAnnotation(element, annotations.Query);
 
-    queries?.forEach((p, a) {
+    queries.forEach((p, a) {
       final name = a.peek('name')?.stringValue ?? p.displayName;
       blocks.add(refer('_queries.add')
           .call([literal(name), literal('\$${p.displayName}')]).statement);
@@ -407,12 +429,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     if (queries.length > 1) {
       throw RetrofitError(
-          'Only should have one @Queries-annotated parameter', element);
+          'Only should have one @Queries annotated parameter', element);
     }
 
     queries.forEach((p, a) {
-      // Map<String, dynamic>.
-      if (p.type.isExactlyType(Map, [String, 'dynamic'])) {
+      // Map<String, ?>.
+      if (p.type.isExactlyType(Map, [String, null])) {
         blocks.add(
             refer('_queries.addMap').call([refer(p.displayName)]).statement);
       }
@@ -426,7 +448,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         blocks.add(
             refer('_queries.addAll').call([refer(p.displayName)]).statement);
       } else {
-        throw RetrofitError('Invalid type: ${p.type}', p);
+        throw RetrofitError('Invalid parameter type', p);
       }
     });
 
@@ -455,7 +477,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     // @Body.
     final body = _parametersOfAnnotation(element, annotations.Body);
 
-    if (body != null && body.isNotEmpty) {
+    if (body.isNotEmpty) {
       final parameters = body.keys;
 
       for (final p in parameters) {
@@ -478,7 +500,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             },
           );
         } else {
-          throw RetrofitError('Invalid type: ${p.type}', p);
+          throw RetrofitError('Invalid parameter type', p);
         }
       }
     }
@@ -518,22 +540,22 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     if (form.length > 1) {
       throw RetrofitError(
-          'Only should have one @Form-annotated parameter', element);
+          'Only should have one @Form annotated parameter', element);
     }
 
     if (form.isNotEmpty) {
       final parameters = form.keys;
 
       for (final p in parameters) {
-        // Map<String, dynamic>.
-        if (p.type.isExactlyType(Map, [String, 'dynamic'])) {
+        // Map<String, ?>.
+        if (p.type.isExactlyType(Map, [String, null])) {
           return refer('FormBody.fromMap').call([refer(p.displayName)]);
         }
         // FormBody.
         else if (p.type.isExactlyType(FormBody)) {
           return refer(p.displayName);
         } else {
-          throw RetrofitError('Invalid type: ${p.type}', p);
+          throw RetrofitError('Invalid parameter type', p);
         }
       }
     }
@@ -590,7 +612,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         else if (p.type.isExactlyType(List, [Part])) {
           part = refer('...$displayName');
         } else {
-          throw RetrofitError('Invalid type: ${p.type}', p);
+          throw RetrofitError('Invalid parameter type', p);
         }
 
         values.add(part);
@@ -610,7 +632,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     if (parts.length > 1) {
       throw RetrofitError(
-          'Only should have one @MultiPart-annotated parameter', element);
+          'Only should have one @MultiPart annotated parameter', element);
     }
 
     if (parts.isNotEmpty) {
@@ -636,8 +658,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         else if (p.type.isExactlyType(MultipartBody)) {
           return refer(p.displayName);
         }
-        // Map<String, dynamic>.
-        else if (p.type.isExactlyType(Map, [String, 'dynamic'])) {
+        // Map<String, ?>.
+        else if (p.type.isExactlyType(Map, [String, null])) {
           return refer('MultipartBody.fromMap').call(
             [refer(p.displayName)],
             {
@@ -646,9 +668,50 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             },
           );
         } else {
-          throw RetrofitError('Invalid type: ${p.type}', p);
+          throw RetrofitError('Invalid parameter type', p);
         }
       }
+    }
+
+    return null;
+  }
+
+  static Expression _generateRequestExtra(MethodElement element) {
+    // @Extra.
+    final extra = _parametersOfAnnotation(element, annotations.Extra);
+
+    if (extra.length > 1) {
+      throw RetrofitError(
+          'Only should have one @Extra annotated parameter', element);
+    }
+
+    if (extra.isNotEmpty) {
+      final parameters = extra.keys;
+
+      for (final p in parameters) {
+        // Map<String, ?>.
+        if (p.type.isExactlyType(Map, [String, null])) {
+          return refer(p.displayName);
+        } else {
+          throw RetrofitError('Invalid parameter type', p);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  static Expression _generateRequestOptions(MethodElement element) {
+    // @Options.
+    final options = _parametersOfType(element, RequestOptions);
+
+    if (options.length > 1) {
+      throw RetrofitError(
+          'Only should have one RuquestOption parameter', element);
+    }
+
+    if (options.isNotEmpty) {
+      return refer(options[0].displayName);
     }
 
     return null;
