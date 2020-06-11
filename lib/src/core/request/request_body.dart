@@ -49,14 +49,14 @@ abstract class RequestBody {
   factory RequestBody.file(
     File file, {
     MediaType contentType,
-    String charset, // charset for auto-detect Content-Type.
+    String charset,
     int start,
     int end,
   }) {
     return _FileRequestBody(
       file: file,
-      contentType:
-          contentType ?? MediaType.fromFile(file.path, charset: charset),
+      contentType: contentType?.copyWith(charset: charset) ??
+          MediaType.fromFile(file.path, charset: charset),
       start: start,
       end: end,
     );

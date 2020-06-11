@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'dart:math';
 
+import 'package:path/path.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/multipart/part.dart';
 import 'package:restio/src/core/request/request_body.dart';
@@ -15,14 +17,51 @@ class MultipartBody implements RequestBody {
 
   MultipartBody({
     this.parts = const [],
-    MediaType type = MediaType.multipartFormData,
+    MediaType contentType,
     String boundary,
   })  : assert(boundary == null || boundary.isNotEmpty),
-        assert(type != null && type.type == 'multipart'),
+        assert(contentType == null || contentType.type == 'multipart'),
         assert(parts != null),
+        _contentType = contentType ?? MediaType.multipartFormData,
         contentLength = -1 {
     _boundary = boundary ?? _generateBoundary();
-    _contentType = type.copyWith(boundary: _boundary);
+
+    if (_boundary != null) {
+      _contentType = _contentType.copyWith(boundary: _boundary);
+    }
+  }
+
+  factory MultipartBody.fromMap(
+    Map<String, dynamic> items, {
+    MediaType contentType,
+    String boundary,
+  }) {
+    final parts = <Part>[];
+
+    void addPart(String key, final value) {
+      if (value is Part) {
+        parts.add(value);
+      } else if (value is File) {
+        final filename = basename(value.path);
+        parts.add(Part.file(key, filename, RequestBody.file(value)));
+      } else if (value is String || value is num || value is bool) {
+        parts.add(Part.form(key, value.toString()));
+      } else if (value is List) {
+        for (final item in value) {
+          addPart(key, item);
+        }
+      } else {
+        throw ArgumentError('Unknown value type: ${value.runtimeType}');
+      }
+    }
+
+    items?.forEach(addPart);
+
+    return MultipartBody(
+      parts: parts,
+      contentType: contentType,
+      boundary: boundary,
+    );
   }
 
   static String _generateBoundary() {
@@ -49,17 +88,16 @@ class MultipartBody implements RequestBody {
 
   MultipartBody copyWith({
     List<Part> parts,
-    MediaType type,
+    MediaType contentType,
     String boundary,
   }) {
     return MultipartBody(
       parts: parts ?? this.parts,
-      type: type ??
+      contentType: contentType ??
           MediaType(
             type: _contentType.type,
             subType: _contentType.subType,
-            parameters: Map.of(_contentType.parameters)
-              ..remove('boundary'),
+            parameters: Map.of(_contentType.parameters)..remove('boundary'),
           ),
       boundary: boundary ?? _boundary,
     );

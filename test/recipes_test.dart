@@ -247,7 +247,8 @@ void main() {
     final client = Restio();
     final request = post(
       'https://api.github.com/markdown/raw',
-      body: '# Restio'.asBody(MediaType(type: 'text', subType: 'x-markdown')),
+      body: '# Restio'
+          .asBody(const MediaType(type: 'text', subType: 'x-markdown')),
     );
 
     final data = await requestString(client, request);

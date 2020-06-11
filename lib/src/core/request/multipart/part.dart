@@ -1,6 +1,9 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:equatable/equatable.dart';
+import 'package:path/path.dart';
+import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request_body.dart';
 
 class Part extends Equatable {
@@ -37,6 +40,30 @@ class Part extends Equatable {
     };
 
     return Part(headers: headers, body: body);
+  }
+
+  factory Part.fromFile(
+    String name,
+    File file, {
+    String filename,
+    MediaType contentType,
+    String charset,
+    int start,
+    int end,
+  }) {
+    filename ??= basename(file.path);
+
+    return Part.file(
+      name,
+      filename,
+      RequestBody.file(
+        file,
+        contentType: contentType,
+        charset: charset,
+        start: start,
+        end: end,
+      ),
+    );
   }
 
   Stream<List<int>> write(
