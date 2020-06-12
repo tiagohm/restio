@@ -156,11 +156,13 @@ class Part {
   final String name;
   final String filename;
   final String contentType;
+  final String charset;
 
   const Part({
     this.name,
     this.filename,
     this.contentType,
+    this.charset,
   });
 }
 

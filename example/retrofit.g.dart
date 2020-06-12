@@ -435,7 +435,9 @@ class _RestApi implements RestApi {
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
-        body: MultipartBody(parts: [Part.fromFile('b', b, filename: 'b.txt')]));
+        body: MultipartBody(parts: [
+          Part.fromFile('b', b, filename: 'b.txt', charset: 'utf-16')
+        ]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     await _response.close();

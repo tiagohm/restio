@@ -607,6 +607,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         final name = a.peek('name')?.stringValue ?? displayName;
         final filename = a.peek('filename')?.stringValue;
         final contentType = _generateMediaType(a);
+        final charset = a.peek('charset')?.stringValue;
         Expression part;
 
         // String.
@@ -616,7 +617,6 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         }
         // File.
         else if (p.type.isExactlyType(File)) {
-          // TODO: Charset.
           part = refer('Part.fromFile').newInstance(
             [
               literal(name),
@@ -625,6 +625,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             {
               'filename': literal(filename),
               if (contentType != null) 'contentType': contentType,
+              if (charset != null) 'charset': literal(charset),
             },
           );
         }

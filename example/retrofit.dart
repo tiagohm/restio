@@ -135,7 +135,8 @@ abstract class RestApi {
 
   @retrofit.Post('/post/')
   @retrofit.MultiPart()
-  Future<void> multipart2(@retrofit.Part(filename: 'b.txt') File b);
+  Future<void> multipart2(
+      @retrofit.Part(filename: 'b.txt', charset: 'utf-16') File b);
 
   @retrofit.Post('/post/')
   @retrofit.MultiPart()
