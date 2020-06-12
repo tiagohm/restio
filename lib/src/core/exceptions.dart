@@ -44,6 +44,12 @@ class HttpStatusException extends RestioException {
     throw HttpStatusException(response);
   }
 
+  static void throwsIfNotSuccess(Response response) {
+    if (!response.isSuccess) {
+      throws(response);
+    }
+  }
+
   static void throwsIfBetween(
     Response response,
     int min,

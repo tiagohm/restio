@@ -64,7 +64,6 @@ abstract class HttpbinApi {
   Future<void> throwsOnServerError();
 
   @retrofit.Get('/status/400')
-  @retrofit.Throws.notSuccess()
   Future<void> throwsOnNotSuccess();
 
   @retrofit.Get('/status/400')
@@ -82,7 +81,7 @@ abstract class HttpbinApi {
     @retrofit.Headers() List<Header> g,
   );
 
-  @retrofit.Get('/get')
+  @retrofit.Get('/get?l=11')
   @retrofit.Query('a', '0')
   @retrofit.Query('b', '1')
   Future<dynamic> queries(
@@ -117,21 +116,27 @@ abstract class HttpbinApi {
   );
 
   @retrofit.Post('/post')
-  Future<dynamic> fileBody(@retrofit.Body('text/plain') File a);
+  Future<dynamic> fileBody(@retrofit.Body(contentType: 'text/plain') File a);
 
   @retrofit.Post('/post')
-  Future<dynamic> utf8StringBody(@retrofit.Body('text/plain') String a);
+  Future<dynamic> utf8StringBody(
+      @retrofit.Body(contentType: 'text/plain') String a);
 
   @retrofit.Post('/post')
   Future<dynamic> asciiStringBody(
-    @retrofit.Body('text/plain', charset: 'ascii') String a,
+    @retrofit.Body(contentType: 'text/plain', charset: 'ascii') String a,
   );
 
   @retrofit.Post('/post')
-  Future<dynamic> bytesBody(@retrofit.Body('text/plain') List<int> a);
+  Future<dynamic> bytesBody(
+      @retrofit.Body(contentType: 'text/plain') List<int> a);
 
   @retrofit.Post('/post')
-  Future<dynamic> streamBody(@retrofit.Body('text/plain') Stream<List<int>> a);
+  Future<dynamic> streamBody(
+      @retrofit.Body(contentType: 'text/plain') Stream<List<int>> a);
+
+  @retrofit.Post('/post')
+  Future<dynamic> requestBody(@retrofit.Body() RequestBody a);
 
   @retrofit.Get('/get')
   Future<Response> extra(@retrofit.Extra() Map<String, dynamic> a);

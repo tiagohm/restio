@@ -78,9 +78,6 @@ class RequestUri extends Equatable {
       queries.addAll(p['query']);
     }
 
-    print(queries);
-    print(base['host']);
-
     return RequestUri(
       fragment: p['fragment'],
       host: p['host'] ?? base['host'],

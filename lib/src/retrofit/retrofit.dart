@@ -520,16 +520,24 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         final contentType = _generateMediaType(a);
         final charset = a.peek('charset')?.stringValue;
 
-        // String, List<int>, Stream<List<int>>, File.
+        // String, List<int>, Stream<List<int>>, File or RequestBody.
         final type = p.type.isExactlyType(String)
             ? 'string'
             : p.type.isExactlyType(List, [int])
                 ? 'bytes'
                 : p.type.isExactlyType(Stream, [List, int])
                     ? 'stream'
-                    : p.type.isExactlyType(File) ? 'file' : null;
+                    : p.type.isExactlyType(File)
+                        ? 'file'
+                        : p.type.isExactlyType(restio.RequestBody)
+                            ? 'body'
+                            : null;
 
-        if (type != null) {
+        if (type == null) {
+          throw RetrofitError('Invalid parameter type', p);
+        } else if (type == 'body') {
+          return refer(p.displayName);
+        } else {
           return refer('RequestBody.$type').call(
             [refer(p.displayName)],
             {
@@ -537,8 +545,6 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
               if (charset != null) 'charset': literal(charset),
             },
           );
-        } else {
-          throw RetrofitError('Invalid parameter type', p);
         }
       }
     }
@@ -771,18 +777,26 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     final max = throws?.peek('max')?.intValue ?? 600;
     final negate = throws?.peek('negate')?.boolValue;
 
-    blocks.add(
-      refer('HttpStatusException.throwsIfBetween').call(
-        [
-          refer('_response'),
-          literal(min),
-          literal(max),
-        ],
-        {
-          if (negate == true) 'negate': literal(negate),
-        },
-      ).statement,
-    );
+    if (throws != null) {
+      blocks.add(
+        refer('HttpStatusException.throwsIfBetween').call(
+          [
+            refer('_response'),
+            literal(min),
+            literal(max),
+          ],
+          {
+            if (negate == true) 'negate': literal(negate),
+          },
+        ).statement,
+      );
+    } else {
+      blocks.add(
+        refer('HttpStatusException.throwsIfNotSuccess').call(
+          [refer('_response')],
+        ).statement,
+      );
+    }
 
     return Block.of(blocks);
   }
@@ -810,7 +824,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     var hasYield = false;
     var closeable = true;
 
-    if (returnType.isExactlyType(Future, ['void']) || returnType.isVoid) {
+    // Nothing.
+    if (returnType.isExactlyType(Future, ['void'])) {
       hasReturn = false;
     }
     // Future<String> returns String.
