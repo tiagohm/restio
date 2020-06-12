@@ -21,6 +21,7 @@ class _RestApi implements RestApi {
         Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     final _body = await _response.body.string();
     await _response.close();
     return _body;
@@ -32,6 +33,7 @@ class _RestApi implements RestApi {
         Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     final _body = await _response.body.decompressed();
     await _response.close();
     return _body;
@@ -43,6 +45,7 @@ class _RestApi implements RestApi {
         Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     final _body = await _response.body.raw();
     await _response.close();
     return _body;
@@ -54,6 +57,7 @@ class _RestApi implements RestApi {
         Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -65,6 +69,7 @@ class _RestApi implements RestApi {
         Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 400, 500);
     final _body = _response.body.data;
     yield* _body;
   }
@@ -75,6 +80,7 @@ class _RestApi implements RestApi {
         Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 500, 600);
     final _body = _response;
     return _body;
   }
@@ -85,6 +91,7 @@ class _RestApi implements RestApi {
         method: 'GET', uri: RequestUri.parse('/tasks/$id', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     final _json = await _response.body.json();
     final _body = Task.fromJson(_json);
     await _response.close();
@@ -97,6 +104,7 @@ class _RestApi implements RestApi {
         method: 'GET', uri: RequestUri.parse('/tasks', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     final _json = await _response.body.json();
     final _body = _json.map((item) => Task.fromJson(item));
     await _response.close();
@@ -120,6 +128,7 @@ class _RestApi implements RestApi {
         Request(method: 'PUT', uri: RequestUri.parse('/put', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 200, 300, negate: true);
     await _response.close();
   }
 
@@ -129,6 +138,7 @@ class _RestApi implements RestApi {
         method: 'DELETE', uri: RequestUri.parse('/delete', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 200, 201);
     await _response.close();
   }
 
@@ -138,6 +148,7 @@ class _RestApi implements RestApi {
         method: 'PATCH', uri: RequestUri.parse('/patch', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -148,6 +159,7 @@ class _RestApi implements RestApi {
         uri: RequestUri.parse('/status/$code', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 301, negate: true);
     await _response.close();
   }
 
@@ -158,6 +170,7 @@ class _RestApi implements RestApi {
         uri: RequestUri.parse('/bytes/$numberOfBytes', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     final _body = await _response.body.decompressed();
     await _response.close();
     return _body;
@@ -174,6 +187,7 @@ class _RestApi implements RestApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -187,6 +201,7 @@ class _RestApi implements RestApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -200,6 +215,7 @@ class _RestApi implements RestApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -213,6 +229,7 @@ class _RestApi implements RestApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -227,6 +244,7 @@ class _RestApi implements RestApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -241,6 +259,7 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -254,6 +273,7 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -267,6 +287,7 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -280,6 +301,7 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -294,6 +316,7 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -308,6 +331,7 @@ class _RestApi implements RestApi {
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -319,6 +343,7 @@ class _RestApi implements RestApi {
         body: RequestBody.string(body, contentType: MediaType.json));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -330,6 +355,7 @@ class _RestApi implements RestApi {
         body: RequestBody.bytes(body, contentType: MediaType.json));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -341,6 +367,7 @@ class _RestApi implements RestApi {
         body: RequestBody.stream(body, contentType: MediaType.json));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -352,6 +379,7 @@ class _RestApi implements RestApi {
         body: RequestBody.file(body, contentType: MediaType.json));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -366,6 +394,7 @@ class _RestApi implements RestApi {
         body: _form.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -379,6 +408,7 @@ class _RestApi implements RestApi {
         body: _form.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -392,6 +422,7 @@ class _RestApi implements RestApi {
         body: _form.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -405,6 +436,7 @@ class _RestApi implements RestApi {
         body: _form.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -419,6 +451,7 @@ class _RestApi implements RestApi {
         body: _form.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -430,6 +463,7 @@ class _RestApi implements RestApi {
         body: MultipartBody(parts: [Part.form('a', '$a')]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -441,6 +475,7 @@ class _RestApi implements RestApi {
         body: MultipartBody(parts: [Part.fromFile('b', b, filename: null)]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -454,6 +489,7 @@ class _RestApi implements RestApi {
         ]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -467,6 +503,7 @@ class _RestApi implements RestApi {
         ]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -478,6 +515,7 @@ class _RestApi implements RestApi {
         body: MultipartBody(parts: [b]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -489,6 +527,7 @@ class _RestApi implements RestApi {
         body: MultipartBody(parts: [...a, b]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -503,6 +542,7 @@ class _RestApi implements RestApi {
             boundary: '12345678'));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -514,6 +554,7 @@ class _RestApi implements RestApi {
         body: MultipartBody(parts: a, contentType: MediaType.multipartMixed));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -525,6 +566,7 @@ class _RestApi implements RestApi {
         body: MultipartBody.fromMap(a, boundary: '12345678'));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -536,6 +578,7 @@ class _RestApi implements RestApi {
         body: a);
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -547,6 +590,7 @@ class _RestApi implements RestApi {
         extra: extra);
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 
@@ -558,6 +602,7 @@ class _RestApi implements RestApi {
         options: options);
     final _call = client.newCall(_request);
     final _response = await _call.execute();
+    HttpStatusException.throwsIfBetween(_response, 300, 600);
     await _response.close();
   }
 }

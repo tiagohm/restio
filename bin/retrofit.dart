@@ -10,7 +10,6 @@ import 'package:restio/src/retrofit/annotations.dart' as annotations;
 import 'package:restio/restio.dart';
 import 'package:source_gen/source_gen.dart';
 
-// TODO: Retornar o code junto com a resposta.
 class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   @override
   String generateForAnnotatedElement(
@@ -237,8 +236,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return annotations;
   }
 
-  /// Returns the all parameters from a method with your
-  /// first [type] annotation.
+  /// Returns the all parameters from a method with specified [type].
   static List<ParameterElement> _parametersOfType(
     MethodElement element,
     Type type,
@@ -254,7 +252,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return parameters;
   }
 
-  /// Returns the generated path from @Path annotated parameters.
+  /// Returns the generated path from @Path parameters.
   static Expression _generatePath(
     MethodElement element,
     ConstantReader method,
@@ -274,12 +272,6 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return literal(path);
   }
 
-  /// ```dart
-  /// final request = Request(method: 'GET', uri: RequestUri.parse(path));
-  /// final call = restio.newCall(request);
-  /// final response = await call.execute();
-  /// return response;
-  /// ```
   static Code _generateRequest(
     MethodElement element,
     ConstantReader method,
@@ -312,18 +304,27 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         .call(
           const [],
           {
+            // Method.
             'method': requestMethod,
+            // Uri.
             'uri': requestUri,
+            // Headers.
             if (requestHeaders != null)
               'headers': refer('_headers.build').call(const []).expression,
+            // Queries.
             if (requestQueries != null)
               'queries': refer('_queries.build').call(const []).expression,
+            // Body.
             if (requestBody is Code)
               'body': refer('_form.build').call(const []).expression
             else if (requestBody != null)
               'body': requestBody,
-            if (requestExtra != null) 'extra': requestExtra,
-            if (requestOptions != null) 'options': requestOptions,
+            // Extra.
+            if (requestExtra != null)
+              'extra': requestExtra,
+            // Options.
+            if (requestOptions != null)
+              'options': requestOptions,
           },
         )
         .assignFinal('_request')
@@ -472,8 +473,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           m.body =
               refer('_queries.add').call([refer('item'), refer(null)]).code;
         });
-        blocks.add(
-            const Code('\t\t// ignore: avoid_function_literals_in_foreach_calls'));
+        blocks.add(const Code(
+            '\t\t// ignore: avoid_function_literals_in_foreach_calls'));
         blocks.add(
             refer('${p.displayName}?.forEach').call([map.closure]).statement);
       } else {
@@ -752,6 +753,30 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return null;
   }
 
+  static Block _generateResponseThrows(MethodElement element) {
+    final throws = _annotation(element, annotations.Throws);
+
+    final blocks = <Code>[];
+    final min = throws?.peek('min')?.intValue ?? 300;
+    final max = throws?.peek('max')?.intValue ?? 600;
+    final negate = throws?.peek('negate')?.boolValue;
+
+    blocks.add(
+      refer('HttpStatusException.throwsIfBetween').call(
+        [
+          refer('_response'),
+          literal(min),
+          literal(max),
+        ],
+        {
+          if (negate == true) 'negate': literal(negate),
+        },
+      ).statement,
+    );
+
+    return Block.of(blocks);
+  }
+
   static Block _generateResponse(MethodElement element) {
     final isRaw = _hasAnnotation(element, annotations.Raw);
     final blocks = <Code>[];
@@ -763,6 +788,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           .assignFinal('_response')
           .statement,
     );
+
+    final responseThrows = _generateResponseThrows(element);
+
+    if (responseThrows != null) {
+      blocks.add(responseThrows);
+    }
 
     final returnType = element.returnType;
     var hasReturn = true;
@@ -823,6 +854,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
     // Future<int> returns status code.
     else if (returnType.isExactlyType(Future, [int])) {
+      if (responseThrows != null) {
+        blocks.removeAt(1);
+      }
+
       blocks.add(
         refer('_response.code').assignFinal('_body').statement,
       );

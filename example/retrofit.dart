@@ -23,9 +23,11 @@ abstract class RestApi {
   Future<dynamic> getAsJson();
 
   @retrofit.Get('/get')
+  @retrofit.Throws.clientError()
   Stream<List<int>> getAsStream();
 
   @retrofit.Get('/get')
+  @retrofit.Throws.serverError()
   Future<Response> getAsResponse();
 
   @retrofit.Get('/tasks/{id}')
@@ -35,18 +37,22 @@ abstract class RestApi {
   Future<List<Task>> getTaskList();
 
   @retrofit.Post('/post')
+  @retrofit.Throws.redirect()
   Future<int> post();
 
   @retrofit.Put('/put')
+  @retrofit.Throws.notSuccess()
   Future<void> put();
 
   @retrofit.Delete('/delete')
+  @retrofit.Throws.only(200)
   Future<void> delete();
 
   @retrofit.Patch('/patch')
   Future<void> patch();
 
   @retrofit.Get('/status/{code}')
+  @retrofit.Throws.not(300)
   Future<void> status(@retrofit.Path() int code);
 
   @retrofit.Get('/bytes/{n}')

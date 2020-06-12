@@ -17,7 +17,9 @@ class Method {
   /// A relative or absolute path, or full URL of the endpoint.
   final String path;
 
-  const Method(this.name, this.path);
+  const Method(this.name, this.path)
+      : assert(name != null),
+        assert(path != null);
 }
 
 /// Make a `GET` request.
@@ -201,4 +203,72 @@ class Extra {
 @immutable
 class Raw {
   const Raw();
+}
+
+/// Annotate a method to indicate that one may throws an [HttpStatusException]
+/// if response code between [min] and [max].
+@immutable
+class Throws {
+  /// Minimum response code (inclusive).
+  final int min;
+
+  /// Maximum response code (exclusive).
+  final int max;
+
+  /// Negate the comparison.
+  final bool negate;
+
+  const Throws(
+    this.min,
+    this.max, {
+    this.negate = false,
+  })  : assert(min != null && min >= 0),
+        assert(max != null && max >= 0),
+        assert(max >= min),
+        assert(negate != null);
+
+  const Throws.only(this.min)
+      : max = min + 1,
+        negate = false;
+
+  const Throws.not(this.min)
+      : max = min + 1,
+        negate = true;
+
+  const Throws.notSuccess()
+      : min = 200,
+        max = 300,
+        negate = true;
+
+  const Throws.redirect()
+      : min = 300,
+        max = 400,
+        negate = false;
+
+  const Throws.notRedirect()
+      : min = 300,
+        max = 400,
+        negate = true;
+
+  const Throws.error()
+      : min = 400,
+        max = 600,
+        negate = false;
+
+  const Throws.clientError()
+      : min = 400,
+        max = 500,
+        negate = false;
+
+  const Throws.serverError()
+      : min = 500,
+        max = 600,
+        negate = false;
+}
+
+/// Annotate a method to indicate that one will not throws an
+///  [HttpStatusException].
+@immutable
+class NotThrows extends Throws {
+  const NotThrows() : super(0, 0);
 }
