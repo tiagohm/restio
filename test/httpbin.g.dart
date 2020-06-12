@@ -384,6 +384,20 @@ class _HttpbinApi implements HttpbinApi {
   }
 
   @override
+  Future<dynamic> slideshowBody(Slideshow a) async {
+    final _request = Request(
+        method: 'POST',
+        uri: RequestUri.parse('/post', baseUri: baseUri),
+        body: RequestBody.string(await SlideshowConverter.encode(a)));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    HttpStatusException.throwsIfNotSuccess(_response);
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
+
+  @override
   Future<Response> extra(Map<String, dynamic> a) async {
     final _request = Request(
         method: 'GET',
@@ -391,7 +405,6 @@ class _HttpbinApi implements HttpbinApi {
         extra: a);
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = _response;
     return _body;
   }
@@ -403,8 +416,8 @@ class _HttpbinApi implements HttpbinApi {
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     HttpStatusException.throwsIfNotSuccess(_response);
-    final _json = await _response.body.json();
-    final _body = Slideshow.fromJson(_json);
+    final _data = await _response.body.string();
+    final _body = await SlideshowConverter.decode(_data);
     await _response.close();
     return _body;
   }
