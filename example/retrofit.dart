@@ -68,6 +68,11 @@ abstract class RestApi {
   Future<void> header3(@retrofit.Headers() List<Header> headers);
 
   @retrofit.Post('/post/')
+  @retrofit.Header('a', 'b')
+  @retrofit.Header('c', 'd')
+  Future<void> header4();
+
+  @retrofit.Post('/post/')
   Future<void> query0(
       @retrofit.Query() String a, @retrofit.Query('B') String b);
 
@@ -79,6 +84,11 @@ abstract class RestApi {
 
   @retrofit.Post('/post/')
   Future<void> query3({@retrofit.Queries() List<Query> queries = const []});
+
+  @retrofit.Post('/post/')
+  @retrofit.Query('a', 'b')
+  @retrofit.Query('c', 'd')
+  Future<void> query4();
 
   @retrofit.Post('/post/')
   Future<void> stringAsBody(@retrofit.Body('application/json') String body);

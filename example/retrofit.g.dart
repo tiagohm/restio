@@ -217,6 +217,20 @@ class _RestApi implements RestApi {
   }
 
   @override
+  Future<void> header4() async {
+    final _headers = HeadersBuilder();
+    _headers.add('a', 'b');
+    _headers.add('c', 'd');
+    final _request = Request(
+        method: 'POST',
+        uri: RequestUri.parse('/post/', baseUri: baseUri),
+        headers: _headers.build());
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    await _response.close();
+  }
+
+  @override
   Future<void> query0(String a, String b) async {
     final _queries = QueriesBuilder();
     _queries.add('a', '$a');
@@ -260,6 +274,20 @@ class _RestApi implements RestApi {
   Future<void> query3({queries = const []}) async {
     final _queries = QueriesBuilder();
     _queries.addAll(queries);
+    final _request = Request(
+        method: 'POST',
+        uri: RequestUri.parse('/post/', baseUri: baseUri),
+        queries: _queries.build());
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    await _response.close();
+  }
+
+  @override
+  Future<void> query4() async {
+    final _queries = QueriesBuilder();
+    _queries.add('a', 'b');
+    _queries.add('c', 'd');
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
@@ -315,6 +343,7 @@ class _RestApi implements RestApi {
 
   @override
   Future<void> form0(String a, String b) async {
+    
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),

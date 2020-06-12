@@ -74,6 +74,8 @@ abstract class Param {
   const Param();
 
   String get name;
+
+  String get value;
 }
 
 /// Query parameter appended to the URL.
@@ -81,8 +83,10 @@ abstract class Param {
 class Query extends Param {
   @override
   final String name;
+  @override
+  final String value;
 
-  const Query([this.name]);
+  const Query([this.name, this.value]);
 }
 
 /// Query parameter keys and values appended to the URL.
@@ -96,8 +100,10 @@ class Queries {
 class Header extends Param {
   @override
   final String name;
+  @override
+  final String value;
 
-  const Header([this.name]);
+  const Header([this.name, this.value]);
 }
 
 /// Header parameter keys and values appended to the URL.
@@ -125,8 +131,10 @@ class Form extends Body {
 class Field extends Param {
   @override
   final String name;
+  @override
+  final String value;
 
-  const Field([this.name]);
+  const Field([this.name, this.value]);
 }
 
 /// Denotes that the request body is multi-part.

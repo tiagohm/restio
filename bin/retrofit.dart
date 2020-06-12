@@ -162,7 +162,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     MethodElement m,
     Type annotation,
   ) {
-    return _findAnnotation(m, annotation) != null;
+    return _annotation(m, annotation) != null;
   }
 
   /// Returns the all generated methods.
@@ -351,8 +351,6 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     ).expression;
   }
 
-  // TODO: Header com valor padrão, caso o parâmetro seja nulo.
-  // TODO: Passar Header no método, necessita do TODO acima.
   static Code _generateRequestHeaders(MethodElement element) {
     final blocks = <Code>[];
 
@@ -362,6 +360,19 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           .assignFinal('_headers')
           .statement,
     );
+
+    for (final a in _annotations(element, annotations.Header)) {
+      final name = a.peek('name').stringValue;
+      final value = a.peek('value').stringValue;
+
+      if (name != null &&
+          name.isNotEmpty &&
+          value != null &&
+          value.isNotEmpty) {
+        blocks.add(refer('_headers.add')
+            .call([literal(name), literal(value)]).statement);
+      }
+    }
 
     var headers = _parametersOfAnnotation(element, annotations.Header);
 
@@ -405,8 +416,6 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
   }
 
-  // TODO: Query com valor padrão, caso o parâmetro seja nulo.
-  // TODO: Passar Query no método, necessita do TODO acima.
   static Code _generateRequestQueries(MethodElement element) {
     final blocks = <Code>[];
 
@@ -416,6 +425,19 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           .assignFinal('_queries')
           .statement,
     );
+
+    for (final a in _annotations(element, annotations.Query)) {
+      final name = a.peek('name').stringValue;
+      final value = a.peek('value').stringValue;
+
+      if (name != null &&
+          name.isNotEmpty &&
+          value != null &&
+          value.isNotEmpty) {
+        blocks.add(refer('_queries.add')
+            .call([literal(name), literal(value)]).statement);
+      }
+    }
 
     var queries = _parametersOfAnnotation(element, annotations.Query);
 
@@ -512,6 +534,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     MethodElement element,
     ConstantReader annotation,
   ) {
+    
+    
     // @Field.
     var form = _parametersOfAnnotation(element, annotations.Field);
 
@@ -878,7 +902,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
   }
 
-  static ConstantReader _findAnnotation(
+  static ConstantReader _annotation(
     MethodElement element,
     Type type,
   ) {
@@ -893,22 +917,31 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
   }
 
+  static List<ConstantReader> _annotations(
+    MethodElement element,
+    Type type,
+  ) {
+    final a =
+        type.toTypeChecker().annotationsOf(element, throwOnUnresolved: false);
+    return a?.map((e) => ConstantReader(e))?.toList();
+  }
+
   static ConstantReader _methodAnnotation(MethodElement element) {
     ConstantReader a;
 
     for (var i = 0; a == null && i < _methodAnnotations.length; i++) {
-      a = _findAnnotation(element, _methodAnnotations[i]);
+      a = _annotation(element, _methodAnnotations[i]);
     }
 
     return a;
   }
 
   static ConstantReader _formAnnotation(MethodElement element) {
-    return _findAnnotation(element, annotations.Form);
+    return _annotation(element, annotations.Form);
   }
 
   static ConstantReader _multiPartAnnotation(MethodElement element) {
-    return _findAnnotation(element, annotations.MultiPart);
+    return _annotation(element, annotations.MultiPart);
   }
 }
 
