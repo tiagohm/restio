@@ -8,7 +8,7 @@ import 'package:restio/src/core/request/form/form_item.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request_body.dart';
 
-class FormBody extends ItemList<FormItem> implements RequestBody {
+class FormBody extends ItemList<Field> implements RequestBody {
   @override
   final MediaType contentType;
   @override
@@ -17,7 +17,7 @@ class FormBody extends ItemList<FormItem> implements RequestBody {
   final String _charset;
 
   const FormBody({
-    List<FormItem> items,
+    List<Field> items,
     String charset,
   })  : contentType = MediaType.formUrlEncoded,
         contentLength = -1,
