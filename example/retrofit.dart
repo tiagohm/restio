@@ -89,6 +89,9 @@ abstract class RestApi {
   Future<void> query4();
 
   @retrofit.Post('/post/')
+  Future<void> query5(@retrofit.Queries() List<String> queryNames);
+
+  @retrofit.Post('/post/')
   Future<void> stringAsBody(@retrofit.Body('application/json') String body);
 
   @retrofit.Post('/post/')

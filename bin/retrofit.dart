@@ -432,10 +432,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       final name = a.peek('name')?.stringValue;
       final value = a.peek('value')?.stringValue;
 
-      if (name != null &&
-          name.isNotEmpty &&
-          value != null &&
-          value.isNotEmpty) {
+      if (name != null && name.isNotEmpty) {
         blocks.add(refer('_queries.add')
             .call([literal(name), literal(value)]).statement);
       }
@@ -466,6 +463,19 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       else if (p.type.isExactlyType(List, [Query])) {
         blocks.add(
             refer('_queries.addAll').call([refer(p.displayName)]).statement);
+      }
+      // List<String>.
+      else if (p.type.isExactlyType(List, [String])) {
+        final map = Method((m) {
+          m.lambda = true;
+          m.requiredParameters.add(_generateParameter(name: 'item'));
+          m.body =
+              refer('_queries.add').call([refer('item'), refer(null)]).code;
+        });
+        blocks.add(
+            const Code('\t\t// ignore: avoid_function_literals_in_foreach_calls'));
+        blocks.add(
+            refer('${p.displayName}?.forEach').call([map.closure]).statement);
       } else {
         throw RetrofitError('Invalid parameter type', p);
       }

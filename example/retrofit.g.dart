@@ -298,6 +298,20 @@ class _RestApi implements RestApi {
   }
 
   @override
+  Future<void> query5(List<String> queryNames) async {
+    final _queries = QueriesBuilder();
+    // ignore: avoid_function_literals_in_foreach_calls
+    queryNames?.forEach((item) => _queries.add(item, null));
+    final _request = Request(
+        method: 'POST',
+        uri: RequestUri.parse('/post/', baseUri: baseUri),
+        queries: _queries.build());
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    await _response.close();
+  }
+
+  @override
   Future<void> stringAsBody(String body) async {
     final _request = Request(
         method: 'POST',
