@@ -129,8 +129,8 @@ class Body {
   final String contentType;
   final String charset;
 
-  const Body(
-    this.contentType, {
+  const Body({
+    this.contentType,
     this.charset,
   });
 }
@@ -146,7 +146,7 @@ class Body {
 /// in accordance to RFC-3986.
 @immutable
 class Form extends Body {
-  const Form() : super('application/x-www-form-urlencoded');
+  const Form() : super(contentType: 'application/x-www-form-urlencoded');
 }
 
 /// Annotate a parameter to add named pair for a form-encoded request.
@@ -176,7 +176,7 @@ class Multipart extends Body {
     String contentType,
     this.boundary,
     String charset,
-  }) : super(contentType, charset: charset);
+  }) : super(contentType: contentType, charset: charset);
 }
 
 /// Annotate a parameter to denote a single part of a multi-part request.
@@ -238,11 +238,6 @@ class Throws {
 
   const Throws.not(this.min)
       : max = min + 1,
-        negate = true;
-
-  const Throws.notSuccess()
-      : min = 200,
-        max = 300,
         negate = true;
 
   const Throws.redirect()

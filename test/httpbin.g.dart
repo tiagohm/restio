@@ -21,7 +21,7 @@ class _HttpbinApi implements HttpbinApi {
         method: 'DELETE', uri: RequestUri.parse('/delete', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -33,7 +33,7 @@ class _HttpbinApi implements HttpbinApi {
         Request(method: 'GET', uri: RequestUri.parse('/get', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -45,7 +45,7 @@ class _HttpbinApi implements HttpbinApi {
         method: 'PATCH', uri: RequestUri.parse('/patch', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -57,7 +57,7 @@ class _HttpbinApi implements HttpbinApi {
         method: 'POST', uri: RequestUri.parse('/post', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -69,7 +69,7 @@ class _HttpbinApi implements HttpbinApi {
         Request(method: 'PUT', uri: RequestUri.parse('/put', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -84,7 +84,7 @@ class _HttpbinApi implements HttpbinApi {
         options: options);
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -100,7 +100,7 @@ class _HttpbinApi implements HttpbinApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -116,7 +116,7 @@ class _HttpbinApi implements HttpbinApi {
         options: options);
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -140,7 +140,7 @@ class _HttpbinApi implements HttpbinApi {
         method: 'GET', uri: RequestUri.parse('/status/400', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     await _response.close();
   }
 
@@ -192,7 +192,7 @@ class _HttpbinApi implements HttpbinApi {
         method: 'GET', uri: RequestUri.parse('/status/400', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 200, 300, negate: true);
+    HttpStatusException.throwsIfNotSuccess(_response);
     await _response.close();
   }
 
@@ -223,7 +223,7 @@ class _HttpbinApi implements HttpbinApi {
         headers: _headers.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -244,11 +244,11 @@ class _HttpbinApi implements HttpbinApi {
     h?.forEach((item) => _queries.add(item, null));
     final _request = Request(
         method: 'GET',
-        uri: RequestUri.parse('/get', baseUri: baseUri),
+        uri: RequestUri.parse('/get?l=11', baseUri: baseUri),
         queries: _queries.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -271,7 +271,7 @@ class _HttpbinApi implements HttpbinApi {
         body: _form.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -292,7 +292,7 @@ class _HttpbinApi implements HttpbinApi {
         ]));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -306,7 +306,7 @@ class _HttpbinApi implements HttpbinApi {
         body: RequestBody.file(a, contentType: MediaType.text));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -320,7 +320,7 @@ class _HttpbinApi implements HttpbinApi {
         body: RequestBody.string(a, contentType: MediaType.text));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -335,7 +335,7 @@ class _HttpbinApi implements HttpbinApi {
             contentType: MediaType.text, charset: 'ascii'));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -349,7 +349,7 @@ class _HttpbinApi implements HttpbinApi {
         body: RequestBody.bytes(a, contentType: MediaType.text));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -363,7 +363,21 @@ class _HttpbinApi implements HttpbinApi {
         body: RequestBody.stream(a, contentType: MediaType.text));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<dynamic> requestBody(RequestBody a) async {
+    final _request = Request(
+        method: 'POST',
+        uri: RequestUri.parse('/post', baseUri: baseUri),
+        body: a);
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.json();
     await _response.close();
     return _body;
@@ -377,7 +391,7 @@ class _HttpbinApi implements HttpbinApi {
         extra: a);
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = _response;
     return _body;
   }
@@ -388,7 +402,7 @@ class _HttpbinApi implements HttpbinApi {
         method: 'GET', uri: RequestUri.parse('/json', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _json = await _response.body.json();
     final _body = Slideshow.fromJson(_json);
     await _response.close();
@@ -401,7 +415,7 @@ class _HttpbinApi implements HttpbinApi {
         method: 'GET', uri: RequestUri.parse('/gzip', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.decompressed();
     await _response.close();
     return _body;
@@ -413,7 +427,7 @@ class _HttpbinApi implements HttpbinApi {
         method: 'GET', uri: RequestUri.parse('/gzip', baseUri: baseUri));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
-    HttpStatusException.throwsIfBetween(_response, 300, 600);
+    HttpStatusException.throwsIfNotSuccess(_response);
     final _body = await _response.body.raw();
     await _response.close();
     return _body;
