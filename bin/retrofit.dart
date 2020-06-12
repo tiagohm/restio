@@ -304,6 +304,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       blocks.add(requestQueries);
     }
 
+    if (requestBody is Code) {
+      blocks.add(requestBody);
+    }
+
     final request = refer('Request')
         .call(
           const [],
@@ -314,7 +318,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
               'headers': refer('_headers.build').call(const []).expression,
             if (requestQueries != null)
               'queries': refer('_queries.build').call(const []).expression,
-            if (requestBody != null) 'body': requestBody,
+            if (requestBody is Code)
+              'body': refer('_form.build').call(const []).expression
+            else if (requestBody != null)
+              'body': requestBody,
             if (requestExtra != null) 'extra': requestExtra,
             if (requestOptions != null) 'options': requestOptions,
           },
@@ -335,7 +342,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   }
 
   static Expression _generateRequestMethod(ConstantReader method) {
-    return literal(method.peek('name').stringValue);
+    return literal(method.peek('name')?.stringValue);
   }
 
   static Expression _generateRequestUri(
@@ -362,8 +369,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     );
 
     for (final a in _annotations(element, annotations.Header)) {
-      final name = a.peek('name').stringValue;
-      final value = a.peek('value').stringValue;
+      final name = a.peek('name')?.stringValue;
+      final value = a.peek('value')?.stringValue;
 
       if (name != null &&
           name.isNotEmpty &&
@@ -383,11 +390,6 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     });
 
     headers = _parametersOfAnnotation(element, annotations.Headers);
-
-    if (headers.length > 1) {
-      throw RetrofitError(
-          'Only should have one @Headers annotated parameter', element);
-    }
 
     headers.forEach((p, a) {
       // Map<String, ?>.
@@ -427,8 +429,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     );
 
     for (final a in _annotations(element, annotations.Query)) {
-      final name = a.peek('name').stringValue;
-      final value = a.peek('value').stringValue;
+      final name = a.peek('name')?.stringValue;
+      final value = a.peek('value')?.stringValue;
 
       if (name != null &&
           name.isNotEmpty &&
@@ -448,11 +450,6 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     });
 
     queries = _parametersOfAnnotation(element, annotations.Queries);
-
-    if (queries.length > 1) {
-      throw RetrofitError(
-          'Only should have one @Queries annotated parameter', element);
-    }
 
     queries.forEach((p, a) {
       // Map<String, ?>.
@@ -481,7 +478,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
   }
 
-  static Expression _generateRequestBody(MethodElement element) {
+  static dynamic _generateRequestBody(MethodElement element) {
     // @Multipart.
     final multipart = _multiPartAnnotation(element);
 
@@ -530,61 +527,64 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return null;
   }
 
-  static Expression _generateRequestFormBody(
+  static Code _generateRequestFormBody(
     MethodElement element,
     ConstantReader annotation,
   ) {
-    
-    
-    // @Field.
-    var form = _parametersOfAnnotation(element, annotations.Field);
+    final blocks = <Code>[];
 
-    if (form.isNotEmpty) {
-      final values = [];
-      final parameters = form.keys;
+    blocks.add(
+      refer('FormBuilder').newInstance(const []).assignFinal('_form').statement,
+    );
 
-      for (final p in parameters) {
-        final a = form[p];
+    for (final a in _annotations(element, annotations.Field)) {
+      final name = a.peek('name')?.stringValue;
+      final value = a.peek('value')?.stringValue;
 
-        final name = a.peek('name')?.stringValue ?? p.displayName;
-        final header = refer('FormItem')
-            .newInstance([literal(name), literal('\$${p.displayName}')]);
-        values.add(header);
-      }
-
-      return refer('FormBody').newInstance(
-        const [],
-        {
-          'items': literalList(values),
-        },
-      );
-    }
-
-    form = _parametersOfAnnotation(element, annotations.Form);
-
-    if (form.length > 1) {
-      throw RetrofitError(
-          'Only should have one @Form annotated parameter', element);
-    }
-
-    if (form.isNotEmpty) {
-      final parameters = form.keys;
-
-      for (final p in parameters) {
-        // Map<String, ?>.
-        if (p.type.isExactlyType(Map, [String, null])) {
-          return refer('FormBody.fromMap').call([refer(p.displayName)]);
-        }
-        // FormBody.
-        else if (p.type.isExactlyType(FormBody)) {
-          return refer(p.displayName);
-        } else {
-          throw RetrofitError('Invalid parameter type', p);
-        }
+      if (name != null &&
+          name.isNotEmpty &&
+          value != null &&
+          value.isNotEmpty) {
+        blocks.add(
+            refer('_form.add').call([literal(name), literal(value)]).statement);
       }
     }
 
-    return null;
+    final fields = _parametersOfAnnotation(element, annotations.Field);
+
+    fields.forEach((p, a) {
+      final name = a.peek('name')?.stringValue ?? p.displayName;
+      blocks.add(refer('_form.add')
+          .call([literal(name), literal('\$${p.displayName}')]).statement);
+    });
+
+    final forms = _parametersOfAnnotation(element, annotations.Form);
+
+    forms.forEach((p, a) {
+      // Map<String, ?>.
+      if (p.type.isExactlyType(Map, [String, null])) {
+        blocks
+            .add(refer('_form.addMap').call([refer(p.displayName)]).statement);
+      }
+      // FormBody.
+      else if (p.type.isExactlyType(FormBody)) {
+        blocks.add(
+            refer('_form.addItemList').call([refer(p.displayName)]).statement);
+      }
+      // List<FormItem>.
+      else if (p.type.isExactlyType(List, [FormItem])) {
+        blocks
+            .add(refer('_form.addAll').call([refer(p.displayName)]).statement);
+      } else {
+        throw RetrofitError('Invalid parameter type', p);
+      }
+    });
+
+    if (blocks.length > 1) {
+      return Block.of(blocks);
+    } else {
+      return null;
+    }
   }
 
   static Expression _generateRequestMultipartBody(

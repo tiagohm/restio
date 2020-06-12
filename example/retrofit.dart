@@ -116,6 +116,16 @@ abstract class RestApi {
   Future<void> form2(@retrofit.Form() FormBody form);
 
   @retrofit.Post('/post/')
+  @retrofit.Form()
+  Future<void> form3(@retrofit.Form() List<FormItem> form);
+
+  @retrofit.Post('/post/')
+  @retrofit.Form()
+  @retrofit.Field('a', 'b')
+  @retrofit.Field('c', 'd')
+  Future<void> form4();
+
+  @retrofit.Post('/post/')
   @retrofit.MultiPart()
   Future<void> multipart0(@retrofit.Part() String a);
 

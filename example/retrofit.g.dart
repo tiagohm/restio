@@ -343,11 +343,13 @@ class _RestApi implements RestApi {
 
   @override
   Future<void> form0(String a, String b) async {
-    
+    final _form = FormBuilder();
+    _form.add('a', '$a');
+    _form.add('c', '$b');
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
-        body: FormBody(items: [FormItem('a', '$a'), FormItem('c', '$b')]));
+        body: _form.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     await _response.close();
@@ -355,10 +357,12 @@ class _RestApi implements RestApi {
 
   @override
   Future<void> form1(Map<String, dynamic> form) async {
+    final _form = FormBuilder();
+    _form.addMap(form);
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
-        body: FormBody.fromMap(form));
+        body: _form.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     await _response.close();
@@ -366,10 +370,39 @@ class _RestApi implements RestApi {
 
   @override
   Future<void> form2(FormBody form) async {
+    final _form = FormBuilder();
+    _form.addItemList(form);
     final _request = Request(
         method: 'POST',
         uri: RequestUri.parse('/post/', baseUri: baseUri),
-        body: form);
+        body: _form.build());
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    await _response.close();
+  }
+
+  @override
+  Future<void> form3(List<FormItem> form) async {
+    final _form = FormBuilder();
+    _form.addAll(form);
+    final _request = Request(
+        method: 'POST',
+        uri: RequestUri.parse('/post/', baseUri: baseUri),
+        body: _form.build());
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    await _response.close();
+  }
+
+  @override
+  Future<void> form4() async {
+    final _form = FormBuilder();
+    _form.add('a', 'b');
+    _form.add('c', 'd');
+    final _request = Request(
+        method: 'POST',
+        uri: RequestUri.parse('/post/', baseUri: baseUri),
+        body: _form.build());
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     await _response.close();

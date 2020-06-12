@@ -95,7 +95,7 @@ class Queries {
   const Queries();
 }
 
-/// Header parameter appended to the URL.
+/// Header parameter.
 @immutable
 class Header extends Param {
   @override
@@ -106,7 +106,7 @@ class Header extends Param {
   const Header([this.name, this.value]);
 }
 
-/// Header parameter keys and values appended to the URL.
+/// Header parameter keys and values.
 @immutable
 class Headers {
   const Headers();
@@ -127,6 +127,7 @@ class Form extends Body {
   const Form() : super('application/x-www-form-urlencoded');
 }
 
+/// Form URL encoded field.
 @immutable
 class Field extends Param {
   @override
