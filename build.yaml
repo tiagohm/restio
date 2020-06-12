@@ -1,6 +1,7 @@
 builders:
   retrofit:
-    import: "./bin/retrofit.dart"
+    target: ":restio"
+    import: "package:restio/src/retrofit/retrofit.dart"
     builder_factories: ["retrofitBuilder"]
     build_extensions: { ".dart": [".retrofit.g.part"] }
     auto_apply: root_package
