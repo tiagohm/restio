@@ -8,12 +8,13 @@ class Api {
   const Api([this.baseUri]);
 }
 
+/// Use a custom HTTP verb for a request.
 @immutable
 class Method {
-  /// HTTP request method.
+  /// The HTTP verb.
   final String name;
 
-  /// The URL of the endpoint.
+  /// A relative or absolute path, or full URL of the endpoint.
   final String path;
 
   const Method(this.name, this.path);
@@ -79,6 +80,10 @@ abstract class Param {
 }
 
 /// Query parameter appended to the URL.
+/// Annotate a parameter to replace the query [name] with the value
+/// of its target. If [name] is null, the parameter name will be used.
+///
+/// Annotate a method to add header literally with [name] and [value].
 @immutable
 class Query extends Param {
   @override
@@ -89,13 +94,17 @@ class Query extends Param {
   const Query([this.name, this.value]);
 }
 
-/// Query parameter keys and values appended to the URL.
+/// Annotate a parameter to append to the URL the queries specified.
 @immutable
 class Queries {
   const Queries();
 }
 
-/// Header parameter.
+/// Annotate a parameter to replace the header [name] with the value
+/// of its target. If [name] is null, the parameter name will be used.
+///
+/// Annotate a method to add header literally with [name] and [value].
+/// If [value] is null, the header will not be used.
 @immutable
 class Header extends Param {
   @override
@@ -106,7 +115,7 @@ class Header extends Param {
   const Header([this.name, this.value]);
 }
 
-/// Header parameter keys and values.
+/// Annotate a parameter to add headers specified.
 @immutable
 class Headers {
   const Headers();
@@ -120,14 +129,25 @@ class Body {
   const Body(this.contentType);
 }
 
-/// Denotes that the request body will use form URL encoding.
-/// Also can denote that the parameter is the request's form.
+/// Annotate a method to indicate that the request body will use form URL
+/// encoding. Fields could be declared as parameters and annotated with [Field].
+///
+/// Annotate a parameter to add named key/value pairs for a form-encoded request.
+///
+/// Requests made with this annotation will have
+/// application/x-www-form-urlencoded MIME type.
+/// Field names and values will be UTF-8 encoded before being URI-encoded
+/// in accordance to RFC-3986.
 @immutable
 class Form extends Body {
   const Form() : super('application/x-www-form-urlencoded');
 }
 
-/// Form URL encoded field.
+/// Annotate a parameter to add named pair for a form-encoded request.
+/// If [name] is null, the parameter name will be used.
+///
+/// Annotate a method to add form field literally with [name] and [value].
+/// If [value] is null, the field will not be used.
 @immutable
 class Field extends Param {
   @override
@@ -138,8 +158,10 @@ class Field extends Param {
   const Field([this.name, this.value]);
 }
 
-/// Denotes that the request body is multi-part.
-/// Also can denote that the parameter is the request's multi-part.
+/// Annotate a method to indicate that the request body is multi-part.
+/// Parts could be declared as parameters and annotated with [Part].
+///
+/// Annotate a parameter to add named key/value pairs for a form-encoded request.
 @immutable
 class Multipart extends Body {
   final String boundary;
@@ -150,7 +172,9 @@ class Multipart extends Body {
   }) : super(contentType);
 }
 
-/// Denotes a single part of a multi-part request.
+/// Annotate a parameter to denote a single part of a multi-part request.
+/// The [filename], [contentType] and [charset] properties is used only
+/// for [File].
 @immutable
 class Part {
   final String name;
@@ -166,11 +190,14 @@ class Part {
   });
 }
 
+/// Annotate a parameter to pass the parameter value
+/// to [Request]'s extra property.
 @immutable
 class Extra {
   const Extra();
 }
 
+/// Annotate a method to indicate that the response should not be decompressed.
 @immutable
 class Raw {
   const Raw();
