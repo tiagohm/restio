@@ -16,10 +16,13 @@ abstract class RequestBody {
     Stream<List<int>> data, {
     MediaType contentType,
     int contentLength,
+    String charset,
   }) {
+    final type = contentType ?? MediaType.octetStream;
+
     return _StreamRequestBody(
       data: data,
-      contentType: contentType ?? MediaType.octetStream,
+      contentType: charset != null ? type.copyWith(charset: charset) : type,
       contentLength: contentLength,
     );
   }
@@ -27,10 +30,13 @@ abstract class RequestBody {
   factory RequestBody.bytes(
     List<int> data, {
     MediaType contentType,
+    String charset,
   }) {
+    final type = contentType ?? MediaType.octetStream;
+
     return _BytesRequestBody(
       data: data,
-      contentType: contentType ?? MediaType.octetStream,
+      contentType: charset != null ? type.copyWith(charset: charset) : type,
     );
   }
 
@@ -38,10 +44,13 @@ abstract class RequestBody {
     String text, {
     MediaType contentType,
     int contentLength,
+    String charset,
   }) {
+    final type = contentType ?? MediaType.text;
+
     return _StringRequestBody(
       text: text,
-      contentType: contentType ?? MediaType.text,
+      contentType: charset != null ? type.copyWith(charset: charset) : type,
       contentLength: contentLength,
     );
   }
@@ -67,10 +76,12 @@ abstract class RequestBody {
   factory RequestBody.json(
     Object o, {
     bool pretty = false,
+    String charset,
   }) {
     return RequestBody.string(
       pretty ? _prettyJson.convert(o) : json.encoder.convert(o),
       contentType: MediaType.json,
+      charset: charset,
     );
   }
 }

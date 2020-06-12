@@ -19,6 +19,7 @@ class MultipartBody implements RequestBody {
     this.parts = const [],
     MediaType contentType,
     String boundary,
+    String charset,
   })  : assert(boundary == null || boundary.isNotEmpty),
         assert(contentType == null || contentType.type == 'multipart'),
         assert(parts != null),
@@ -29,12 +30,17 @@ class MultipartBody implements RequestBody {
     if (_boundary != null) {
       _contentType = _contentType.copyWith(boundary: _boundary);
     }
+
+    if (charset != null) {
+      _contentType = _contentType.copyWith(charset: charset);
+    }
   }
 
   factory MultipartBody.fromMap(
     Map<String, dynamic> items, {
     MediaType contentType,
     String boundary,
+    String charset,
   }) {
     final parts = <Part>[];
 
@@ -61,6 +67,7 @@ class MultipartBody implements RequestBody {
       parts: parts,
       contentType: contentType,
       boundary: boundary,
+      charset: charset,
     );
   }
 
@@ -90,6 +97,7 @@ class MultipartBody implements RequestBody {
     List<Part> parts,
     MediaType contentType,
     String boundary,
+    String charset,
   }) {
     return MultipartBody(
       parts: parts ?? this.parts,
@@ -97,9 +105,12 @@ class MultipartBody implements RequestBody {
           MediaType(
             type: _contentType.type,
             subType: _contentType.subType,
-            parameters: Map.of(_contentType.parameters)..remove('boundary'),
+            parameters: Map.of(_contentType.parameters)
+              ..remove('boundary')
+              ..remove('charset'),
           ),
       boundary: boundary ?? _boundary,
+      charset: charset ?? _contentType.charset,
     );
   }
 
