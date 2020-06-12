@@ -141,10 +141,10 @@ class Field extends Param {
 /// Denotes that the request body is multi-part.
 /// Also can denote that the parameter is the request's multi-part.
 @immutable
-class MultiPart extends Body {
+class Multipart extends Body {
   final String boundary;
 
-  const MultiPart({
+  const Multipart({
     String contentType,
     this.boundary,
   }) : super(contentType);

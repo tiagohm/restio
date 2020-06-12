@@ -653,11 +653,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       );
     }
 
-    parts = _parametersOfAnnotation(element, annotations.MultiPart);
+    parts = _parametersOfAnnotation(element, annotations.Multipart);
 
     if (parts.length > 1) {
       throw RetrofitError(
-          'Only should have one @MultiPart annotated parameter', element);
+          'Only should have one @Multipart annotated parameter', element);
     }
 
     if (parts.isNotEmpty) {
@@ -942,7 +942,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   }
 
   static ConstantReader _multiPartAnnotation(MethodElement element) {
-    return _annotation(element, annotations.MultiPart);
+    return _annotation(element, annotations.Multipart);
   }
 }
 

@@ -3,8 +3,6 @@ import 'dart:io';
 import 'package:restio/restio.dart';
 import 'package:restio/retrofit.dart' as retrofit;
 
-import 'task.dart';
-
 part 'retrofit.g.dart';
 
 @retrofit.Api('https://httpbin.org')
@@ -126,52 +124,62 @@ abstract class RestApi {
   Future<void> form4();
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart()
+  @retrofit.Multipart()
   Future<void> multipart0(@retrofit.Part() String a);
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart()
+  @retrofit.Multipart()
   Future<void> multipart1(@retrofit.Part() File b);
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart()
+  @retrofit.Multipart()
   Future<void> multipart2(
       @retrofit.Part(filename: 'b.txt', charset: 'utf-16') File b);
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart()
+  @retrofit.Multipart()
   Future<void> multipart3(
       @retrofit.Part(contentType: 'application/json') File b);
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart()
+  @retrofit.Multipart()
   Future<void> multipart4(@retrofit.Part() Part b);
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart()
+  @retrofit.Multipart()
   Future<void> multipart5(
       @retrofit.Part() List<Part> a, @retrofit.Part() Part b);
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart(contentType: 'multipart/mixed', boundary: '12345678')
+  @retrofit.Multipart(contentType: 'multipart/mixed', boundary: '12345678')
   Future<void> multipart6(@retrofit.Part() List<Part> a);
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart()
+  @retrofit.Multipart()
   Future<void> multipart7(
-      @retrofit.MultiPart(contentType: 'multipart/mixed') List<Part> a);
+      @retrofit.Multipart(contentType: 'multipart/mixed') List<Part> a);
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart(boundary: '12345678')
-  Future<void> multipart8(@retrofit.MultiPart() Map<String, dynamic> a);
+  @retrofit.Multipart(boundary: '12345678')
+  Future<void> multipart8(@retrofit.Multipart() Map<String, dynamic> a);
 
   @retrofit.Post('/post/')
-  @retrofit.MultiPart()
-  Future<void> multipart9(@retrofit.MultiPart() MultipartBody a);
+  @retrofit.Multipart()
+  Future<void> multipart9(@retrofit.Multipart() MultipartBody a);
 
   @retrofit.Get('/get')
   Future<void> extra(@retrofit.Extra() Map<String, dynamic> extra);
 
   @retrofit.Get('/get')
   Future<void> requestOptions(RequestOptions options);
+}
+
+class Task {
+  final String name;
+
+  const Task(this.name);
+
+  factory Task.fromJson(dynamic item) {
+    return Task(item['name']);
+  }
 }
