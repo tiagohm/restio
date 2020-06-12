@@ -7,7 +7,7 @@ import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:restio/src/retrofit/annotations.dart' as annotations;
-import 'package:restio/restio.dart';
+import 'package:restio/restio.dart' as restio;
 import 'package:source_gen/source_gen.dart';
 
 class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
@@ -399,12 +399,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             refer('_headers.addMap').call([refer(p.displayName)]).statement);
       }
       // Headers.
-      else if (p.type.isExactlyType(Headers)) {
+      else if (p.type.isExactlyType(restio.Headers)) {
         blocks.add(refer('_headers.addItemList')
             .call([refer(p.displayName)]).statement);
       }
       // List<Header>.
-      else if (p.type.isExactlyType(List, [Header])) {
+      else if (p.type.isExactlyType(List, [restio.Header])) {
         blocks.add(
             refer('_headers.addAll').call([refer(p.displayName)]).statement);
       } else {
@@ -456,12 +456,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             refer('_queries.addMap').call([refer(p.displayName)]).statement);
       }
       // Queries.
-      else if (p.type.isExactlyType(Queries)) {
+      else if (p.type.isExactlyType(restio.Queries)) {
         blocks.add(refer('_queries.addItemList')
             .call([refer(p.displayName)]).statement);
       }
       // List<Query>.
-      else if (p.type.isExactlyType(List, [Query])) {
+      else if (p.type.isExactlyType(List, [restio.Query])) {
         blocks.add(
             refer('_queries.addAll').call([refer(p.displayName)]).statement);
       }
@@ -507,12 +507,19 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     // @Body.
     final body = _parametersOfAnnotation(element, annotations.Body);
 
+    if (body.length > 1) {
+      throw RetrofitError(
+          'Only should have one @Body annotated parameter', element);
+    }
+
     if (body.isNotEmpty) {
       final parameters = body.keys;
 
       for (final p in parameters) {
         final a = body[p];
         final contentType = _generateMediaType(a);
+        final charset = a.peek('charset')?.stringValue;
+
         // String, List<int>, Stream<List<int>>, File.
         final type = p.type.isExactlyType(String)
             ? 'string'
@@ -527,6 +534,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             [refer(p.displayName)],
             {
               if (contentType != null) 'contentType': contentType,
+              if (charset != null) 'charset': literal(charset),
             },
           );
         } else {
@@ -578,12 +586,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             .add(refer('_form.addMap').call([refer(p.displayName)]).statement);
       }
       // FormBody.
-      else if (p.type.isExactlyType(FormBody)) {
+      else if (p.type.isExactlyType(restio.FormBody)) {
         blocks.add(
             refer('_form.addItemList').call([refer(p.displayName)]).statement);
       }
-      // List<FormItem>.
-      else if (p.type.isExactlyType(List, [FormItem])) {
+      // List<Field>.
+      else if (p.type.isExactlyType(List, [restio.Field])) {
         blocks
             .add(refer('_form.addAll').call([refer(p.displayName)]).statement);
       } else {
@@ -606,6 +614,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     var parts = _parametersOfAnnotation(element, annotations.Part);
     final contentType = _generateMediaType(annotation);
     final boundary = annotation.peek('boundary')?.stringValue;
+    final charset = annotation.peek('charset')?.stringValue;
 
     if (parts.isNotEmpty) {
       final values = [];
@@ -641,11 +650,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           );
         }
         // Part.
-        else if (p.type.isExactlyType(Part)) {
+        else if (p.type.isExactlyType(restio.Part)) {
           part = refer(displayName);
         }
         // List<Part>.
-        else if (p.type.isExactlyType(List, [Part])) {
+        else if (p.type.isExactlyType(List, [restio.Part])) {
           part = refer('...$displayName');
         } else {
           throw RetrofitError('Invalid parameter type', p);
@@ -660,6 +669,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           'parts': literalList(values),
           if (contentType != null) 'contentType': contentType,
           if (boundary != null) 'boundary': literal(boundary),
+          if (charset != null) 'charset': literal(charset),
         },
       );
     }
@@ -680,7 +690,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         final pBoundary = a.peek('boundary')?.stringValue ?? boundary;
 
         // List<Part>.
-        if (p.type.isExactlyType(List, [Part])) {
+        if (p.type.isExactlyType(List, [restio.Part])) {
           return refer('MultipartBody').newInstance(
             [],
             {
@@ -691,7 +701,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           );
         }
         // MultipartBody.
-        else if (p.type.isExactlyType(MultipartBody)) {
+        else if (p.type.isExactlyType(restio.MultipartBody)) {
           return refer(p.displayName);
         }
         // Map<String, ?>.
@@ -739,7 +749,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
   static Expression _generateRequestOptions(MethodElement element) {
     // @Options.
-    final options = _parametersOfType(element, RequestOptions);
+    final options = _parametersOfType(element, restio.RequestOptions);
 
     if (options.length > 1) {
       throw RetrofitError(
@@ -826,7 +836,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       );
     }
     // Future<Response> returns Response.
-    else if (returnType.isExactlyType(Future, [Response])) {
+    else if (returnType.isExactlyType(Future, [restio.Response])) {
       closeable = false;
 
       blocks.add(
@@ -883,15 +893,14 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
               .statement,
         );
       } else if (types.length == 3) {
-        final map = Method((m) {
-          m.requiredParameters.add(_generateParameter(name: 'item'));
-          m.lambda = true;
-          m.body = refer('${types[2].getDisplayString()}.fromJson')
-              .call([refer('item')]).code;
-        });
-
         blocks.add(
-          refer('_json.map').call([map.closure]).assignFinal('_body').statement,
+          literalList([
+            Block.of([
+              const Code('for(final item in _json)'),
+              refer('${types[2].getDisplayString()}.fromJson')
+                  .call([refer('item')]).code,
+            ]),
+          ]).assignFinal('_body').statement,
         );
       } else {
         throw RetrofitError('Invalid return type', element);

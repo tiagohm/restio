@@ -127,8 +127,12 @@ class Headers {
 @immutable
 class Body {
   final String contentType;
+  final String charset;
 
-  const Body(this.contentType);
+  const Body(
+    this.contentType, {
+    this.charset,
+  });
 }
 
 /// Annotate a method to indicate that the request body will use form URL
@@ -171,7 +175,8 @@ class Multipart extends Body {
   const Multipart({
     String contentType,
     this.boundary,
-  }) : super(contentType);
+    String charset,
+  }) : super(contentType, charset: charset);
 }
 
 /// Annotate a parameter to denote a single part of a multi-part request.
