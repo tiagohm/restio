@@ -48,6 +48,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     // Base URI.
     final baseUri = annotation.peek('baseUri')?.stringValue;
 
+    final converters = _converters(element);
+
     return Class((c) {
       // Name.
       c.name = name;
@@ -69,8 +71,25 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       // Implementents.
       c.implements.addAll([refer(className)]);
       // Methods.
-      c.methods.addAll(_generateMethods(element));
+      c.methods.addAll(_generateMethods(element, converters));
     });
+  }
+
+  static Map<DartType, DartType> _converters(ClassElement element) {
+    final res = <DartType, DartType>{};
+
+    final converters = _annotations(element, annotations.Converter);
+
+    for (final a in converters) {
+      final type = a.peek('type')?.typeValue;
+      final converter = a.peek('converter')?.typeValue;
+
+      if (converter != null && type != null) {
+        res[type] = converter;
+      }
+    }
+
+    return res;
   }
 
   /// Returns the generated API class' constructor.
@@ -165,15 +184,22 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   }
 
   /// Returns the all generated methods.
-  static List<Method> _generateMethods(ClassElement element) {
+  static List<Method> _generateMethods(
+    ClassElement element,
+    Map<DartType, DartType> converters,
+  ) {
     return [
       for (final m in element.methods)
-        if (_isValidMethod(m) && _hasMethodAnnotation(m)) _generateMethod(m),
+        if (_isValidMethod(m) && _hasMethodAnnotation(m))
+          _generateMethod(m, converters),
     ];
   }
 
   /// Returns the generated method for an API endpoint method.
-  static Method _generateMethod(MethodElement element) {
+  static Method _generateMethod(
+    MethodElement element,
+    Map<DartType, DartType> converters,
+  ) {
     // The HTTP method annotation.
     final httpMethod = _methodAnnotation(element);
 
@@ -211,7 +237,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             ),
       );
       // Body.
-      m.body = _generateRequest(element, httpMethod);
+      m.body = _generateRequest(element, httpMethod, converters);
       // Return Type.
       m.returns = refer(element.returnType.getDisplayString());
     });
@@ -275,6 +301,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   static Code _generateRequest(
     MethodElement element,
     ConstantReader method,
+    Map<DartType, DartType> converters,
   ) {
     final blocks = <Code>[];
 
@@ -283,10 +310,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     final requestUri = _generateRequestUri(element, method);
     final requestHeaders = _generateRequestHeaders(element);
     final requestQueries = _generateRequestQueries(element);
-    final requestBody = _generateRequestBody(element);
+    final requestBody = _generateRequestBody(element, converters);
     final requestExtra = _generateRequestExtra(element);
     final requestOptions = _generateRequestOptions(element);
-    final response = _generateResponse(element);
+    final response = _generateResponse(element, converters);
 
     if (requestHeaders != null) {
       blocks.add(requestHeaders);
@@ -489,7 +516,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
   }
 
-  static dynamic _generateRequestBody(MethodElement element) {
+  static dynamic _generateRequestBody(
+    MethodElement element,
+    Map<DartType, DartType> converters,
+  ) {
     // @Multipart.
     final multipart = _multiPartAnnotation(element);
 
@@ -520,6 +550,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         final contentType = _generateMediaType(a);
         final charset = a.peek('charset')?.stringValue;
 
+        final args = {
+          if (contentType != null) 'contentType': contentType,
+          if (charset != null) 'charset': literal(charset),
+        };
+
         // String, List<int>, Stream<List<int>>, File or RequestBody.
         final type = p.type.isExactlyType(String)
             ? 'string'
@@ -534,16 +569,24 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
                             : null;
 
         if (type == null) {
-          throw RetrofitError('Invalid parameter type', p);
+          if (!converters.containsKey(p.type)) {
+            throw RetrofitError('Converter not found for $type', element);
+          }
+
+          return refer('RequestBody.string').call(
+            [
+              refer('${converters[p.type]}.encode').call(
+                [refer(p.displayName)],
+              ).awaited,
+            ],
+            args,
+          );
         } else if (type == 'body') {
           return refer(p.displayName);
         } else {
           return refer('RequestBody.$type').call(
             [refer(p.displayName)],
-            {
-              if (contentType != null) 'contentType': contentType,
-              if (charset != null) 'charset': literal(charset),
-            },
+            args,
           );
         }
       }
@@ -801,7 +844,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return Block.of(blocks);
   }
 
-  static Block _generateResponse(MethodElement element) {
+  static Block _generateResponse(
+    MethodElement element,
+    Map<DartType, DartType> converters,
+  ) {
     final isRaw = _hasAnnotation(element, annotations.Raw);
     final blocks = <Code>[];
 
@@ -854,6 +900,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     else if (returnType.isExactlyType(Future, [restio.Response])) {
       closeable = false;
 
+      if (responseThrows != null) {
+        blocks.removeAt(1);
+      }
+
       blocks.add(
         refer('_response').assignFinal('_body').statement,
       );
@@ -891,31 +941,42 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     else if (returnType.isExactlyType(Future, [null]) ||
         returnType.isExactlyType(Future, [List, null])) {
       blocks.add(
-        refer('_response.body.json')
+        refer('_response.body.string')
             .call(const [])
             .awaited
-            .assignFinal('_json')
+            .assignFinal('_data')
             .statement,
       );
 
       final types = returnType.extractTypes();
 
       if (types.length == 2) {
+        final type = types[1];
+
+        if (!converters.containsKey(type)) {
+          throw RetrofitError('Converter not found for $type', element);
+        }
+
         blocks.add(
-          refer('${types[1].getDisplayString()}.fromJson')
-              .call([refer('_json')])
+          refer('${converters[type]}.decode')
+              .call([refer('_data')])
+              .awaited
               .assignFinal('_body')
               .statement,
         );
       } else if (types.length == 3) {
+        final type = types[2];
+
+        if (!converters.containsKey(type)) {
+          throw RetrofitError('Converter not found for $type', element);
+        }
+
         blocks.add(
-          literalList([
-            Block.of([
-              const Code('for(final item in _json)'),
-              refer('${types[2].getDisplayString()}.fromJson')
-                  .call([refer('item')]).code,
-            ]),
-          ]).assignFinal('_body').statement,
+          refer('${converters[type]}.decodeList')
+              .call([refer('_data')])
+              .awaited
+              .assignFinal('_body')
+              .statement,
         );
       } else {
         throw RetrofitError('Invalid return type', element);
@@ -973,7 +1034,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   }
 
   static ConstantReader _annotation(
-    MethodElement element,
+    Element element,
     Type type,
   ) {
     final a = type
@@ -988,7 +1049,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   }
 
   static List<ConstantReader> _annotations(
-    MethodElement element,
+    Element element,
     Type type,
   ) {
     final a =

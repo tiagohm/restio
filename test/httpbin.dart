@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:restio/restio.dart';
@@ -6,6 +7,7 @@ import 'package:restio/retrofit.dart' as retrofit;
 part 'httpbin.g.dart';
 
 @retrofit.Api('https://httpbin.org')
+@retrofit.Converter(Slideshow, SlideshowConverter)
 abstract class HttpbinApi {
   factory HttpbinApi({Restio client, String baseUri}) = _HttpbinApi;
 
@@ -138,6 +140,9 @@ abstract class HttpbinApi {
   @retrofit.Post('/post')
   Future<dynamic> requestBody(@retrofit.Body() RequestBody a);
 
+  @retrofit.Post('/post')
+  Future<dynamic> slideshowBody(@retrofit.Body() Slideshow a);
+
   @retrofit.Get('/get')
   Future<Response> extra(@retrofit.Extra() Map<String, dynamic> a);
 
@@ -162,5 +167,27 @@ class Slideshow {
   factory Slideshow.fromJson(dynamic data) {
     data = data['slideshow'];
     return Slideshow(data['author'], data['date'], data['title']);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'author': author,
+      'date': date,
+      'title': title,
+    };
+  }
+}
+
+class SlideshowConverter {
+  static Future<String> encode(Slideshow data) async {
+    return json.encode(data);
+  }
+
+  static Future<Slideshow> decode(String data) async {
+    return Slideshow.fromJson(json.decode(data));
+  }
+
+  static Future<List<Slideshow>> decodeList(String data) async {
+    return [for (final item in json.decode(data)) Slideshow.fromJson(item)];
   }
 }

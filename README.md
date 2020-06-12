@@ -767,7 +767,7 @@ Headers that need to be added to every request can be specified using an interce
 
 ### Converters
 
-The complex class is converted from JSON string calling the `fromJson` method. The method can be factory or static.
+Annotate the API class with `Converter` to register the complex class and your converter. The converter class must implement the `decode`, `decodeList` and `encode` as static method.
 
 ```dart
 class User {
@@ -779,10 +779,38 @@ class User {
   factory User.fromJson(dynamic data) {
     return User(data['name']);
   }
+
+  Map<String, dynamic> toJson() {
+    return {'name': name};
+  }
 }
 
-@retrofit.Get('users/{id}')
-Future<User> getUser(@retrofit.Path() int id);
+// You can use Flutter compute method!
+class UserConverter {
+  static Future<String> encode(User data) async {
+    return json.encode(data);
+  }
+
+  static Future<User> decode(String data) async {
+    return User.fromJson(json.decode(data));
+  }
+
+  static Future<List<User>> decodeList(String data) async {
+    return [for (final item in json.decode(data)) User.fromJson(item)];
+  }
+}
+
+@retrofit.Api('https://httpbin.org')
+@retrofit.Converter(User, UserConverter)
+abstract class HttpbinApi {
+  // ...
+
+  @retrofit.Get('users/{id}')
+  Future<User> getUser(@retrofit.Path() int id);
+
+  @retrofit.Get('users')
+  Future<List<User>> getUsers();
+}
 ```
 
 List of complex classes is supported too.
@@ -840,7 +868,7 @@ try {
 }
 ```
 
-`Future<int>` does not throws the exception even if annotating the method.
+`Future<int>` and `Future<Response>` does not throws the exception even if annotating the method with `Throws`.
 
 If you want to prevent the exception from being thrown, annotate the method with `NotThrows`.
 
