@@ -104,7 +104,6 @@ class ResponseBody implements Pauseable {
         : convert.utf8.decode(encoded);
   }
 
-  // TODO: Criar um JsonAdapter para usar o compute do Flutter.
   Future<dynamic> json() async {
     return convert.json.decode(await string());
   }

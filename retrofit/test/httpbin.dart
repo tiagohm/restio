@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:restio/restio.dart';
-import 'package:restio/retrofit.dart' as retrofit;
+import 'package:restio_retrofit/restio_retrofit.dart' as retrofit;
 
 part 'httpbin.g.dart';
 

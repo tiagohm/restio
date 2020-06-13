@@ -2,12 +2,11 @@ import 'dart:io';
 
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
-
 import 'package:build/build.dart';
 import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
-import 'package:restio/src/retrofit/annotations.dart' as annotations;
 import 'package:restio/restio.dart' as restio;
+import 'package:restio_retrofit/src/annotations.dart' as annotations;
 import 'package:source_gen/source_gen.dart';
 
 class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
