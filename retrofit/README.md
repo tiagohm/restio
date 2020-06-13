@@ -1,6 +1,6 @@
 # Retrofit
 
-HTTP client generator for Restio ispired by [Retrofit](https://square.github.io/retrofit/).
+HTTP client generator for Restio inspired by [Retrofit](https://square.github.io/retrofit/).
 
 ## Installation
 
@@ -18,7 +18,7 @@ dev_dependencies:
 
 ```dart
 import 'package:restio/restio.dart';
-import 'package:restio/retrofit.dart' as retrofit;
+import 'package:restio_retrofit/restio_retrofit.dart' as retrofit;
 
 part 'httpbin.g.dart';
 
@@ -234,13 +234,6 @@ abstract class HttpbinApi {
 }
 ```
 
-List of complex classes is supported too.
-
-```dart
-@retrofit.Get('user')
-Future<List<User>> getUsers();
-```
-
 ### Response
 
 The method return type can be `Future<List<int>>` for decompressed data, `Future<String>`, `Future<dynamic>` to JSON decoded data, `Future<int>` for the response code, `Future<Response>`, `Stream<List<int>>` or `Future<?>` for complex class conversion.
@@ -277,7 +270,7 @@ There are seven built-in Throws annotations:
  * `@retrofit.Throws.clientError()`: Throws the exception only if the response code is a client error.
  * `@retrofit.Throws.serverError()`: Throws the exception only if the response code is a server error.
 
-You are responsible for closing the response on catch block.
+> You are responsible for closing the response on catch block.
 
 ```dart
 try {
@@ -289,9 +282,7 @@ try {
 }
 ```
 
-`Future<int>` and `Future<Response>` does not throws the exception even if annotating the method with `Throws`.
-
-If you want to prevent the exception from being thrown, annotate the method with `NotThrows`.
+`Future<int>` and `Future<Response>` does not throws the exception. For other response types, if you want to prevent the exception from being thrown, annotate the method with `NotThrows`.
 
 ### Request Options & Extra
 

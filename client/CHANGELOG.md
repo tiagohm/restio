@@ -2,7 +2,6 @@
  - Add Cache Encryption support.
  - Add Persistent Connection support.
  - Add HTTP2 Server Push support.
- - Add Retrofit-like support.
  - Allow send headers without to force to lowercase.
  - Add option to keep equal sign if query is empty.
  - Add `MultiAuthenticator` class.

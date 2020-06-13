@@ -575,9 +575,3 @@ expect(response.code, 200);
 expect(await response.body.string(), 'OK');
 await response.close();
 ```
-
-# Projects using this library
-
-Using Restio in your project? Let me know!
-
-* [Restler](https://play.google.com/store/apps/details?id=br.tiagohm.restler): Restler is an Android app built with simplicity and ease of use in mind. It allows you send custom HTTP/HTTPS requests and test your REST API anywhere and anytime.
