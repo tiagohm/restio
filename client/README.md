@@ -27,7 +27,7 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * WebSocket and SSE.
 * Redirect Policy.
 * HTTP/HTTP2 Connection Pool.
-* HTTP client generator inspired by [Retrofit](https://square.github.io/retrofit/). ([Documentation](/retrofit))
+* HTTP client generator inspired by [Retrofit](https://square.github.io/retrofit/). ([Documentation](https://github.com/tiagohm/restio/tree/master/retrofit))
 
 ## Installation
 
@@ -35,7 +35,7 @@ In `pubspec.yaml` add the following dependency:
 
 ```yaml
 dependencies:
-  restio: ^0.8.0
+  restio: ^0.8.1
 ```
 
 ## How to use
@@ -99,7 +99,7 @@ final options = RequestOptions(
   followSslRedirects: true,
   maxRedirects: 5,
   verifySSLCertificate: false,
-  userAgent: 'Restio/0.8.0',
+  userAgent: 'Restio/0.8.1',
   proxy: Proxy(...), // default is null.
   dns: DnsOverHttps(...), // default is null.
   certificate: Certificate(...), // default is null.

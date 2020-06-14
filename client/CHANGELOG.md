@@ -1,3 +1,6 @@
+## 0.8.1
+ - Fix Accept-Encoding bug
+
 ## 0.8.0
  - Add Cache Encryption support.
  - Add Persistent Connection support.

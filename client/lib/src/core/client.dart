@@ -58,7 +58,7 @@ class Restio implements Closeable {
   })  : options = options ?? RequestOptions.empty,
         connectionPool = connectionPool ?? ConnectionPool();
 
-  static const version = '0.8.0';
+  static const version = '0.8.1';
 
   Call newCall(Request request) {
     return _Call(client: this, request: request);
