@@ -1,7 +1,7 @@
 import 'package:file/file.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
-import 'package:restio/src/common/encrypted_file.dart';
+import 'package:restio_cache/src/encrypted_file.dart';
 
 class EncryptedFileSystem implements FileSystem {
   final FileSystem fileSystem;

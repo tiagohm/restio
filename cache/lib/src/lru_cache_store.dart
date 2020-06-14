@@ -7,13 +7,11 @@ import 'package:file/file.dart';
 import 'package:file/local.dart';
 import 'package:file/memory.dart';
 import 'package:path/path.dart' as path;
-import 'package:restio/src/common/encrypted_file.dart';
-import 'package:restio/src/common/encrypted_file_system.dart';
-import 'package:restio/src/common/file_stream_sink.dart';
-import 'package:restio/src/common/strict_line_splitter.dart';
-import 'package:restio/src/core/cache/cache_store.dart';
-import 'package:restio/src/core/cache/editor.dart';
-import 'package:restio/src/core/cache/snapshot.dart';
+import 'package:restio/restio.dart';
+import 'package:restio_cache/src/encrypted_file.dart';
+import 'package:restio_cache/src/encrypted_file_system.dart';
+import 'package:restio_cache/src/file_stream_sink.dart';
+import 'package:restio_cache/src/strict_line_splitter.dart';
 
 // https://github.com/JakeWharton/DiskLruCache/blob/master/src/main/java/com/jakewharton/disklrucache/DiskLruCache.java
 

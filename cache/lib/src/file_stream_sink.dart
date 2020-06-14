@@ -2,7 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:restio/src/common/closeable.dart';
+import 'package:restio/restio.dart';
 
 class FileStreamSink implements StreamSink<List<int>>, Closeable {
   final IOSink _sink;

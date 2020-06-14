@@ -16,7 +16,6 @@ export 'package:restio/src/core/auth/nonce.dart';
 export 'package:restio/src/core/cache/cache.dart' show Cache;
 export 'package:restio/src/core/cache/cache_store.dart';
 export 'package:restio/src/core/cache/editor.dart';
-export 'package:restio/src/core/cache/lru_cache_store.dart';
 export 'package:restio/src/core/cache/snapshot.dart';
 export 'package:restio/src/core/cache/snapshotable.dart';
 export 'package:restio/src/core/call/call.dart';

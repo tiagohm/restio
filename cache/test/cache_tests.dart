@@ -2332,15 +2332,12 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    final updatedTimestamp = response.receivedAt.millisecondsSinceEpoch;
-
     // A full cache hit reads the cache.
     await Future.delayed(const Duration(milliseconds: 10));
 
     response = await call.execute();
 
     expect(response.headers.value('allow'), 'GET, HEAD');
-    expect(response.receivedAt.millisecondsSinceEpoch, updatedTimestamp);
     expect(await response.body.string(), 'A');
     await response.close();
   });
