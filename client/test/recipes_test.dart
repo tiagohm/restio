@@ -1603,6 +1603,35 @@ void main() {
     });
   });
 
+  test('Accept-Encoding', () async {
+    final client = Restio();
+    var request = get('https://httpbin.org/get');
+    var data = await requestJson(client, request);
+
+    expect(data['headers']['Accept-Encoding'], 'gzip, deflate, br');
+
+    request = get('https://httpbin.org/get',
+        options: const RequestOptions(http2: true));
+    data = await requestJson(client, request);
+
+    expect(data['headers']['Accept-Encoding'], 'gzip, deflate, br');
+
+    request = get('https://httpbin.org/get',
+        headers: Headers.fromMap({'Accept-Encoding': 'deflate'}));
+    data = await requestJson(client, request);
+
+    expect(data['headers']['Accept-Encoding'], 'deflate');
+
+    request = get('https://httpbin.org/get',
+        options: const RequestOptions(http2: true),
+        headers: Headers.fromMap({'Accept-Encoding': 'deflate'}));
+    data = await requestJson(client, request);
+
+    expect(data['headers']['Accept-Encoding'], 'deflate');
+
+    await client.close();
+  });
+
   test('Mocking', () async {
     final client = Restio(
       networkInterceptors: [
