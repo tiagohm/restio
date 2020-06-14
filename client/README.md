@@ -27,7 +27,7 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * WebSocket and SSE.
 * Redirect Policy.
 * HTTP/HTTP2 Connection Pool.
-* HTTP client generator inspired by [Retrofit](https://square.github.io/retrofit/). ([Documentation](/retrofit))
+* HTTP client generator inspired by [Retrofit](https://square.github.io/retrofit/). ([Documentation](https://github.com/tiagohm/restio/tree/master/retrofit))
 
 ## Installation
 
