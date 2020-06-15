@@ -161,6 +161,10 @@ abstract class HttpbinApi {
   @retrofit.Get('/gzip')
   @retrofit.Raw()
   Future<List<int>> raw();
+
+  @retrofit.Get('/get')
+  @retrofit.Http2()
+  Future<dynamic> http2();
 }
 
 class Slideshow {

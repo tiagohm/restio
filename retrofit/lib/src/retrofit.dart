@@ -7,6 +7,7 @@ import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:restio/restio.dart' as restio;
 import 'package:restio_retrofit/src/annotations.dart' as annotations;
+import 'package:restio_retrofit/src/const_expression.dart';
 import 'package:source_gen/source_gen.dart';
 
 class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
@@ -176,7 +177,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
   /// Checks if the method has an [annotation].
   static bool _hasAnnotation(
-    MethodElement m,
+    Element m,
     Type annotation,
   ) {
     return _annotation(m, annotation) != null;
@@ -805,20 +806,20 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     final auth = _generateDigestAuth(element) ?? _generateBasicAuth(element);
+    final isHttp2 = _hasAnnotation(element, annotations.Http2);
+    final params = {
+      if (auth != null) 'auth': auth,
+      if (isHttp2) 'http2': literalBool(true),
+    };
+
     Expression expr;
 
-    if (options.isNotEmpty && auth != null) {
-      expr = refer('${options[0].displayName}.copyWith').call(
-        const [],
-        {
-          'auth': auth,
-        },
-      );
+    if (options.isNotEmpty && params.isNotEmpty) {
+      expr = refer('${options[0].displayName}.copyWith').call(const [], params);
     } else if (options.isNotEmpty) {
       expr = refer(options[0].displayName);
-    } else if (auth != null) {
-      final isConst = _hasConstAuth(element);
-      final params = {'auth': auth};
+    } else if (params.isNotEmpty) {
+      final isConst = auth is ConstExpression || isHttp2;
       expr = isConst
           ? refer('RequestOptions').constInstance(const [], params)
           : refer('RequestOptions').newInstance(const [], params);
@@ -837,10 +838,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     if (type != null) {
       throw RetrofitError('Invalid BasicAuth annotation', element);
     } else if (username != null && password != null) {
-      return refer('BasicAuthenticator').constInstance(const [], {
-        'username': literal(username),
-        'password': literal(password),
-      });
+      return ConstExpression(
+        refer('BasicAuthenticator').constInstance(const [], {
+          'username': literal(username),
+          'password': literal(password),
+        }),
+      );
     }
 
     // Parameters.
@@ -879,24 +882,6 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return null;
   }
 
-  static bool _hasConstAuth(MethodElement element) {
-    var auth = _annotation(element, annotations.BasicAuth);
-
-    if (auth?.peek('user')?.stringValue != null &&
-        auth?.peek('pass')?.stringValue != null) {
-      return true;
-    }
-
-    auth = _annotation(element, annotations.DigestAuth);
-
-    if (auth?.peek('user')?.stringValue != null &&
-        auth?.peek('pass')?.stringValue != null) {
-      return true;
-    }
-
-    return false;
-  }
-
   static Expression _generateDigestAuth(MethodElement element) {
     // Method.
     var auth = _annotation(element, annotations.DigestAuth);
@@ -907,10 +892,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     if (type != null) {
       throw RetrofitError('Invalid DigestAuth annotation', element);
     } else if (username != null && password != null) {
-      return refer('DigestAuthenticator').constInstance(const [], {
-        'username': literal(username),
-        'password': literal(password),
-      });
+      return ConstExpression(
+        refer('DigestAuthenticator').constInstance(const [], {
+          'username': literal(username),
+          'password': literal(password),
+        }),
+      );
     }
 
     // Parameters.

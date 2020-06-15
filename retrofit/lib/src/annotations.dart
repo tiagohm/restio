@@ -282,6 +282,12 @@ class Converter {
   const Converter(this.type, this.converter);
 }
 
+/// Annotate a method to indicate that the request will use HTTP2.
+@immutable
+class Http2 {
+  const Http2();
+}
+
 /// Annotate a method to add Basic Authentication literally
 /// with [user] and [pass].
 ///
@@ -305,7 +311,6 @@ class BasicAuth {
         pass = null,
         type = 'pass';
 }
-
 
 /// Annotate a method to add Basic Authentication literally
 /// with [user] and [pass].

@@ -476,4 +476,18 @@ class _HttpbinApi implements HttpbinApi {
     await _response.close();
     return _body;
   }
+
+  @override
+  Future<dynamic> http2() async {
+    final _request = Request(
+        method: 'GET',
+        uri: RequestUri.parse('/get', baseUri: baseUri),
+        options: const RequestOptions(http2: true));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    HttpStatusException.throwsIfNotSuccess(_response);
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
 }
