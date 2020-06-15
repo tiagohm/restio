@@ -1,6 +1,6 @@
 name: restio_retrofit
-description: HTTP client generator for Restio ispired by Retrofit.
-version: 0.1.0+1
+description: HTTP client generator for Restio inspired by Retrofit.
+version: 0.1.0+2
 homepage: https://github.com/tiagohm/restio
 
 environment:
@@ -14,7 +14,7 @@ dependencies:
   code_builder: ^3.3.0
   build: ^1.3.0
   dart_style: ^1.3.6
-  restio: ^0.8.0
+  restio: ^0.9.0
 
 dev_dependencies:
   effective_dart: ^1.2.2
