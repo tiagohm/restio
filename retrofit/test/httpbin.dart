@@ -27,11 +27,14 @@ abstract class HttpbinApi {
   Future<dynamic> put();
 
   @retrofit.Get('/basic-auth/{user}/{passwd}')
-  Future<dynamic> basicAuth(
-    @retrofit.Path() String user,
-    @retrofit.Path('passwd') String password,
-    RequestOptions options,
+  Future<dynamic> basicAuth0(
+    @retrofit.Path() @retrofit.BasicAuth.username() String user,
+    @retrofit.Path('passwd') @retrofit.BasicAuth.password() String password,
   );
+
+  @retrofit.Get('/basic-auth/restio/1234')
+  @retrofit.BasicAuth('restio', '1234')
+  Future<dynamic> basicAuth1();
 
   @retrofit.Get('/bearer')
   Future<dynamic> bearerAuth(@retrofit.Header() String authorization);

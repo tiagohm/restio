@@ -43,9 +43,11 @@ void main() {
 
   group('Auth', () {
     test('Basic', () async {
-      const options = RequestOptions(
-          auth: BasicAuthenticator(username: 'restio', password: '1234'));
-      final data = await api.basicAuth('restio', '1234', options);
+      var data = await api.basicAuth0('restio', '1234');
+      expect(data['authenticated'], isTrue);
+      expect(data['user'], 'restio');
+
+      data = await api.basicAuth1();
       expect(data['authenticated'], isTrue);
       expect(data['user'], 'restio');
     });

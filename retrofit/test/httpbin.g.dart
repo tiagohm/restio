@@ -76,12 +76,28 @@ class _HttpbinApi implements HttpbinApi {
   }
 
   @override
-  Future<dynamic> basicAuth(
-      String user, String password, RequestOptions options) async {
+  Future<dynamic> basicAuth0(String user, String password) async {
     final _request = Request(
         method: 'GET',
         uri: RequestUri.parse('/basic-auth/$user/$password', baseUri: baseUri),
-        options: options);
+        options: RequestOptions(
+            auth: BasicAuthenticator(username: user, password: password)));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    HttpStatusException.throwsIfNotSuccess(_response);
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<dynamic> basicAuth1() async {
+    final _request = Request(
+        method: 'GET',
+        uri: RequestUri.parse('/basic-auth/restio/1234', baseUri: baseUri),
+        options: RequestOptions(
+            auth: const BasicAuthenticator(
+                username: 'restio', password: '1234')));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     HttpStatusException.throwsIfNotSuccess(_response);

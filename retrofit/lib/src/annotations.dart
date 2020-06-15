@@ -281,3 +281,27 @@ class Converter {
 
   const Converter(this.type, this.converter);
 }
+
+/// Annotate a method to add Basic Authentication literally
+/// with [user] and [pass].
+///
+/// Annotate a parameter to replace the [user] or [pass] parameter
+/// with the value of its target.
+@immutable
+class BasicAuth {
+  final String type;
+  final String user;
+  final String pass;
+
+  const BasicAuth(this.user, this.pass) : type = null;
+
+  const BasicAuth.username()
+      : user = null,
+        pass = null,
+        type = 'user';
+
+  const BasicAuth.password()
+      : user = null,
+        pass = null,
+        type = 'pass';
+}

@@ -804,8 +804,77 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           'Only should have one RuquestOption parameter', element);
     }
 
-    if (options.isNotEmpty) {
-      return refer(options[0].displayName);
+    final auth = _generateBasicAuth(element);
+    Expression expr;
+
+    if (options.isNotEmpty && auth != null) {
+      expr = refer('${options[0].displayName}.copyWith').call(
+        const [],
+        {
+          'auth': auth,
+        },
+      );
+    } else if (options.isNotEmpty) {
+      expr = refer(options[0].displayName);
+    } else if (auth != null) {
+      expr = refer('RequestOptions').call(
+        const [],
+        {
+          'auth': auth,
+        },
+      );
+    }
+
+    return expr;
+  }
+
+  static Expression _generateBasicAuth(MethodElement element) {
+    // Method.
+    var auth = _annotation(element, annotations.BasicAuth);
+    dynamic username = auth?.peek('user')?.stringValue;
+    dynamic password = auth?.peek('pass')?.stringValue;
+    var type = auth?.peek('type')?.stringValue;
+
+    if (type != null) {
+      throw RetrofitError('Invalid BasicAuth annotation', element);
+    } else if (username != null && password != null) {
+      return refer('BasicAuthenticator').constInstance(const [], {
+        'username': literal(username),
+        'password': literal(password),
+      });
+    }
+
+    // Parameters.
+    var auths = _parametersOfAnnotation(element, annotations.BasicAuth);
+    final parameters = auths.keys;
+
+    for (final p in parameters) {
+      final a = auths[p];
+      type = a.peek('type').stringValue;
+
+      if (type == null) {
+        throw RetrofitError('Invalid BasicAuth annotation', p);
+      } else if (type == 'user' && username != null) {
+        throw RetrofitError('Duplicate BasicAuth annotation', p);
+      } else if (type == 'pass' && password != null) {
+        throw RetrofitError('Duplicate BasicAuth annotation', p);
+      }
+
+      switch (type) {
+        case 'user':
+          username = refer(p.displayName);
+          break;
+        case 'pass':
+          password = refer(p.displayName);
+          break;
+      }
+    }
+
+    if (username != null && password != null) {
+      return refer('BasicAuthenticator').newInstance(const [], {
+        'username': username is String ? literal(username) : username,
+        'password': password is String ? literal(password) : password,
+      });
     }
 
     return null;
