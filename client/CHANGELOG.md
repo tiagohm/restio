@@ -1,5 +1,8 @@
+## 0.9.0
+ - Move Cache implementation to another package [restio_cache](https://pub.dev/packages/restio_cache).
+
 ## 0.8.1
- - Fix Accept-Encoding bug
+ - Fix Accept-Encoding bug.
 
 ## 0.8.0
  - Add Cache Encryption support.
