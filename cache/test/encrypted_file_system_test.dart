@@ -2,7 +2,7 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:file/memory.dart';
-import 'package:restio/src/common/encrypted_file_system.dart';
+import 'package:restio_cache/restio_cache.dart';
 import 'package:test/test.dart';
 
 import 'fernet.dart';

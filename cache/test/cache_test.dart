@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:restio/restio.dart';
+import 'package:restio_cache/restio_cache.dart';
 import 'package:test/test.dart';
 
 import 'cache_tests.dart';

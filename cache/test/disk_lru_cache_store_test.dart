@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io' as io;
 
 import 'package:restio/restio.dart';
+import 'package:restio_cache/restio_cache.dart';
 import 'package:test/test.dart';
 import 'package:path/path.dart' as path;
 

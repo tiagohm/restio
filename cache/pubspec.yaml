@@ -8,10 +8,11 @@ environment:
 
 dependencies:
   meta: ^1.1.8
-  restio: ^0.8.0
+  restio: ^0.9.0
   crypto: ^2.1.5
   convert: ^2.1.1
   file: ^5.1.0
+  path: ^1.6.4
 
 dev_dependencies:
   effective_dart: ^1.2.2
