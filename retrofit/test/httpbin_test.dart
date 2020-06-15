@@ -59,9 +59,11 @@ void main() {
     });
 
     test('Digest', () async {
-      const options = RequestOptions(
-          auth: DigestAuthenticator(username: 'restio', password: '1234'));
-      final data = await api.digestAuth('restio', '1234', options);
+      var data = await api.digestAuth0('restio', '1234');
+      expect(data['authenticated'], isTrue);
+      expect(data['user'], 'restio');
+
+      data = await api.digestAuth1();
       expect(data['authenticated'], isTrue);
       expect(data['user'], 'restio');
     });

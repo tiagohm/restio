@@ -801,10 +801,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     if (options.length > 1) {
       throw RetrofitError(
-          'Only should have one RuquestOption parameter', element);
+          'Only should have one RequestOption parameter', element);
     }
 
-    final auth = _generateBasicAuth(element);
+    final auth = _generateDigestAuth(element) ?? _generateBasicAuth(element);
     Expression expr;
 
     if (options.isNotEmpty && auth != null) {
@@ -817,12 +817,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     } else if (options.isNotEmpty) {
       expr = refer(options[0].displayName);
     } else if (auth != null) {
-      expr = refer('RequestOptions').call(
-        const [],
-        {
-          'auth': auth,
-        },
-      );
+      final isConst = _hasConstAuth(element);
+      final params = {'auth': auth};
+      expr = isConst
+          ? refer('RequestOptions').constInstance(const [], params)
+          : refer('RequestOptions').newInstance(const [], params);
     }
 
     return expr;
@@ -872,6 +871,76 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     if (username != null && password != null) {
       return refer('BasicAuthenticator').newInstance(const [], {
+        'username': username is String ? literal(username) : username,
+        'password': password is String ? literal(password) : password,
+      });
+    }
+
+    return null;
+  }
+
+  static bool _hasConstAuth(MethodElement element) {
+    var auth = _annotation(element, annotations.BasicAuth);
+
+    if (auth?.peek('user')?.stringValue != null &&
+        auth?.peek('pass')?.stringValue != null) {
+      return true;
+    }
+
+    auth = _annotation(element, annotations.DigestAuth);
+
+    if (auth?.peek('user')?.stringValue != null &&
+        auth?.peek('pass')?.stringValue != null) {
+      return true;
+    }
+
+    return false;
+  }
+
+  static Expression _generateDigestAuth(MethodElement element) {
+    // Method.
+    var auth = _annotation(element, annotations.DigestAuth);
+    dynamic username = auth?.peek('user')?.stringValue;
+    dynamic password = auth?.peek('pass')?.stringValue;
+    var type = auth?.peek('type')?.stringValue;
+
+    if (type != null) {
+      throw RetrofitError('Invalid DigestAuth annotation', element);
+    } else if (username != null && password != null) {
+      return refer('DigestAuthenticator').constInstance(const [], {
+        'username': literal(username),
+        'password': literal(password),
+      });
+    }
+
+    // Parameters.
+    var auths = _parametersOfAnnotation(element, annotations.DigestAuth);
+    final parameters = auths.keys;
+
+    for (final p in parameters) {
+      final a = auths[p];
+      type = a.peek('type').stringValue;
+
+      if (type == null) {
+        throw RetrofitError('Invalid DigestAuth annotation', p);
+      } else if (type == 'user' && username != null) {
+        throw RetrofitError('Duplicate DigestAuth annotation', p);
+      } else if (type == 'pass' && password != null) {
+        throw RetrofitError('Duplicate DigestAuth annotation', p);
+      }
+
+      switch (type) {
+        case 'user':
+          username = refer(p.displayName);
+          break;
+        case 'pass':
+          password = refer(p.displayName);
+          break;
+      }
+    }
+
+    if (username != null && password != null) {
+      return refer('DigestAuthenticator').newInstance(const [], {
         'username': username is String ? literal(username) : username,
         'password': password is String ? literal(password) : password,
       });

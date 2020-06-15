@@ -305,3 +305,28 @@ class BasicAuth {
         pass = null,
         type = 'pass';
 }
+
+
+/// Annotate a method to add Basic Authentication literally
+/// with [user] and [pass].
+///
+/// Annotate a parameter to replace the [user] or [pass] parameter
+/// with the value of its target.
+@immutable
+class DigestAuth {
+  final String type;
+  final String user;
+  final String pass;
+
+  const DigestAuth(this.user, this.pass) : type = null;
+
+  const DigestAuth.username()
+      : user = null,
+        pass = null,
+        type = 'user';
+
+  const DigestAuth.password()
+      : user = null,
+        pass = null,
+        type = 'pass';
+}

@@ -95,9 +95,8 @@ class _HttpbinApi implements HttpbinApi {
     final _request = Request(
         method: 'GET',
         uri: RequestUri.parse('/basic-auth/restio/1234', baseUri: baseUri),
-        options: RequestOptions(
-            auth: const BasicAuthenticator(
-                username: 'restio', password: '1234')));
+        options: const RequestOptions(
+            auth: BasicAuthenticator(username: 'restio', password: '1234')));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     HttpStatusException.throwsIfNotSuccess(_response);
@@ -123,13 +122,29 @@ class _HttpbinApi implements HttpbinApi {
   }
 
   @override
-  Future<dynamic> digestAuth(
-      String user, String password, RequestOptions options) async {
+  Future<dynamic> digestAuth0(String user, String password) async {
     final _request = Request(
         method: 'GET',
         uri: RequestUri.parse('/digest-auth/auth/$user/$password/MD5',
             baseUri: baseUri),
-        options: options);
+        options: RequestOptions(
+            auth: DigestAuthenticator(username: user, password: password)));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    HttpStatusException.throwsIfNotSuccess(_response);
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<dynamic> digestAuth1() async {
+    final _request = Request(
+        method: 'GET',
+        uri: RequestUri.parse('/digest-auth/auth/restio/1234/MD5',
+            baseUri: baseUri),
+        options: const RequestOptions(
+            auth: DigestAuthenticator(username: 'restio', password: '1234')));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     HttpStatusException.throwsIfNotSuccess(_response);
