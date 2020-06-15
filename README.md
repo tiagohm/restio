@@ -12,11 +12,13 @@ HTTP client for Dart inspired by [OkHttp](http://square.github.io/okhttp/) and H
 | ------- | ------ |
 | [restio](https://github.com/tiagohm/restio/tree/master/client)  | [![pub package](https://img.shields.io/pub/v/restio.svg)](https://pub.dev/packages/restio) |
 | [restio_retrofit](https://github.com/tiagohm/restio/tree/master/retrofit) | [![pub package](https://img.shields.io/pub/v/restio_retrofit.svg)](https://pub.dev/packages/restio_retrofit) |
+| [restio_cache](https://github.com/tiagohm/restio/tree/master/cache) | [![pub package](https://img.shields.io/pub/v/restio_cache.svg)](https://pub.dev/packages/restio_cache) |
 
 ### Documentation
 
 * [Restio Package](https://github.com/tiagohm/restio/tree/master/client/README.md)
 * [Retrofit Package](https://github.com/tiagohm/restio/tree/master/retrofit/README.md)
+* [Cache Package](https://github.com/tiagohm/restio/tree/master/cache/README.md)
 
 ## Maintainers
 
