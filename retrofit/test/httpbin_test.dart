@@ -53,7 +53,15 @@ void main() {
     });
 
     test('Bearer', () async {
-      final data = await api.bearerAuth('Bearer 1234');
+      var data = await api.bearerAuth0('1234');
+      expect(data['authenticated'], isTrue);
+      expect(data['token'], '1234');
+
+      data = await api.bearerAuth1();
+      expect(data['authenticated'], isTrue);
+      expect(data['token'], '1234');
+
+      data = await api.bearerAuth2('Bearer');
       expect(data['authenticated'], isTrue);
       expect(data['token'], '1234');
     });

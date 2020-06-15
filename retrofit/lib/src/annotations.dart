@@ -1,5 +1,7 @@
 import 'package:meta/meta.dart';
 
+// ignore_for_file: unused_field
+
 /// Define an API.
 @immutable
 class Api {
@@ -289,49 +291,84 @@ class Http2 {
 }
 
 /// Annotate a method to add Basic Authentication literally
-/// with [user] and [pass].
+/// with [username] and [password].
 ///
-/// Annotate a parameter to replace the [user] or [pass] parameter
+/// Annotate a parameter to replace the [username] or [password] parameter
 /// with the value of its target.
 @immutable
 class BasicAuth {
   final String type;
-  final String user;
-  final String pass;
+  final String _username;
+  final String _password;
 
-  const BasicAuth(this.user, this.pass) : type = null;
+  const BasicAuth(String username, String password)
+      : _username = username,
+        _password = password,
+        type = null;
 
   const BasicAuth.username()
-      : user = null,
-        pass = null,
+      : _username = null,
+        _password = null,
         type = 'user';
 
   const BasicAuth.password()
-      : user = null,
-        pass = null,
+      : _username = null,
+        _password = null,
         type = 'pass';
 }
 
-/// Annotate a method to add Basic Authentication literally
-/// with [user] and [pass].
+/// Annotate a method to add Digest Authentication literally
+/// with [username] and [password].
 ///
-/// Annotate a parameter to replace the [user] or [pass] parameter
+/// Annotate a parameter to replace the [username] or [password] parameter
 /// with the value of its target.
 @immutable
 class DigestAuth {
   final String type;
-  final String user;
-  final String pass;
+  final String _username;
+  final String _password;
 
-  const DigestAuth(this.user, this.pass) : type = null;
+  const DigestAuth(String username, String password)
+      : _username = username,
+        _password = password,
+        type = null;
 
   const DigestAuth.username()
-      : user = null,
-        pass = null,
+      : _username = null,
+        _password = null,
         type = 'user';
 
   const DigestAuth.password()
-      : user = null,
-        pass = null,
+      : _username = null,
+        _password = null,
         type = 'pass';
+}
+
+/// Annotate a method to add Bearer Authentication literally
+/// with [token] and [prefix].
+///
+/// Annotate a parameter to replace the [token] or [prefix] parameter
+/// with the value of its target.
+@immutable
+class BearerAuth {
+  final String type;
+  final String _token;
+  final String _prefix;
+
+  const BearerAuth(
+    String token, {
+    String prefix,
+  })  : _token = token,
+        _prefix = prefix,
+        type = null;
+
+  const BearerAuth.token()
+      : _token = null,
+        _prefix = null,
+        type = 'token';
+
+  const BearerAuth.prefix()
+      : _token = null,
+        _prefix = null,
+        type = 'prefix';
 }

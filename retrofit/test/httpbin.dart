@@ -37,7 +37,15 @@ abstract class HttpbinApi {
   Future<dynamic> basicAuth1();
 
   @retrofit.Get('/bearer')
-  Future<dynamic> bearerAuth(@retrofit.Header() String authorization);
+  Future<dynamic> bearerAuth0(@retrofit.BearerAuth.token() String token);
+
+  @retrofit.Get('/bearer')
+  @retrofit.BearerAuth('1234')
+  Future<dynamic> bearerAuth1();
+
+  @retrofit.Get('/bearer')
+  @retrofit.BearerAuth('1234')
+  Future<dynamic> bearerAuth2(@retrofit.BearerAuth.prefix() String prefix);
 
   @retrofit.Get('/digest-auth/auth/{user}/{passwd}/MD5')
   Future<dynamic> digestAuth0(

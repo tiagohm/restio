@@ -106,13 +106,41 @@ class _HttpbinApi implements HttpbinApi {
   }
 
   @override
-  Future<dynamic> bearerAuth(String authorization) async {
-    final _headers = HeadersBuilder();
-    _headers.add('authorization', '$authorization');
+  Future<dynamic> bearerAuth0(String token) async {
     final _request = Request(
         method: 'GET',
         uri: RequestUri.parse('/bearer', baseUri: baseUri),
-        headers: _headers.build());
+        options: RequestOptions(auth: BearerAuthenticator(token: token)));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    HttpStatusException.throwsIfNotSuccess(_response);
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<dynamic> bearerAuth1() async {
+    final _request = Request(
+        method: 'GET',
+        uri: RequestUri.parse('/bearer', baseUri: baseUri),
+        options:
+            const RequestOptions(auth: BearerAuthenticator(token: '1234')));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    HttpStatusException.throwsIfNotSuccess(_response);
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<dynamic> bearerAuth2(String prefix) async {
+    final _request = Request(
+        method: 'GET',
+        uri: RequestUri.parse('/bearer', baseUri: baseUri),
+        options: RequestOptions(
+            auth: BearerAuthenticator(token: '1234', prefix: prefix)));
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     HttpStatusException.throwsIfNotSuccess(_response);

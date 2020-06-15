@@ -805,7 +805,9 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           'Only should have one RequestOption parameter', element);
     }
 
-    final auth = _generateDigestAuth(element) ?? _generateBasicAuth(element);
+    final auth = _generateBearerAuth(element) ??
+        _generateDigestAuth(element) ??
+        _generateBasicAuth(element);
     final isHttp2 = _hasAnnotation(element, annotations.Http2);
     final params = {
       if (auth != null) 'auth': auth,
@@ -831,8 +833,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   static Expression _generateBasicAuth(MethodElement element) {
     // Method.
     var auth = _annotation(element, annotations.BasicAuth);
-    dynamic username = auth?.peek('user')?.stringValue;
-    dynamic password = auth?.peek('pass')?.stringValue;
+    dynamic username = auth?.peek('_username')?.stringValue;
+    dynamic password = auth?.peek('_password')?.stringValue;
     var type = auth?.peek('type')?.stringValue;
 
     if (type != null) {
@@ -885,8 +887,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
   static Expression _generateDigestAuth(MethodElement element) {
     // Method.
     var auth = _annotation(element, annotations.DigestAuth);
-    dynamic username = auth?.peek('user')?.stringValue;
-    dynamic password = auth?.peek('pass')?.stringValue;
+    dynamic username = auth?.peek('_username')?.stringValue;
+    dynamic password = auth?.peek('_password')?.stringValue;
     var type = auth?.peek('type')?.stringValue;
 
     if (type != null) {
@@ -931,6 +933,66 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
         'username': username is String ? literal(username) : username,
         'password': password is String ? literal(password) : password,
       });
+    }
+
+    return null;
+  }
+
+  static Expression _generateBearerAuth(MethodElement element) {
+    // Method.
+    var auth = _annotation(element, annotations.BearerAuth);
+    dynamic token = auth?.peek('_token')?.stringValue;
+    dynamic prefix = auth?.peek('_prefix')?.stringValue;
+    var type = auth?.peek('type')?.stringValue;
+
+    if (type != null) {
+      throw RetrofitError('Invalid BearerAuth annotation', element);
+    } else if (token != null && prefix != null) {
+      return ConstExpression(
+        refer('BearerAuthenticator').constInstance(const [], {
+          'token': literal(token),
+          'prefix': literal(prefix),
+        }),
+      );
+    }
+
+    // Parameters.
+    var auths = _parametersOfAnnotation(element, annotations.BearerAuth);
+    final parameters = auths.keys;
+
+    for (final p in parameters) {
+      final a = auths[p];
+      type = a.peek('type').stringValue;
+
+      if (type == null) {
+        throw RetrofitError('Invalid BearerAuth annotation', p);
+      } else if (type == 'token' && token != null) {
+        throw RetrofitError('Duplicate BearerAuth annotation', p);
+      } else if (type == 'prefix' && prefix != null) {
+        throw RetrofitError('Duplicate BearerAuth annotation', p);
+      }
+
+      switch (type) {
+        case 'token':
+          token = refer(p.displayName);
+          break;
+        case 'prefix':
+          prefix = refer(p.displayName);
+          break;
+      }
+    }
+
+    if (token != null) {
+      final isConst = token is String && prefix is! Expression;
+      final authenticator = refer('BearerAuthenticator').newInstance(
+        const [],
+        {
+          'token': token is String ? literal(token) : token,
+          if (prefix != null)
+            'prefix': prefix is String ? literal(prefix) : prefix,
+        },
+      );
+      return isConst ? ConstExpression(authenticator) : authenticator;
     }
 
     return null;
