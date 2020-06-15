@@ -4,7 +4,7 @@ HTTP client generator for Restio inspired by [Retrofit](https://square.github.io
 
 ## Installation
 
-In `pubspec.yaml` add the following dev_dependencies:
+In `pubspec.yaml` add the following dev dependencies:
 
 ```yaml
 dev_dependencies:
