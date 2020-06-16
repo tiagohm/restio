@@ -796,19 +796,20 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return null;
   }
 
-  static Expression _generateRequestOptions(MethodElement element) {
+  static Expression _generateRequestOptions(MethodElement method) {
     // @Options.
-    final options = _parametersOfType(element, restio.RequestOptions);
+    final options = _parametersOfType(method, restio.RequestOptions);
 
     if (options.length > 1) {
       throw RetrofitError(
-          'Only should have one RequestOption parameter', element);
+          'Only should have one RequestOption parameter', method);
     }
 
-    final auth = _generateBearerAuth(element) ??
-        _generateDigestAuth(element) ??
-        _generateBasicAuth(element);
-    final isHttp2 = _hasAnnotation(element, annotations.Http2);
+    final auth = _generateHawkAuth(method) ??
+        _generateBearerAuth(method) ??
+        _generateDigestAuth(method) ??
+        _generateBasicAuth(method);
+    final isHttp2 = _hasAnnotation(method, annotations.Http2);
     final params = {
       if (auth != null) 'auth': auth,
       if (isHttp2) 'http2': literalBool(true),
@@ -846,6 +847,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     // Parameters.
+
+    // Username.
     var parameters =
         _parametersOfAnnotation(element, annotations.BasicUsername);
 
@@ -858,6 +861,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       username = refer(parameters.keys.first.displayName);
     }
 
+    // Password.
     parameters = _parametersOfAnnotation(element, annotations.BasicPassword);
 
     if (parameters.length > 1) {
@@ -866,6 +870,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     if (parameters.isNotEmpty) {
+      parameters.keys.first.throwsIfNot(String);
       password = refer(parameters.keys.first.displayName);
     }
 
@@ -895,6 +900,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     // Parameters.
+
+    // Username.
     var parameters =
         _parametersOfAnnotation(element, annotations.DigestUsername);
 
@@ -904,9 +911,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     if (parameters.isNotEmpty) {
+      parameters.keys.first.throwsIfNot(String);
       username = refer(parameters.keys.first.displayName);
     }
 
+    // Password.
     parameters = _parametersOfAnnotation(element, annotations.DigestPassword);
 
     if (parameters.length > 1) {
@@ -915,6 +924,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     if (parameters.isNotEmpty) {
+      parameters.keys.first.throwsIfNot(String);
       password = refer(parameters.keys.first.displayName);
     }
 
@@ -944,6 +954,8 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     // Parameters.
+
+    // Token.
     var parameters = _parametersOfAnnotation(element, annotations.BearerToken);
 
     if (parameters.length > 1) {
@@ -952,9 +964,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     if (parameters.isNotEmpty) {
+      parameters.keys.first.throwsIfNot(String);
       token = refer(parameters.keys.first.displayName);
     }
 
+    // Prefix.
     parameters = _parametersOfAnnotation(element, annotations.BearerPrefix);
 
     if (parameters.length > 1) {
@@ -963,6 +977,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     if (parameters.isNotEmpty) {
+      parameters.keys.first.throwsIfNot(String);
       prefix = refer(parameters.keys.first.displayName);
     }
 
@@ -974,6 +989,102 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           'token': token is String ? literal(token) : token,
           if (prefix != null)
             'prefix': prefix is String ? literal(prefix) : prefix,
+        },
+      );
+      return isConst ? ConstExpression(authenticator) : authenticator;
+    }
+
+    return null;
+  }
+
+  static Expression _generateHawkAuth(MethodElement element) {
+    // Method.
+    final auth = _annotation(element, annotations.HawkAuth);
+    dynamic key = auth?.peek('key')?.stringValue;
+    dynamic id = auth?.peek('id')?.stringValue;
+    dynamic algorithm = auth?.peek('algorithm')?.revive()?.accessor;
+    dynamic ext = auth?.peek('ext')?.stringValue;
+
+    if (key != null && id != null && algorithm != null && ext != null) {
+      return ConstExpression(
+        refer('HawkAuthenticator').constInstance(const [], {
+          'key': literal(key),
+          'id': literal(id),
+          'algorithm': refer('HawkAlgorithm.$algorithm'),
+          'ext': literal(ext),
+        }),
+      );
+    }
+
+    // Parameters.
+
+    // Key.
+    var parameters = _parametersOfAnnotation(element, annotations.HawkKey);
+
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @HawkKey annotated parameter', element);
+    }
+
+    if (parameters.isNotEmpty) {
+      parameters.keys.first.throwsIfNot(String);
+      key = refer(parameters.keys.first.displayName);
+    }
+
+    // Id.
+    parameters = _parametersOfAnnotation(element, annotations.HawkId);
+
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @HawkId annotated parameter', element);
+    }
+
+    if (parameters.isNotEmpty) {
+      parameters.keys.first.throwsIfNot(String);
+      id = refer(parameters.keys.first.displayName);
+    }
+
+    // Algorithm.
+    parameters = _parametersOfAnnotation(element, annotations.HawkAlgorithm);
+
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @HawkAlgorithm annotated parameter', element);
+    }
+
+    if (parameters.isNotEmpty) {
+      parameters.keys.first.throwsIfNot(restio.HawkAlgorithm);
+      algorithm = refer(parameters.keys.first.displayName);
+    }
+
+    // Ext.
+    parameters = _parametersOfAnnotation(element, annotations.HawkExt);
+
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @HawkExt annotated parameter', element);
+    }
+
+    if (parameters.isNotEmpty) {
+      parameters.keys.first.throwsIfNot(String);
+      ext = refer(parameters.keys.first.displayName);
+    }
+
+    if (key != null && id != null) {
+      final isConst = key is String &&
+          id is String &&
+          algorithm is! Expression &&
+          ext is! Expression;
+      final authenticator = refer('HawkAuthenticator').newInstance(
+        const [],
+        {
+          'key': key is String ? literal(key) : key,
+          'id': id is String ? literal(id) : id,
+          if (algorithm != null)
+            'algorithm': algorithm is String
+                ? refer(algorithm)
+                : algorithm,
+          if (ext != null) 'ext': ext is String ? literal(ext) : ext,
         },
       );
       return isConst ? ConstExpression(authenticator) : authenticator;
@@ -1254,19 +1365,25 @@ Builder generatorFactoryBuilder(BuilderOptions options) => SharedPartBuilder(
 Builder retrofitBuilder(BuilderOptions options) =>
     generatorFactoryBuilder(options);
 
+extension ParameterElementExtension on ParameterElement {
+  void throwsIfNot(Type type) {
+    if (!this.type.isExactlyType(type)) {
+      throw RetrofitError('Invalid parameter type', this);
+    }
+  }
+}
+
 extension DartTypeExtension on DartType {
+  TypeChecker toTypeChecker() {
+    return TypeChecker.fromStatic(this);
+  }
+
   bool get isDartStream {
     return element != null && element.name == "Stream";
   }
 
   bool get isDartAsyncStream {
     return isDartStream && element.library.isDartAsync;
-  }
-}
-
-extension DartTypeExtenstion on DartType {
-  TypeChecker toTypeChecker() {
-    return TypeChecker.fromStatic(this);
   }
 
   bool isExactlyType(

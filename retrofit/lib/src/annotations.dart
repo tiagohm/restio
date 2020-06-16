@@ -1,4 +1,5 @@
 import 'package:meta/meta.dart';
+import 'package:restio/restio.dart' as restio;
 
 // ignore_for_file: unused_field
 
@@ -370,4 +371,49 @@ class BearerToken extends AuthPart {
 @immutable
 class BearerPrefix extends AuthPart {
   const BearerPrefix() : super('prefix');
+}
+
+/// Annotate a method to add Hawk Authentication literally
+/// with [key], [id], [algorithm] and [ext].
+@immutable
+class HawkAuth {
+  final String key;
+  final String id;
+  final restio.HawkAlgorithm algorithm;
+  final String ext;
+
+  const HawkAuth(
+    this.key,
+    this.id, {
+    this.algorithm,
+    this.ext,
+  });
+}
+
+/// Annotate a parameter to replace the Hawk authentication key
+/// with the value of its target.
+@immutable
+class HawkKey extends AuthPart {
+  const HawkKey() : super('key');
+}
+
+/// Annotate a parameter to replace the Hawk authentication id
+/// with the value of its target.
+@immutable
+class HawkId extends AuthPart {
+  const HawkId() : super('id');
+}
+
+/// Annotate a parameter to replace the Hawk authentication algorithm
+/// with the value of its target.
+@immutable
+class HawkAlgorithm extends AuthPart {
+  const HawkAlgorithm() : super('algorithm');
+}
+
+/// Annotate a parameter to replace the Hawk authentication ext
+/// with the value of its target.
+@immutable
+class HawkExt extends AuthPart {
+  const HawkExt() : super('ext');
 }

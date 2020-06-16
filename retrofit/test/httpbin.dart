@@ -47,6 +47,18 @@ abstract class HttpbinApi {
   @retrofit.BearerAuth('1234')
   Future<dynamic> bearerAuth2(@retrofit.BearerPrefix() String prefix);
 
+  @retrofit.Get('/hawk')
+  Future<dynamic> hawkAuth0(
+    @retrofit.HawkKey() String key,
+    @retrofit.HawkId() String id,
+    @retrofit.HawkAlgorithm() HawkAlgorithm algorithm,
+    @retrofit.HawkExt() String ext,
+  );
+
+  @retrofit.Get('/hawk')
+  @retrofit.HawkAuth('1234', '5678', algorithm: HawkAlgorithm.sha1)
+  Future<dynamic> hawkAuth1();
+
   @retrofit.Get('/digest-auth/auth/{user}/{passwd}/MD5')
   Future<dynamic> digestAuth0(
     @retrofit.Path() @retrofit.DigestUsername() String user,

@@ -150,6 +150,39 @@ class _HttpbinApi implements HttpbinApi {
   }
 
   @override
+  Future<dynamic> hawkAuth0(
+      String key, String id, HawkAlgorithm algorithm, String ext) async {
+    final _request = Request(
+        method: 'GET',
+        uri: RequestUri.parse('/hawk', baseUri: baseUri),
+        options: RequestOptions(
+            auth: HawkAuthenticator(
+                key: key, id: id, algorithm: algorithm, ext: ext)));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    HttpStatusException.throwsIfNotSuccess(_response);
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
+
+  @override
+  Future<dynamic> hawkAuth1() async {
+    final _request = Request(
+        method: 'GET',
+        uri: RequestUri.parse('/hawk', baseUri: baseUri),
+        options: const RequestOptions(
+            auth: HawkAuthenticator(
+                key: '1234', id: '5678', algorithm: HawkAlgorithm.sha1)));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    HttpStatusException.throwsIfNotSuccess(_response);
+    final _body = await _response.body.json();
+    await _response.close();
+    return _body;
+  }
+
+  @override
   Future<dynamic> digestAuth0(String user, String password) async {
     final _request = Request(
         method: 'GET',
