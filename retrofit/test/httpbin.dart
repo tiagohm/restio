@@ -28,8 +28,8 @@ abstract class HttpbinApi {
 
   @retrofit.Get('/basic-auth/{user}/{passwd}')
   Future<dynamic> basicAuth0(
-    @retrofit.Path() @retrofit.BasicAuth.username() String user,
-    @retrofit.Path('passwd') @retrofit.BasicAuth.password() String password,
+    @retrofit.Path() @retrofit.BasicUsername() String user,
+    @retrofit.Path('passwd') @retrofit.BasicPassword() String password,
   );
 
   @retrofit.Get('/basic-auth/restio/1234')
@@ -37,7 +37,7 @@ abstract class HttpbinApi {
   Future<dynamic> basicAuth1();
 
   @retrofit.Get('/bearer')
-  Future<dynamic> bearerAuth0(@retrofit.BearerAuth.token() String token);
+  Future<dynamic> bearerAuth0(@retrofit.BearerToken() String token);
 
   @retrofit.Get('/bearer')
   @retrofit.BearerAuth('1234')
@@ -45,12 +45,12 @@ abstract class HttpbinApi {
 
   @retrofit.Get('/bearer')
   @retrofit.BearerAuth('1234')
-  Future<dynamic> bearerAuth2(@retrofit.BearerAuth.prefix() String prefix);
+  Future<dynamic> bearerAuth2(@retrofit.BearerPrefix() String prefix);
 
   @retrofit.Get('/digest-auth/auth/{user}/{passwd}/MD5')
   Future<dynamic> digestAuth0(
-    @retrofit.Path() @retrofit.DigestAuth.username() String user,
-    @retrofit.Path('passwd') @retrofit.DigestAuth.password() String password,
+    @retrofit.Path() @retrofit.DigestUsername() String user,
+    @retrofit.Path('passwd') @retrofit.DigestPassword() String password,
   );
 
   @retrofit.Get('/digest-auth/auth/restio/1234/MD5')

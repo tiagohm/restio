@@ -832,14 +832,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
   static Expression _generateBasicAuth(MethodElement element) {
     // Method.
-    var auth = _annotation(element, annotations.BasicAuth);
-    dynamic username = auth?.peek('_username')?.stringValue;
-    dynamic password = auth?.peek('_password')?.stringValue;
-    var type = auth?.peek('type')?.stringValue;
+    final auth = _annotation(element, annotations.BasicAuth);
+    dynamic username = auth?.peek('username')?.stringValue;
+    dynamic password = auth?.peek('password')?.stringValue;
 
-    if (type != null) {
-      throw RetrofitError('Invalid BasicAuth annotation', element);
-    } else if (username != null && password != null) {
+    if (username != null && password != null) {
       return ConstExpression(
         refer('BasicAuthenticator').constInstance(const [], {
           'username': literal(username),
@@ -849,29 +846,27 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     // Parameters.
-    var auths = _parametersOfAnnotation(element, annotations.BasicAuth);
-    final parameters = auths.keys;
+    var parameters =
+        _parametersOfAnnotation(element, annotations.BasicUsername);
 
-    for (final p in parameters) {
-      final a = auths[p];
-      type = a.peek('type').stringValue;
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @BasicUsername annotated parameter', element);
+    }
 
-      if (type == null) {
-        throw RetrofitError('Invalid BasicAuth annotation', p);
-      } else if (type == 'user' && username != null) {
-        throw RetrofitError('Duplicate BasicAuth annotation', p);
-      } else if (type == 'pass' && password != null) {
-        throw RetrofitError('Duplicate BasicAuth annotation', p);
-      }
+    if (parameters.isNotEmpty) {
+      username = refer(parameters.keys.first.displayName);
+    }
 
-      switch (type) {
-        case 'user':
-          username = refer(p.displayName);
-          break;
-        case 'pass':
-          password = refer(p.displayName);
-          break;
-      }
+    parameters = _parametersOfAnnotation(element, annotations.BasicPassword);
+
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @BasicPassword annotated parameter', element);
+    }
+
+    if (parameters.isNotEmpty) {
+      password = refer(parameters.keys.first.displayName);
     }
 
     if (username != null && password != null) {
@@ -886,14 +881,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
   static Expression _generateDigestAuth(MethodElement element) {
     // Method.
-    var auth = _annotation(element, annotations.DigestAuth);
-    dynamic username = auth?.peek('_username')?.stringValue;
-    dynamic password = auth?.peek('_password')?.stringValue;
-    var type = auth?.peek('type')?.stringValue;
+    final auth = _annotation(element, annotations.DigestAuth);
+    dynamic username = auth?.peek('username')?.stringValue;
+    dynamic password = auth?.peek('password')?.stringValue;
 
-    if (type != null) {
-      throw RetrofitError('Invalid DigestAuth annotation', element);
-    } else if (username != null && password != null) {
+    if (username != null && password != null) {
       return ConstExpression(
         refer('DigestAuthenticator').constInstance(const [], {
           'username': literal(username),
@@ -903,29 +895,27 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     // Parameters.
-    var auths = _parametersOfAnnotation(element, annotations.DigestAuth);
-    final parameters = auths.keys;
+    var parameters =
+        _parametersOfAnnotation(element, annotations.DigestUsername);
 
-    for (final p in parameters) {
-      final a = auths[p];
-      type = a.peek('type').stringValue;
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @DigestUsername annotated parameter', element);
+    }
 
-      if (type == null) {
-        throw RetrofitError('Invalid DigestAuth annotation', p);
-      } else if (type == 'user' && username != null) {
-        throw RetrofitError('Duplicate DigestAuth annotation', p);
-      } else if (type == 'pass' && password != null) {
-        throw RetrofitError('Duplicate DigestAuth annotation', p);
-      }
+    if (parameters.isNotEmpty) {
+      username = refer(parameters.keys.first.displayName);
+    }
 
-      switch (type) {
-        case 'user':
-          username = refer(p.displayName);
-          break;
-        case 'pass':
-          password = refer(p.displayName);
-          break;
-      }
+    parameters = _parametersOfAnnotation(element, annotations.DigestPassword);
+
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @DigestPassword annotated parameter', element);
+    }
+
+    if (parameters.isNotEmpty) {
+      password = refer(parameters.keys.first.displayName);
     }
 
     if (username != null && password != null) {
@@ -940,14 +930,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
   static Expression _generateBearerAuth(MethodElement element) {
     // Method.
-    var auth = _annotation(element, annotations.BearerAuth);
-    dynamic token = auth?.peek('_token')?.stringValue;
-    dynamic prefix = auth?.peek('_prefix')?.stringValue;
-    var type = auth?.peek('type')?.stringValue;
+    final auth = _annotation(element, annotations.BearerAuth);
+    dynamic token = auth?.peek('token')?.stringValue;
+    dynamic prefix = auth?.peek('prefix')?.stringValue;
 
-    if (type != null) {
-      throw RetrofitError('Invalid BearerAuth annotation', element);
-    } else if (token != null && prefix != null) {
+    if (token != null && prefix != null) {
       return ConstExpression(
         refer('BearerAuthenticator').constInstance(const [], {
           'token': literal(token),
@@ -957,29 +944,26 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
 
     // Parameters.
-    var auths = _parametersOfAnnotation(element, annotations.BearerAuth);
-    final parameters = auths.keys;
+    var parameters = _parametersOfAnnotation(element, annotations.BearerToken);
 
-    for (final p in parameters) {
-      final a = auths[p];
-      type = a.peek('type').stringValue;
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @BearerToken annotated parameter', element);
+    }
 
-      if (type == null) {
-        throw RetrofitError('Invalid BearerAuth annotation', p);
-      } else if (type == 'token' && token != null) {
-        throw RetrofitError('Duplicate BearerAuth annotation', p);
-      } else if (type == 'prefix' && prefix != null) {
-        throw RetrofitError('Duplicate BearerAuth annotation', p);
-      }
+    if (parameters.isNotEmpty) {
+      token = refer(parameters.keys.first.displayName);
+    }
 
-      switch (type) {
-        case 'token':
-          token = refer(p.displayName);
-          break;
-        case 'prefix':
-          prefix = refer(p.displayName);
-          break;
-      }
+    parameters = _parametersOfAnnotation(element, annotations.BearerPrefix);
+
+    if (parameters.length > 1) {
+      throw RetrofitError(
+          'Only should have one @BearerPrefix annotated parameter', element);
+    }
+
+    if (parameters.isNotEmpty) {
+      prefix = refer(parameters.keys.first.displayName);
     }
 
     if (token != null) {

@@ -290,85 +290,84 @@ class Http2 {
   const Http2();
 }
 
+@immutable
+abstract class AuthPart {
+  final String type;
+
+  const AuthPart(this.type);
+}
+
 /// Annotate a method to add Basic Authentication literally
 /// with [username] and [password].
-///
-/// Annotate a parameter to replace the [username] or [password] parameter
-/// with the value of its target.
 @immutable
 class BasicAuth {
-  final String type;
-  final String _username;
-  final String _password;
+  final String username;
+  final String password;
 
-  const BasicAuth(String username, String password)
-      : _username = username,
-        _password = password,
-        type = null;
+  const BasicAuth(this.username, this.password);
+}
 
-  const BasicAuth.username()
-      : _username = null,
-        _password = null,
-        type = 'user';
+/// Annotate a parameter to replace the Basic authentication username
+/// with the value of its target.
+@immutable
+class BasicUsername extends AuthPart {
+  const BasicUsername() : super('username');
+}
 
-  const BasicAuth.password()
-      : _username = null,
-        _password = null,
-        type = 'pass';
+/// Annotate a parameter to replace the Basic authentication password
+/// with the value of its target.
+@immutable
+class BasicPassword extends AuthPart {
+  const BasicPassword() : super('password');
 }
 
 /// Annotate a method to add Digest Authentication literally
 /// with [username] and [password].
-///
-/// Annotate a parameter to replace the [username] or [password] parameter
-/// with the value of its target.
 @immutable
 class DigestAuth {
-  final String type;
-  final String _username;
-  final String _password;
+  final String username;
+  final String password;
 
-  const DigestAuth(String username, String password)
-      : _username = username,
-        _password = password,
-        type = null;
+  const DigestAuth(this.username, this.password);
+}
 
-  const DigestAuth.username()
-      : _username = null,
-        _password = null,
-        type = 'user';
+/// Annotate a parameter to replace the Digest authentication username
+/// with the value of its target.
+@immutable
+class DigestUsername extends AuthPart {
+  const DigestUsername() : super('username');
+}
 
-  const DigestAuth.password()
-      : _username = null,
-        _password = null,
-        type = 'pass';
+/// Annotate a parameter to replace the Digest authentication password
+/// with the value of its target.
+@immutable
+class DigestPassword extends AuthPart {
+  const DigestPassword() : super('password');
 }
 
 /// Annotate a method to add Bearer Authentication literally
 /// with [token] and [prefix].
-///
-/// Annotate a parameter to replace the [token] or [prefix] parameter
-/// with the value of its target.
 @immutable
 class BearerAuth {
-  final String type;
-  final String _token;
-  final String _prefix;
+  final String token;
+  final String prefix;
 
   const BearerAuth(
-    String token, {
-    String prefix,
-  })  : _token = token,
-        _prefix = prefix,
-        type = null;
+    this.token, {
+    this.prefix,
+  });
+}
 
-  const BearerAuth.token()
-      : _token = null,
-        _prefix = null,
-        type = 'token';
+/// Annotate a parameter to replace the Bearer authentication token
+/// with the value of its target.
+@immutable
+class BearerToken extends AuthPart {
+  const BearerToken() : super('token');
+}
 
-  const BearerAuth.prefix()
-      : _token = null,
-        _prefix = null,
-        type = 'prefix';
+/// Annotate a parameter to replace the Bearer authentication prefix
+/// with the value of its target.
+@immutable
+class BearerPrefix extends AuthPart {
+  const BearerPrefix() : super('prefix');
 }
