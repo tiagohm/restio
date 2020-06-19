@@ -7,7 +7,6 @@ import 'package:code_builder/code_builder.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:restio/restio.dart' as restio;
 import 'package:restio_retrofit/src/annotations.dart' as annotations;
-import 'package:restio_retrofit/src/const_expression.dart';
 import 'package:source_gen/source_gen.dart';
 
 class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
@@ -20,7 +19,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     // Must be a class.
     if (element is! ClassElement) {
       final name = element.name;
-      throw RetrofitError('Generator can not target `$name`.', element);
+      throw RetrofitError('Generator can not target $name.', element);
     }
     // Returns the generated API class.
     return _generate(element, annotation);
@@ -796,20 +795,20 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     return null;
   }
 
-  static Expression _generateRequestOptions(MethodElement method) {
+  static Expression _generateRequestOptions(MethodElement element) {
     // @Options.
-    final options = _parametersOfType(method, restio.RequestOptions);
+    final options = _parametersOfType(element, restio.RequestOptions);
 
     if (options.length > 1) {
       throw RetrofitError(
-          'Only should have one RequestOption parameter', method);
+          'Only should have one RequestOption parameter', element);
     }
 
-    final auth = _generateHawkAuth(method) ??
-        _generateBearerAuth(method) ??
-        _generateDigestAuth(method) ??
-        _generateBasicAuth(method);
-    final isHttp2 = _hasAnnotation(method, annotations.Http2);
+    final auth = _generateHawkAuth(element) ??
+        _generateBearerAuth(element) ??
+        _generateDigestAuth(element) ??
+        _generateBasicAuth(element);
+    final isHttp2 = _hasAnnotation(element, annotations.Http2);
     final params = {
       if (auth != null) 'auth': auth,
       if (isHttp2) 'http2': literalBool(true),
@@ -822,7 +821,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     } else if (options.isNotEmpty) {
       expr = refer(options[0].displayName);
     } else if (params.isNotEmpty) {
-      final isConst = auth is ConstExpression || isHttp2;
+      final isConst = auth is _ConstExpression || isHttp2;
       expr = isConst
           ? refer('RequestOptions').constInstance(const [], params)
           : refer('RequestOptions').newInstance(const [], params);
@@ -838,7 +837,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     dynamic password = auth?.peek('password')?.stringValue;
 
     if (username != null && password != null) {
-      return ConstExpression(
+      return _ConstExpression(
         refer('BasicAuthenticator').constInstance(const [], {
           'username': literal(username),
           'password': literal(password),
@@ -891,7 +890,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     dynamic password = auth?.peek('password')?.stringValue;
 
     if (username != null && password != null) {
-      return ConstExpression(
+      return _ConstExpression(
         refer('DigestAuthenticator').constInstance(const [], {
           'username': literal(username),
           'password': literal(password),
@@ -945,7 +944,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     dynamic prefix = auth?.peek('prefix')?.stringValue;
 
     if (token != null && prefix != null) {
-      return ConstExpression(
+      return _ConstExpression(
         refer('BearerAuthenticator').constInstance(const [], {
           'token': literal(token),
           'prefix': literal(prefix),
@@ -991,7 +990,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             'prefix': prefix is String ? literal(prefix) : prefix,
         },
       );
-      return isConst ? ConstExpression(authenticator) : authenticator;
+      return isConst ? _ConstExpression(authenticator) : authenticator;
     }
 
     return null;
@@ -1006,7 +1005,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     dynamic ext = auth?.peek('ext')?.stringValue;
 
     if (key != null && id != null && algorithm != null && ext != null) {
-      return ConstExpression(
+      return _ConstExpression(
         refer('HawkAuthenticator').constInstance(const [], {
           'key': literal(key),
           'id': literal(id),
@@ -1081,13 +1080,11 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           'key': key is String ? literal(key) : key,
           'id': id is String ? literal(id) : id,
           if (algorithm != null)
-            'algorithm': algorithm is String
-                ? refer(algorithm)
-                : algorithm,
+            'algorithm': algorithm is String ? refer(algorithm) : algorithm,
           if (ext != null) 'ext': ext is String ? literal(ext) : ext,
         },
       );
-      return isConst ? ConstExpression(authenticator) : authenticator;
+      return isConst ? _ConstExpression(authenticator) : authenticator;
     }
 
     return null;
@@ -1434,6 +1431,18 @@ extension DartTypeExtension on DartType {
     } else {
       return [type];
     }
+  }
+}
+
+class _ConstExpression extends Expression {
+  @override
+  final Expression expression;
+
+  const _ConstExpression(this.expression);
+
+  @override
+  R accept<R>(ExpressionVisitor<R> visitor, [R context]) {
+    return expression.accept<R>(visitor, context);
   }
 }
 
