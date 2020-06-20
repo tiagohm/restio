@@ -521,6 +521,8 @@ You can add additional converters for other popular formats or just change the d
 
 ```dart
 class FlutterBodyConverter extends BodyConverter {
+  const FlutterBodyConverter();
+  
   @override
   Future<String> encode<T>(
     T value,
@@ -549,6 +551,16 @@ class FlutterBodyConverter extends BodyConverter {
     }
   }
 }
+
+// Set the global custom converter.
+Restio.bodyConverter = const FlutterBodyConverter();
+
+// Encoding using the custom converter.
+final user = User(...);
+final body = RequestBody.encode(user, contentType: MediaType.json);
+
+// Decoding using the custom converter.
+final user = await responseBody.decode<User>();
 ```
 
 ### Mocking
