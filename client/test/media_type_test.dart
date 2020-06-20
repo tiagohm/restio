@@ -7,16 +7,17 @@ import 'package:test/test.dart';
 void main() {
   test('Parse', () {
     final mediaType = MediaType.parse('text/plain;boundary=foo; charset=utf-8');
+    expect(mediaType.name, 'Content-Type');
     expect(mediaType.type, 'text');
     expect(mediaType.subType, 'plain');
     expect(mediaType.charset, 'utf-8');
     expect(mediaType.boundary, 'foo');
-    expect(
-        mediaType.toHeaderString(), 'text/plain; boundary=foo; charset=utf-8');
+    expect(mediaType.value, 'text/plain; boundary=foo; charset=utf-8');
   });
 
   test('Multipart/Form-Data is UTF-8', () {
     const mediaType = MediaType.multipartFormData;
+    expect(mediaType.name, 'Content-Type');
     expect(mediaType.type, 'multipart');
     expect(mediaType.subType, 'form-data');
     expect(mediaType.charset, null);
@@ -25,12 +26,14 @@ void main() {
 
   test('From File', () {
     var mediaType = MediaType.fromFile('./file.txt', charset: 'utf-8');
+    expect(mediaType.name, 'Content-Type');
     expect(mediaType.type, 'text');
     expect(mediaType.subType, 'plain');
     expect(mediaType.charset, 'utf-8');
     expect(mediaType.encoding, utf8);
 
     mediaType = MediaType.fromFile('./file.abc');
+    expect(mediaType.name, 'Content-Type');
     expect(mediaType.type, 'application');
     expect(mediaType.subType, 'octet-stream');
     expect(mediaType.charset, isNull);
@@ -39,12 +42,14 @@ void main() {
 
   test('From ContentType', () {
     var mediaType = MediaType.fromContentType(ContentType.json);
+    expect(mediaType.name, 'Content-Type');
     expect(mediaType.type, 'application');
     expect(mediaType.subType, 'json');
     expect(mediaType.charset, 'utf-8');
     expect(mediaType.encoding, utf8);
 
     mediaType = MediaType.fromContentType(ContentType.binary);
+    expect(mediaType.name, 'Content-Type');
     expect(mediaType.type, 'application');
     expect(mediaType.subType, 'octet-stream');
     expect(mediaType.charset, isNull);
@@ -54,6 +59,7 @@ void main() {
   test('Copy With', () {
     var mediaType =
         const MediaType(type: 'a', subType: 'b', parameters: {'c': 'd'});
+    expect(mediaType.name, 'Content-Type');
     expect(mediaType.type, 'a');
     expect(mediaType.subType, 'b');
     expect(mediaType.charset, null);

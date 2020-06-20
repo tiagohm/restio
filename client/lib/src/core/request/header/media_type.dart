@@ -4,9 +4,9 @@ import 'dart:io';
 import 'package:mime_type/mime_type.dart';
 import 'package:path/path.dart';
 import 'package:restio/src/common/encoding.dart';
-import 'package:restio/src/common/item.dart';
+import 'package:restio/src/core/request/header/header.dart';
 
-class MediaType extends Item {
+class MediaType extends Header {
   final String type;
   final String subType;
   final Map<String, String> parameters;
@@ -62,7 +62,8 @@ class MediaType extends Item {
     this.type,
     this.subType,
     Map<String, String> parameters,
-  }) : parameters = parameters ?? const {};
+  })  : parameters = parameters ?? const {},
+        super('Content-Type', null);
 
   factory MediaType.fromContentType(ContentType contentType) {
     return MediaType(
@@ -90,9 +91,6 @@ class MediaType extends Item {
         mimeType != null ? MediaType.parse(mimeType) : MediaType.octetStream;
     return mediaType.copyWith(charset: charset);
   }
-
-  @override
-  String get name => 'Content-Type';
 
   @override
   String get value => toHeaderString();

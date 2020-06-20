@@ -1,11 +1,11 @@
 import 'dart:io';
 
+import 'package:restio/src/core/request/header/header.dart';
 import 'package:string_scanner/string_scanner.dart';
 
-import '../../../common/item.dart';
 import 'headers.dart';
 
-class CacheControl extends Item {
+class CacheControl extends Header {
   final bool noCache;
   final bool noStore;
   final Duration maxAge;
@@ -30,7 +30,7 @@ class CacheControl extends Item {
     this.onlyIfCached = false,
     this.maxStale,
     this.minFresh,
-  });
+  }) : super('Cache-Control', null);
 
   static const empty = CacheControl();
 
@@ -42,10 +42,7 @@ class CacheControl extends Item {
   );
 
   @override
-  String get name => 'Cache-Control';
-
-  @override
-  String get value => toString();
+  String get value => toHeaderString();
 
   factory CacheControl.fromMap(Map<String, String> params) {
     if (params == null) {
@@ -281,7 +278,9 @@ class CacheControl extends Item {
       sb.write('only-if-cached, ');
     }
 
-    return sb.toString();
+    final text = sb.toString();
+
+    return text.endsWith(', ') ? text.substring(0, text.length - 2) : text;
   }
 
   @override

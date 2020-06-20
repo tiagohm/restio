@@ -4,24 +4,28 @@ import 'package:test/test.dart';
 void main() {
   test('Parse no-store', () {
     final cacheControl = CacheControl.parse('no-store');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.noStore, true);
     expect(cacheControl.maxStale, isNull);
   });
 
   test('Parse no-cache', () {
     final cacheControl = CacheControl.parse('no-cache');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.noCache, true);
     expect(cacheControl.maxStale, isNull);
   });
 
   test('Parse must-revalidate', () {
     final cacheControl = CacheControl.parse('must-revalidate');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.mustRevalidate, true);
     expect(cacheControl.maxStale, isNull);
   });
 
   test('Parse max-age', () {
     var cacheControl = CacheControl.parse('max-age=12345678');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.maxAge, const Duration(seconds: 12345678));
     cacheControl = CacheControl.parse('max-age="12345678\"');
     expect(cacheControl.maxAge, const Duration(seconds: 12345678));
@@ -30,6 +34,7 @@ void main() {
 
   test('Parse max-stale', () {
     var cacheControl = CacheControl.parse('max-stale=12345678');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.maxStale, const Duration(seconds: 12345678));
     cacheControl = CacheControl.parse('max-stale="12345678\"');
     expect(cacheControl.maxStale, const Duration(seconds: 12345678));
@@ -37,6 +42,7 @@ void main() {
 
   test('Parse min-fresh', () {
     var cacheControl = CacheControl.parse('min-fresh=12345678');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.minFresh, const Duration(seconds: 12345678));
     cacheControl = CacheControl.parse('min-fresh="12345678\"');
     expect(cacheControl.minFresh, const Duration(seconds: 12345678));
@@ -45,6 +51,7 @@ void main() {
 
   test('Parse public', () {
     final cacheControl = CacheControl.parse('public, max-age=60');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.isPublic, true);
     expect(cacheControl.isPrivate, false);
     expect(cacheControl.maxAge, const Duration(seconds: 60));
@@ -53,6 +60,7 @@ void main() {
 
   test('Parse private', () {
     final cacheControl = CacheControl.parse('private');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.isPublic, false);
     expect(cacheControl.isPrivate, true);
     expect(cacheControl.maxStale, isNull);
@@ -60,6 +68,7 @@ void main() {
 
   test('Parse no-transform', () {
     final cacheControl = CacheControl.parse('no-transform');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.noTransform, true);
     expect(cacheControl.maxStale, isNull);
   });
@@ -69,6 +78,7 @@ void main() {
         'private, public,max-age="12345678", max-stale="12345678",'
         ' min-fresh=12345678, must-revalidate,no-cache,no-transform,'
         ' no-store, immutable, s-maxage=60');
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.isPrivate, true);
     expect(cacheControl.isPublic, true);
     expect(cacheControl.maxAge, const Duration(seconds: 12345678));
@@ -79,6 +89,11 @@ void main() {
     expect(cacheControl.noStore, true);
     expect(cacheControl.immutable, true);
     expect(cacheControl.noTransform, true);
+    expect(
+        cacheControl.value,
+        'no-cache, no-store, max-age=12345678, max-stale=12345678,'
+        ' min-fresh=12345678, private, public, no-transform, immutable,'
+        ' must-revalidate');
   });
 
   test('Parse Empty as Null', () {
@@ -96,6 +111,7 @@ void main() {
           .build(),
     );
 
+    expect(cacheControl.name, 'Cache-Control');
     expect(cacheControl.isPrivate, false);
     expect(cacheControl.isPublic, true);
     expect(cacheControl.maxAge, const Duration(seconds: 12));
