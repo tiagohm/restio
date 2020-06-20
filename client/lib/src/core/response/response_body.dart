@@ -85,17 +85,20 @@ class ResponseBody implements Pauseable {
     await data.drain();
   }
 
+  /// Returns the raw response body data.
   Future<List<int>> raw() {
     return readStream(
         data.transform(Decompressor(null, decompressor?.onChunkReceived)));
   }
 
+  /// Decompress response body data.
   Future<List<int>> decompressed() {
     return decompressor == null
         ? raw()
         : readStream(data.transform(decompressor));
   }
 
+  /// Decodes response body data to [String].
   Future<String> string() async {
     final encoded = await decompressed();
 
@@ -104,8 +107,18 @@ class ResponseBody implements Pauseable {
         : convert.utf8.decode(encoded);
   }
 
+  /// Decodes response body data to JSON.
   Future<dynamic> json() async {
     return convert.json.decode(await string());
+  }
+
+  /// Decodes response body data using [converter]
+  /// or the default [Restio.bodyConverter].
+  Future<T> decode<T>({
+    BodyConverter converter,
+  }) async {
+    return (converter ?? Restio.bodyConverter)
+        .decode<T>(await string(), contentType);
   }
 
   ResponseBody copyWith({

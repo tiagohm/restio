@@ -13,6 +13,7 @@ export 'package:restio/src/core/auth/digest_authenticator.dart';
 export 'package:restio/src/core/auth/hawk_authenticator.dart';
 export 'package:restio/src/core/auth/multi_authenticator.dart';
 export 'package:restio/src/core/auth/nonce.dart';
+export 'package:restio/src/core/body_converter.dart';
 export 'package:restio/src/core/cache/cache.dart' show Cache;
 export 'package:restio/src/core/cache/cache_store.dart';
 export 'package:restio/src/core/cache/editor.dart';

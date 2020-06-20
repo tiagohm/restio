@@ -514,6 +514,43 @@ print(response.address); // Prints the resolved IP address.
 
 > Supports `DnsOverHttps` too.
 
+### Converter
+
+Restio ships with default `JSON` Converter using the `dart:convert` package.
+You can add additional converters for other popular formats or just change the default implementation.
+
+```dart
+class FlutterBodyConverter extends BodyConverter {
+  @override
+  Future<String> encode<T>(
+    T value,
+    MediaType contentType,
+  ) {
+    final mimeType = contentType.mimeType;
+
+    if (mimeType == 'application/json') {
+      return compute(...);
+    } else {
+      throw RestioException('Content type $mimeType not supported');
+    }
+  }
+
+  @override
+  Future<T> decode<T>(
+    String source,
+    MediaType contentType,
+  ) {
+    final mimeType = contentType.mimeType;
+
+    if (mimeType == 'application/json') {
+      return compute(...);
+    } else {
+      throw RestioException('Content type $mimeType not supported');
+    }
+  }
+}
+```
+
 ### Mocking
 
 ```dart

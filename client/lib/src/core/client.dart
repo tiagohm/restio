@@ -3,6 +3,7 @@ import 'dart:io' as io;
 
 import 'package:restio/src/common/closeable.dart';
 import 'package:restio/src/common/helpers.dart';
+import 'package:restio/src/core/body_converter.dart';
 import 'package:restio/src/core/cache/cache.dart';
 import 'package:restio/src/core/call/call.dart';
 import 'package:restio/src/core/call/cancellable.dart';
@@ -42,6 +43,8 @@ class Restio implements Closeable {
   final RequestOptions options;
   final ConnectionPool connectionPool;
 
+  static BodyConverter _bodyConverter = const BodyConverter();
+
   Restio({
     this.interceptors,
     this.networkInterceptors,
@@ -59,6 +62,14 @@ class Restio implements Closeable {
         connectionPool = connectionPool ?? ConnectionPool();
 
   static const version = '0.9.0';
+
+  static BodyConverter get bodyConverter => _bodyConverter;
+
+  static set bodyConverter(BodyConverter value) {
+    if (value != null) {
+      _bodyConverter = value;
+    }
+  }
 
   Call newCall(Request request) {
     return _Call(client: this, request: request);

@@ -41,7 +41,7 @@ void main() {
     final call = client.newCall(request);
     final response = await call.execute();
     expect(response.code, 200);
-    final json = await response.body.json();
+    final json = await response.body.decode();
     await response.close();
     expect(json['headers']['content-length'], '58');
     expect(json['json'], null);
@@ -108,6 +108,22 @@ void main() {
     expect(data['data'], 'Olá!');
     expect(data['headers']['content-length'], '5');
     expect(data['headers']['content-type'], 'application/json');
+
+    await client.close();
+  });
+
+  test('Posting a Json', () async {
+    final client = Restio();
+    final request = post(
+      'https://postman-echo.com/post',
+      body: RequestBody.encode('Olá!', contentType: MediaType.json),
+    );
+
+    final data = await requestJson(client, request);
+
+    expect(data['data'], '\"Olá!\"');
+    expect(data['headers']['content-length'], '7');
+    expect(data['headers']['content-type'], 'application/json; charset=utf-8');
 
     await client.close();
   });

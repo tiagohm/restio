@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:meta/meta.dart';
+import 'package:restio/src/core/body_converter.dart';
+import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 
 abstract class RequestBody {
@@ -71,15 +73,32 @@ abstract class RequestBody {
     );
   }
 
+  /// Encodes [value] using [converter] or the default [Restio.bodyConverter].
+  static RequestBody encode<T>(
+    T value, {
+    MediaType contentType,
+    String charset,
+    BodyConverter converter,
+  }) {
+    final type = contentType ?? MediaType.text;
+
+    return _ConverterRequestBody<T>(
+      value: value,
+      converter: converter ?? Restio.bodyConverter,
+      contentType: charset != null ? type.copyWith(charset: charset) : type,
+    );
+  }
+
   static const _prettyJson = JsonEncoder.withIndent('  ');
 
+  /// Encodes [value] to JSON using [JsonEncoder].
   factory RequestBody.json(
-    Object o, {
+    Object value, {
     bool pretty = false,
     String charset,
   }) {
     return RequestBody.string(
-      pretty ? _prettyJson.convert(o) : json.encoder.convert(o),
+      pretty ? _prettyJson.convert(value) : jsonEncode(value),
       contentType: MediaType.json,
       charset: charset,
     );
@@ -206,5 +225,35 @@ class _FileRequestBody implements RequestBody {
   String toString() {
     return 'FileRequestBody { file: $file, contentType: $contentType,'
         ' contentLength: $contentLength }';
+  }
+}
+
+class _ConverterRequestBody<T> implements RequestBody {
+  @override
+  final MediaType contentType;
+  @override
+  final int contentLength;
+
+  final Object value;
+  final BodyConverter converter;
+
+  _ConverterRequestBody({
+    @required this.value,
+    @required this.converter,
+    this.contentType,
+    int contentLength,
+  })  : assert(contentLength == null || contentLength >= -1),
+        contentLength = contentLength ?? -1;
+
+  @override
+  Stream<List<int>> write() async* {
+    final encoding = contentType?.encoding ?? utf8;
+    yield encoding.encode(await converter.encode<T>(value, contentType));
+  }
+
+  @override
+  String toString() {
+    return 'ConverterRequestBody { contentType: $contentType,'
+        ' contentLength: $contentLength, value: $value }';
   }
 }

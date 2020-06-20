@@ -1,3 +1,9 @@
+## 0.10.0
+ - Create `BodyConverter` class to allow add additional converters for request/response body formats.
+ - Add `RequestBody.encode` static method.
+ - Add `bodyConverter` static method to `Restio` class.
+ - Add `ResponseBody.encode` method to use `Restio.bodyConverter` method.
+
 ## 0.9.0
  - Move Cache implementation to another package [restio_cache](https://pub.dev/packages/restio_cache).
 
