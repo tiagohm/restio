@@ -57,6 +57,11 @@ void main(List<String> args) async {
 }
 ```
 
+## Examples
+
+* [Httpbin](https://github.com/tiagohm/restio/blob/master/retrofit/test/httpbin.dart)
+* [Jsonplaceholder](https://github.com/tiagohm/restio/blob/master/retrofit/test/jsonplaceholder.dart)
+
 ## API Declaration
 
 Annotations on the methods and its parameters indicate how a request will be handled.
@@ -186,6 +191,81 @@ Future<User> getUser(@retrofit.Headers() Map<String, dynamic> headers);
 
 Headers that need to be added to every request can be specified using an interceptor.
 
+### Authentication
+
+#### Basic Authentication
+
+A Basic authentication can be provided dynamically annotating a parameter with `BasicUsername` or `BasicPassword` annotation.
+
+```dart
+@retrofit.Get('/basic-auth/{user}/{passwd}')
+Future<dynamic> basicAuth(
+  @retrofit.Path() @retrofit.BasicUsername() String user,
+  @retrofit.Path('passwd') @retrofit.BasicPassword() String password,
+);
+```
+
+You can set static authentication for a method using the `BasicAuth` annotation.
+
+```dart
+@retrofit.Get('/basic-auth/restio/1234')
+@retrofit.BasicAuth('restio', '1234')
+Future<dynamic> basicAuth();
+```
+
+#### Digest Authentication
+
+A Digest authentication can be provided dynamically annotating a parameter with `DigestUsername` or `DigestPassword` annotation.
+
+```dart
+@retrofit.Get('/digest-auth/auth/{user}/{passwd}/MD5')
+Future<dynamic> digestAuth(
+  @retrofit.Path() @retrofit.DigestUsername() String user,
+  @retrofit.Path('passwd') @retrofit.DigestPassword() String password,
+);
+```
+
+You can set static authentication for a method using the `DigestAuth` annotation.
+
+```dart
+@retrofit.Get('/digest-auth/auth/restio/1234/MD5')
+@retrofit.DigestAuth('restio', '1234')
+Future<dynamic> digestAuth();
+```
+
+#### Bearer Authentication
+
+A Bearer authentication can be provided dynamically annotating a parameter with `BearerToken` or `BearerPrefix` annotation.
+
+```dart
+@retrofit.Get('/bearer')
+Future<dynamic> bearerAuth(
+  @retrofit.Path() @retrofit.BearerToken() String token,
+);
+```
+
+You can set static authentication for a method using the `BearerAuth` annotation.
+
+```dart
+@retrofit.Get('/bearer')
+@retrofit.BearerAuth('1234')
+Future<dynamic> bearerAuth();
+```
+
+#### Hawk Authentication
+
+In the same way you can provide Hawk authentication dynamically using `HawkKey`, `HawkId`, `HawkAlgorithm` or `HawkExt` annotation to the corresponding parameter or statically annotating a method with `HawkAuth`.
+
+### HTTP2
+
+To indicate that a method will use HTTP2 connection, annotate one with `Http2`.
+
+```dart
+@retrofit.Get('/get')
+@retrofit.Http2()
+Future<dynamic> http2();
+```
+
 ### Converters
 
 You should use the `BodyConverter` class from `restio` package.
@@ -288,7 +368,7 @@ try {
 }
 ```
 
-`Future<int>` and `Future<Response>` does not throws the exception. For other response types, if you want to prevent the exception from being thrown, annotate the method with `NotThrows`.
+`Future<int>` and `Future<Response>` do not throw the exception. For other response types, if you want to prevent the exception from being thrown, annotate the method with `NotThrows`.
 
 ### Request Options & Extra
 
