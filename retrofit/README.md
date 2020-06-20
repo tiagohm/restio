@@ -188,50 +188,56 @@ Headers that need to be added to every request can be specified using an interce
 
 ### Converters
 
-Annotate the API class with `Converter` to register the complex class and your converter. The converter class must implement the `decode`, `decodeList` and `encode` as static method.
+You should use the `BodyConverter` class from `restio` package.
 
 ```dart
-class User {
-  final String name;
+class FlutterBodyConverter extends BodyConverter {
+  const FlutterBodyConverter();
+  
+  @override
+  Future<String> encode<T>(
+    T value,
+    MediaType contentType,
+  ) {
+    final mimeType = contentType.mimeType;
 
-  const User(this.name);
-
-  // You can use json_serializable package if you wish.
-  factory User.fromJson(dynamic data) {
-    return User(data['name']);
+    if (mimeType == 'application/json') {
+      return compute(...);
+    } else {
+      throw RestioException('Content type $mimeType not supported');
+    }
   }
 
-  Map<String, dynamic> toJson() {
-    return {'name': name};
+  @override
+  Future<T> decode<T>(
+    String source,
+    MediaType contentType,
+  ) {
+    final mimeType = contentType.mimeType;
+    final type = '$T';
+
+    if (mimeType == 'application/json') {
+      final data = await super.decode(source, contentType);
+
+      if (T == User) {
+        return compute(...);
+        // return User.fromJson(data) as T;
+      } else if (type.startsWith('List<')) {
+        if (type.endsWith('<User>')) {
+          return compute(...);
+          // return [for (final item in data) User.fromJson(item)] as T;
+        }
+      }
+
+      return data;
+    } else {
+      throw RestioException('Content type $mimeType not supported');
+    }
   }
 }
 
-// You can use Flutter compute method!
-class UserConverter {
-  static Future<String> encode(User data) async {
-    return json.encode(data);
-  }
-
-  static Future<User> decode(String data) async {
-    return User.fromJson(json.decode(data));
-  }
-
-  static Future<List<User>> decodeList(String data) async {
-    return [for (final item in json.decode(data)) User.fromJson(item)];
-  }
-}
-
-@retrofit.Api('https://httpbin.org')
-@retrofit.Converter(User, UserConverter)
-abstract class HttpbinApi {
-  // ...
-
-  @retrofit.Get('users/{id}')
-  Future<User> getUser(@retrofit.Path() int id);
-
-  @retrofit.Get('users')
-  Future<List<User>> getUsers();
-}
+// Set the custom converter.
+Restio.bodyConverter = const FlutterBodyConverter();
 ```
 
 ### Response

@@ -22,7 +22,7 @@ class _HttpbinApi implements HttpbinApi {
     final _call = client.newCall(_request);
     final _response = await _call.execute();
     HttpStatusException.throwsIfNotSuccess(_response);
-    final _body = await _response.body.json();
+    final _body = await _response.body.decode<dynamic>();
     await _response.close();
     return _body;
   }

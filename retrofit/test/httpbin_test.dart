@@ -240,13 +240,6 @@ void main() {
       expect(data, isNot(raw));
       expect(data.length, greaterThan(raw.length));
     });
-
-    test('Json', () async {
-      final data = await api.json();
-      expect(data.author, 'Yours Truly');
-      expect(data.title, 'Sample Slide Show');
-      expect(data.date, 'date of publication');
-    });
   });
 
   group('Misc', () {

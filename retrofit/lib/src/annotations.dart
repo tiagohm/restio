@@ -276,15 +276,6 @@ class NotThrows extends Throws {
   const NotThrows() : super(0, 0);
 }
 
-/// Annotate a class to register a complex class converter.
-@immutable
-class Converter {
-  final Type type;
-  final Type converter;
-
-  const Converter(this.type, this.converter);
-}
-
 /// Annotate a method to indicate that the request will use HTTP2.
 @immutable
 class Http2 {
