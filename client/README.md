@@ -35,7 +35,7 @@ In `pubspec.yaml` add the following dependency:
 
 ```yaml
 dependencies:
-  restio: ^0.9.0
+  restio: ^0.10.0
 ```
 
 ## How to use
@@ -99,7 +99,7 @@ final options = RequestOptions(
   followSslRedirects: true,
   maxRedirects: 5,
   verifySSLCertificate: false,
-  userAgent: 'Restio/0.9.0',
+  userAgent: 'Restio/0.10.0',
   proxy: Proxy(...), // default is null.
   dns: DnsOverHttps(...), // default is null.
   certificate: Certificate(...), // default is null.
@@ -545,7 +545,9 @@ class FlutterBodyConverter extends BodyConverter {
     final mimeType = contentType.mimeType;
 
     if (mimeType == 'application/json') {
-      return compute(...);
+      if (T == User) {
+        return compute(...);
+      }
     } else {
       throw RestioException('Content type $mimeType not supported');
     }
