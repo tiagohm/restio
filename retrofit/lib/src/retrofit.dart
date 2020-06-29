@@ -393,7 +393,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     headers.forEach((p, a) {
       // Map<String, ?>.
-      if (p.type.isExactlyType(Map, [String, null])) {
+      if (p.type.isExactlyType(Map, [String])) {
         blocks.add(
             refer('_headers.addMap').call([refer(p.displayName)]).statement);
       }
@@ -450,7 +450,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     queries.forEach((p, a) {
       // Map<String, ?>.
-      if (p.type.isExactlyType(Map, [String, null])) {
+      if (p.type.isExactlyType(Map, [String])) {
         blocks.add(
             refer('_queries.addMap').call([refer(p.displayName)]).statement);
       }
@@ -591,7 +591,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     forms.forEach((p, a) {
       // Map<String, ?>.
-      if (p.type.isExactlyType(Map, [String, null])) {
+      if (p.type.isExactlyType(Map, [String])) {
         blocks
             .add(refer('_form.addMap').call([refer(p.displayName)]).statement);
       }
@@ -715,7 +715,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
           return refer(p.displayName);
         }
         // Map<String, ?>.
-        else if (p.type.isExactlyType(Map, [String, null])) {
+        else if (p.type.isExactlyType(Map, [String])) {
           return refer('MultipartBody.fromMap').call(
             [refer(p.displayName)],
             {
@@ -746,7 +746,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
       for (final p in parameters) {
         // Map<String, ?>.
-        if (p.type.isExactlyType(Map, [String, null])) {
+        if (p.type.isExactlyType(Map, [String])) {
           return refer(p.displayName);
         } else {
           throw RetrofitError('Invalid parameter type', p);
@@ -1098,21 +1098,23 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
     final responseThrows = _generateResponseThrows(element);
 
-    if (responseThrows != null) {
-      blocks.add(responseThrows);
-    }
-
     final returnType = element.returnType;
     var hasReturn = true;
     var hasYield = false;
     var closeable = true;
+    var isVoid = false;
+    final isResult = returnType.isExactlyType(Future, [restio.Result]);
+    var hasThrows = responseThrows != null && !isResult;
 
     // Nothing.
-    if (returnType.isExactlyType(Future, ['void'])) {
-      hasReturn = false;
+    if (returnType.isExactlyType(Future, ['void']) ||
+        returnType.isExactlyType(Future, [restio.Result, 'void'])) {
+      isVoid = true;
+      hasReturn = isResult;
     }
-    // Future<String> returns String.
-    else if (returnType.isExactlyType(Future, [String])) {
+    // Future<String> or Future<Result<String>> returns String.
+    else if (returnType.isExactlyType(Future, [String]) ||
+        returnType.isExactlyType(Future, [restio.Result, String])) {
       blocks.add(
         refer('_response.body.string')
             .call(const [])
@@ -1121,8 +1123,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
             .statement,
       );
     }
-    // Future<List<int>> returns raw or decompressed data.
-    else if (returnType.isExactlyType(Future, [List, int])) {
+    // Future<List<int>> or Future<Result<List<int>>>
+    // returns raw or decompressed data.
+    else if (returnType.isExactlyType(Future, [List, int]) ||
+        returnType.isExactlyType(Future, [restio.Result, List, int])) {
       blocks.add(
         (isRaw
                 ? refer('_response.body.raw')
@@ -1136,17 +1140,15 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     // Future<Response> returns Response.
     else if (returnType.isExactlyType(Future, [restio.Response])) {
       closeable = false;
-
-      if (responseThrows != null) {
-        blocks.removeAt(1);
-      }
+      hasThrows = false;
 
       blocks.add(
         refer('_response').assignFinal('_body').statement,
       );
-    }    
+    }
     // Stream<List<int>>.
-    else if (returnType.isExactlyType(Stream, [List, int])) {
+    else if (returnType.isExactlyType(Stream, [List, int]) ||
+        returnType.isExactlyType(Future, [restio.Result, Stream, List, int])) {
       hasYield = true;
       closeable = false;
 
@@ -1156,9 +1158,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     }
     // Future<int> returns status code.
     else if (returnType.isExactlyType(Future, [int])) {
-      if (responseThrows != null) {
-        blocks.removeAt(1);
-      }
+      hasThrows = false;
 
       blocks.add(
         refer('_response.code').assignFinal('_body').statement,
@@ -1169,8 +1169,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       final types = returnType.extractTypes();
 
       if (types[0].isDartAsyncFuture) {
+        final index = isResult ? 2 : 1;
+
         blocks.add(
-          refer('_response.body.decode<${types[1]}>')
+          refer('_response.body.decode<${types[index]}>')
               .call(const [])
               .awaited
               .assignFinal('_body')
@@ -1181,6 +1183,10 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
       }
     }
 
+    if (hasThrows) {
+      blocks.insert(1, responseThrows);
+    }
+
     if (closeable) {
       blocks.add(refer('_response.close').call(const []).awaited.statement);
     }
@@ -1188,7 +1194,23 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     if (hasYield) {
       blocks.add(refer('yield* _body').statement);
     } else if (hasReturn) {
-      blocks.add(refer('_body').returned.statement);
+      if (isResult) {
+        blocks.add(refer('Result')
+            .newInstance(
+              const [],
+              {
+                'data': isVoid ? literalNull : refer('_body'),
+                'code': refer('_response.code'),
+                'message': refer('_response.message'),
+                'cookies': refer('_response.cookies'),
+                'headers': refer('_response.headers'),
+              },
+            )
+            .returned
+            .statement);
+      } else {
+        blocks.add(refer('_body').returned.statement);
+      }
     }
 
     return Block.of(blocks);
@@ -1311,11 +1333,11 @@ extension DartTypeExtension on DartType {
       return false;
     }
 
-    if (parameterTypes.length != types.length) {
+    if (parameterTypes.length < types.length) {
       return false;
     }
 
-    for (var i = 0; i < parameterTypes.length; i++) {
+    for (var i = 0; i < types.length && i < parameterTypes.length; i++) {
       if (types[i] == null) {
         continue;
       } else if (types[i] == 'void') {
@@ -1327,6 +1349,8 @@ extension DartTypeExtension on DartType {
           return false;
         }
       } else if (types[i] is String || types[i] is! Type) {
+        return false;
+      } else if (parameterTypes[i].isVoid) {
         return false;
       } else if (!(types[i] as Type).isExactlyType(parameterTypes[i])) {
         return false;

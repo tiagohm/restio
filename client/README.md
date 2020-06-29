@@ -545,7 +545,7 @@ class FlutterBodyConverter extends BodyConverter {
     final mimeType = contentType.mimeType;
 
     if (mimeType == 'application/json') {
-      if (T == User) {
+      if (isType<T, User>()) {
         return compute(...);
       }
     } else {
@@ -553,6 +553,9 @@ class FlutterBodyConverter extends BodyConverter {
     }
   }
 }
+
+/// Checks whether [T1] is a type or subtype of [T2].
+bool isType<T1, T2>() => <T1>[] is List<T2>;
 
 // Set the global custom converter.
 Restio.bodyConverter = const FlutterBodyConverter();

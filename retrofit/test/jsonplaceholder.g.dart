@@ -40,6 +40,22 @@ class _JsonplaceholderApi implements JsonplaceholderApi {
   }
 
   @override
+  Future<Result<User>> getUserWithResult(int id) async {
+    final _request = Request(
+        method: 'GET', uri: RequestUri.parse('/users/$id', baseUri: baseUri));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    final _body = await _response.body.decode<User>();
+    await _response.close();
+    return Result(
+        data: _body,
+        code: _response.code,
+        message: _response.message,
+        cookies: _response.cookies,
+        headers: _response.headers);
+  }
+
+  @override
   Future<dynamic> createUser(User user) async {
     final _request = Request(
         method: 'POST',
@@ -51,5 +67,22 @@ class _JsonplaceholderApi implements JsonplaceholderApi {
     final _body = await _response.body.decode<dynamic>();
     await _response.close();
     return _body;
+  }
+
+  @override
+  Future<Result<void>> createUserWithResult(User user) async {
+    final _request = Request(
+        method: 'POST',
+        uri: RequestUri.parse('/users', baseUri: baseUri),
+        body: RequestBody.encode<User>(user, contentType: MediaType.json));
+    final _call = client.newCall(_request);
+    final _response = await _call.execute();
+    await _response.close();
+    return Result(
+        data: null,
+        code: _response.code,
+        message: _response.message,
+        cookies: _response.cookies,
+        headers: _response.headers);
   }
 }

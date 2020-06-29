@@ -266,7 +266,7 @@ To indicate that a method will use HTTP2 connection, annotate one with `Http2`.
 Future<dynamic> http2();
 ```
 
-### Converters
+### Converter
 
 You should use the `BodyConverter` class from `restio` package.
 
@@ -294,19 +294,16 @@ class FlutterBodyConverter extends BodyConverter {
     MediaType contentType,
   ) {
     final mimeType = contentType.mimeType;
-    final type = '$T';
 
     if (mimeType == 'application/json') {
       final data = await super.decode(source, contentType);
 
-      if (T == User) {
+      if (isType<T, User>()) {
         return compute(...);
         // return User.fromJson(data) as T;
-      } else if (type.startsWith('List<')) {
-        if (type.endsWith('<User>')) {
-          return compute(...);
-          // return [for (final item in data) User.fromJson(item)] as T;
-        }
+      } else if (isType<T, List<User>>()) {
+        return compute(...);
+        // return [for (final item in data) User.fromJson(item)] as T;
       }
 
       return data;
@@ -316,13 +313,24 @@ class FlutterBodyConverter extends BodyConverter {
   }
 }
 
+/// Checks whether [T1] is a type or subtype of [T2].
+bool isType<T1, T2>() => <T1>[] is List<T2>;
+
 // Set the custom converter.
 Restio.bodyConverter = const FlutterBodyConverter();
 ```
 
 ### Response
 
-The method return type can be `Future<List<int>>` for decompressed data, `Future<String>`, `Future<dynamic>` to JSON decoded data, `Future<int>` for the response code, `Future<Response>`, `Stream<List<int>>` or `Future<?>` for complex class conversion.
+The method return type can be:
+  * `Future<List<int>>` for decompressed data (gzip, deflate or brotli)
+  * `Future<String>` for String data
+  * `Future<dynamic>` for JSON decoded data (provided by Converter)
+  * `Future<int>` for the response code only
+  * `Future<Response>` for get response class
+  * `Stream<List<int>>` for Stream data
+  * `Future<?>` for get complex data (provided by Converter)
+  * `Future<Result<?>>` for get any data along with response code, response message, headers and cookies
 
 You can get the uncompressed data annotating the method with `Raw` e using `Future<List<int>>`.
 
@@ -333,6 +341,19 @@ Future<List<int>> gzip();
 ```
 
 If you use `Future<Response>` or `Stream<List<int>>` you are responsible for closing the response.
+
+### Result<T>
+
+You can use `Result<T>` as return type for get any data along with response code, response message, headers and cookies. Use `Result<void>` when no data is returned.
+
+```dart
+@retrofit.Get('/users/{id}')
+Future<Result<User>> getUser(@retrofit.Path() int id);
+
+@retrofit.Post('/users')
+Future<Result<void>> createUser(
+    @retrofit.Body(contentType: 'application/json') User user);
+```
 
 ### Response Status Exception
 
@@ -368,7 +389,7 @@ try {
 }
 ```
 
-`Future<int>` and `Future<Response>` do not throw the exception. For other response types, if you want to prevent the exception from being thrown, annotate the method with `NotThrows`.
+`Future<int>`, `Future<Response>` and `Future<Result<?>>` do not throw the exception. For other response types, if you want to prevent the exception from being thrown, annotate the method with `NotThrows`.
 
 ### Request Options & Extra
 

@@ -14,8 +14,15 @@ abstract class JsonplaceholderApi {
   @retrofit.Get('/users/{id}')
   Future<User> getUser(@retrofit.Path() int id);
 
+  @retrofit.Get('/users/{id}')
+  Future<Result<User>> getUserWithResult(@retrofit.Path() int id);
+
   @retrofit.Post('/users')
   Future<dynamic> createUser(
+      @retrofit.Body(contentType: 'application/json') User user);
+
+  @retrofit.Post('/users')
+  Future<Result<void>> createUserWithResult(
       @retrofit.Body(contentType: 'application/json') User user);
 }
 

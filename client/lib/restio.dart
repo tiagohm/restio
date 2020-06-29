@@ -66,3 +66,4 @@ export 'package:restio/src/core/response/challenge.dart';
 export 'package:restio/src/core/response/response.dart';
 export 'package:restio/src/core/response/server_push.dart';
 export 'package:restio/src/extensions.dart';
+export 'package:restio/src/retrofit/result.dart';

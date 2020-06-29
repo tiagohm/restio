@@ -33,6 +33,14 @@ void main() {
     expect(user['id'], 11);
   });
 
+  test('Result', () async {
+    final res = await api.getUserWithResult(1);
+    expect(res.code, 200);
+    expect(res.message, 'OK');
+    expect(res.headers.length, greaterThan(0));
+    expect(res.data.id, 1);
+  });
+
   tearDownAll(() async {
     await client.close();
   });
@@ -44,16 +52,16 @@ class _BodyConverter extends BodyConverter {
   @override
   Future<T> decode<T>(String source, MediaType contentType) async {
     final data = await super.decode(source, contentType);
-    final type = '$T';
 
-    if (T == User) {
+    if (isType<T, User>()) {
       return User.fromJson(data) as T;
-    } else if (type.startsWith('List<')) {
-      if (type.endsWith('<User>')) {
-        return [for (final item in data) User.fromJson(item)] as T;
-      }
+    } else if (isType<T, List<User>>()) {
+      return [for (final item in data) User.fromJson(item)] as T;
     }
 
     return data;
   }
 }
+
+/// Checks whether [T1] is a type or subtype of [T2].
+bool isType<T1, T2>() => <T1>[] is List<T2>;
