@@ -164,7 +164,8 @@ class HttpTransport implements Transport {
         rethrow;
       }
     } finally {
-      if (!request.options.persistentConnection) {
+      if (!request.options.persistentConnection ||
+          !response.persistentConnection) {
         await _connection.close();
       }
     }
