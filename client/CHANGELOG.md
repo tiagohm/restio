@@ -1,3 +1,6 @@
+## 0.10.1
+ - Fix minor bug.
+
 ## 0.10.0
  - Create `BodyConverter` class to allow add additional converters for request/response body formats.
  - Add `Restio.bodyConverter` static property.
