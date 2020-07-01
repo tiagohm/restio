@@ -8,7 +8,7 @@ In `pubspec.yaml` add the following dev dependencies:
 
 ```yaml
 dev_dependencies:
-  restio_retrofit: ^0.2.0
+  restio_retrofit: ^0.3.0
   build_runner: ^1.10.0
 ```
 

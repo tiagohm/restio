@@ -1,3 +1,7 @@
+## 0.3.0
+ - Add `Result` class.
+ - Update to `restio: ^0.10.1`
+
 ## 0.2.0
  - Add authentication support.
  - Add `Http2` annotation.
