@@ -19,7 +19,7 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * Works fine with `HTTP/2` and `HTTP/1.1`.
   * HTTP/2 Server Push support.
 * Have Client level options and also override at Request level if you want to.
-* Caching applying [RFC 7234](https://tools.ietf.org/html/rfc7234) and Lru Replacement Strategy.
+* Caching applying [RFC 7234](https://tools.ietf.org/html/rfc7234) and Lru Replacement Strategy. ([Documentation](https://pub.dev/packages/restio_cache))
    * Supports encryption.
 * Custom Client Certificates.
 * Proxy settings.
@@ -27,7 +27,7 @@ An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
 * WebSocket and SSE.
 * Redirect Policy.
 * HTTP/HTTP2 Connection Pool.
-* HTTP client generator inspired by [Retrofit](https://square.github.io/retrofit/). ([Documentation](https://github.com/tiagohm/restio/tree/master/retrofit))
+* HTTP client generator inspired by [Retrofit](https://square.github.io/retrofit/). ([Documentation](https://pub.dev/packages/restio_retrofit))
 
 ## Installation
 
@@ -35,7 +35,7 @@ In `pubspec.yaml` add the following dependency:
 
 ```yaml
 dependencies:
-  restio: ^0.10.1
+  restio: ^0.10.2
 ```
 
 ## How to use
@@ -99,7 +99,7 @@ final options = RequestOptions(
   followSslRedirects: true,
   maxRedirects: 5,
   verifySSLCertificate: false,
-  userAgent: 'Restio/0.10.1',
+  userAgent: 'Restio/0.10.2',
   proxy: Proxy(...), // default is null.
   dns: DnsOverHttps(...), // default is null.
   certificate: Certificate(...), // default is null.

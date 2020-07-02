@@ -1,3 +1,6 @@
+## 0.10.2
+ - Fix null pointer exception.
+
 ## 0.10.1
  - Fix minor bug.
 
