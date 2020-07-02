@@ -1,3 +1,6 @@
+## 0.10.5
+ - Fix DNS and Proxy bug when using Persistent Connection.
+
 ## 0.10.4
  - Fix Persistent Connection bug.
 
