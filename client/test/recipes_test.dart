@@ -1196,6 +1196,20 @@ void main() {
     await client.close();
   });
 
+  test('Fix DNS & Persistent Connection', () async {
+    final client = Restio();
+    final request = Request.get('https://httpbin.org/get');
+    final response1 = await client.newCall(request).execute();
+
+    expect(response1.address, isNull);
+
+    const options = RequestOptions(dns: DnsOverUdp.google());
+    final response2 =
+        await client.newCall(request.copyWith(options: options)).execute();
+
+    expect(response2.address, isNotNull);
+  });
+
   test('HTTP Persistent Connection Is Disabled', () async {
     final client = Restio();
 

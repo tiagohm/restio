@@ -73,14 +73,6 @@ class ConnectionPool implements Closeable {
         ? options.proxy
         : null;
 
-    if (_connectionStates.containsKey(key) && options.persistentConnection) {
-      final state = _connectionStates[key];
-
-      if (!state.isClosed) {
-        return state;
-      }
-    }
-
     // DNS.
     IpAddress ip;
 
@@ -91,6 +83,21 @@ class ConnectionPool implements Closeable {
 
       if (addresses != null && addresses.isNotEmpty) {
         ip = addresses[0];
+      }
+    }
+
+    // Reuse Connection if has same IP and Proxy Settings.
+    if (_connectionStates.containsKey(key) &&
+        options.persistentConnection &&
+        _connectionStates[key].connection.address.ip == ip &&
+        _connectionStates[key].connection.address.proxy?.host ==
+            options.proxy?.host &&
+        _connectionStates[key].connection.address.proxy?.port ==
+            options.proxy?.port) {
+      final state = _connectionStates[key];
+
+      if (!state.isClosed) {
+        return state;
       }
     }
 
