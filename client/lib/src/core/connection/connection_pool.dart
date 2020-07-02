@@ -73,7 +73,7 @@ class ConnectionPool implements Closeable {
         ? options.proxy
         : null;
 
-    if (_connectionStates.containsKey(key)) {
+    if (_connectionStates.containsKey(key) && options.persistentConnection) {
       final state = _connectionStates[key];
 
       if (!state.isClosed) {

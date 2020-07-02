@@ -1170,6 +1170,32 @@ void main() {
     expect(response.code, 200);
   });
 
+  test('HTTP Persistent Connection On/Off Relay', () async {
+    final client = Restio();
+
+    final request = Request.get('https://httpbin.org/get');
+
+    final response1 = await client.newCall(request).execute();
+    print(await response1.body.json());
+    await response1.close();
+
+    const options = RequestOptions(persistentConnection: false);
+    final response2 =
+        await client.newCall(request.copyWith(options: options)).execute();
+    print(await response2.body.json());
+    await response2.close();
+
+    final response3 = await client.newCall(request).execute();
+    print(await response3.body.json());
+    await response3.close();
+
+    expect(response1.localPort, isNot(response2.localPort));
+    expect(response3.localPort, isNot(response2.localPort));
+    expect(response1.localPort, response3.localPort);
+
+    await client.close();
+  });
+
   test('HTTP Persistent Connection Is Disabled', () async {
     final client = Restio();
 
@@ -1185,10 +1211,7 @@ void main() {
     print(await response2.body.json());
     await response2.close();
 
-    expect(
-      response1.localPort,
-      isNot(response2.localPort),
-    );
+    expect(response1.localPort, isNot(response2.localPort));
 
     await client.close();
   });
@@ -1207,10 +1230,7 @@ void main() {
     print(await response2.body.json());
     await response2.close();
 
-    expect(
-      response1.localPort,
-      response2.localPort,
-    );
+    expect(response1.localPort, response2.localPort);
 
     client.connectionPool.idleTimeout = const Duration(seconds: 5);
 
@@ -1224,10 +1244,7 @@ void main() {
     print(await response2.body.json());
     await response2.close();
 
-    expect(
-      response1.localPort,
-      isNot(response2.localPort),
-    );
+    expect(response1.localPort, isNot(response2.localPort));
 
     await client.close();
   });
@@ -1246,10 +1263,7 @@ void main() {
     print(await response2.body.json());
     await response2.close();
 
-    expect(
-      response1.localPort,
-      response2.localPort,
-    );
+    expect(response1.localPort, response2.localPort);
 
     await client.close();
   });
@@ -1269,10 +1283,7 @@ void main() {
     print(await response2.body.json());
     await response2.close();
 
-    expect(
-      response1.localPort,
-      isNot(response2.localPort),
-    );
+    expect(response1.localPort, isNot(response2.localPort));
 
     await client.close();
   });
@@ -1295,10 +1306,7 @@ void main() {
     print(await response2.body.json());
     await response2.close();
 
-    expect(
-      response1.localPort,
-      isNot(response2.localPort),
-    );
+    expect(response1.localPort, isNot(response2.localPort));
 
     await client.close();
   });
@@ -1322,10 +1330,7 @@ void main() {
     print(await response2.body.json());
     await response2.close();
 
-    expect(
-      response1.localPort,
-      isNot(response2.localPort),
-    );
+    expect(response1.localPort, isNot(response2.localPort));
 
     await client.close();
   });
@@ -1346,10 +1351,7 @@ void main() {
     print(await response2.body.json());
     await response2.close();
 
-    expect(
-      response1.localPort,
-      isNot(response2.localPort),
-    );
+    expect(response1.localPort, isNot(response2.localPort));
 
     await client.close();
   });
@@ -1369,10 +1371,7 @@ void main() {
     print(await response2.body.json());
     await response2.close();
 
-    expect(
-      response1.localPort,
-      response2.localPort,
-    );
+    expect(response1.localPort, response2.localPort);
 
     await client.close();
   });
