@@ -1,3 +1,6 @@
+## 0.10.4
+ - Fix Persistent Connection bug.
+
 ## 0.10.3
  - Fix bug.
 
