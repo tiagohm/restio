@@ -354,6 +354,14 @@ class _HttpConnection extends Connection {
   }
 
   @override
+  Future<void> cancel() async {
+    if (!isClosed) {
+      _isClosed = true;
+      client.close(force: true);
+    }
+  }
+
+  @override
   bool get isClosed => _isClosed;
 }
 
@@ -375,6 +383,13 @@ class _Http2Connection extends Connection {
   Future<void> close() async {
     if (!isClosed) {
       await transport.finish();
+    }
+  }
+
+  @override
+  Future<void> cancel() async {
+    if (!isClosed) {
+      await transport.terminate();
     }
   }
 

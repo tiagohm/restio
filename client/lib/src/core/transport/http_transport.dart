@@ -24,7 +24,8 @@ class HttpTransport implements Transport {
   @override
   Future<void> cancel() async {
     // Irá fechar todas as conexões para um determinado [scheme:host:port].
-    _httpClient?.close(force: true);
+    // _httpClient?.close(force: true);
+    await _connection.cancel();
   }
 
   @override

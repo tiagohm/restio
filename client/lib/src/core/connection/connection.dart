@@ -32,6 +32,8 @@ abstract class Connection extends Equatable implements Closeable {
     return sb.toString();
   }
 
+  Future<void> cancel();
+
   @override
   List<Object> get props => [http2, address];
 }

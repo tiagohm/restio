@@ -1153,6 +1153,23 @@ void main() {
     await client.close();
   });
 
+  test('Fix Cancelling Persistent Connection', () async {
+    final client = Restio();
+    final request = Request.get('https://httpbin.org/delay/6');
+    var call = client.newCall(request);
+
+    Timer(const Duration(seconds: 3), () {
+      call.cancel('Cancelado!');
+    });
+
+    await expectLater(call.execute, throwsA(isA<CancelledException>()));
+
+    call = client.newCall(request);
+    final response = await call.execute();
+
+    expect(response.code, 200);
+  });
+
   test('HTTP Persistent Connection Is Disabled', () async {
     final client = Restio();
 
