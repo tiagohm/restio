@@ -78,7 +78,8 @@ class Http2Transport implements Transport {
       await _stream.outgoingMessages.close();
 
       // Monta a resposta.
-      final response = _makeResponse(client, request, _stream, _socket);
+      final response =
+          _makeResponse(client, request, _stream, _socket, _connection);
 
       if (options.receiveTimeout != null &&
           !options.receiveTimeout.isNegative) {
@@ -140,6 +141,7 @@ class Http2Transport implements Transport {
     Request request,
     ClientTransportStream stream,
     Socket socket,
+    Connection connection,
   ) {
     StreamController<ServerPush> serverPushController;
     final completer = Completer<Response>();
@@ -173,6 +175,7 @@ class Http2Transport implements Transport {
             pushes: allowServerPushes
                 ? serverPushController.stream
                 : const Stream.empty(),
+            address: connection.address?.ip,
           );
 
           completer.complete(res);

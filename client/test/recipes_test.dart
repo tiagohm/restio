@@ -1470,6 +1470,20 @@ void main() {
 
       await client.close();
     });
+
+    test('DNS & Persistent Connection', () async {
+      final client = Restio(options: const RequestOptions(http2: true));
+      final request = Request.get('https://httpbin.org/get');
+      final response1 = await client.newCall(request).execute();
+
+      expect(response1.address, isNull);
+
+      const options = RequestOptions(dns: DnsOverUdp.google());
+      final response2 =
+          await client.newCall(request.copyWith(options: options)).execute();
+
+      expect(response2.address, isNotNull);
+    });
   });
 
   group('Request Options', () {

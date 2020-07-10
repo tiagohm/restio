@@ -248,11 +248,14 @@ class ConnectionPool implements Closeable {
     Address address,
   ) {
     final connectHost = address.ip != null
-    ? InternetAddress.fromRawAddress(
-        address.ip.toImmutableBytes(),
-        type: address.ip.isIpv4 ? InternetAddressType.IPv4 : InternetAddressType.IPv6,
-      )
-    : address.host;
+        ? InternetAddress.fromRawAddress(
+            address.ip.toImmutableBytes(),
+            type: address.ip.isIpv4
+                ? InternetAddressType.IPv4
+                : InternetAddressType.IPv6,
+          )
+        : address.host;
+
     return address.scheme == 'https'
         ? SecureSocket.connect(
             connectHost,
