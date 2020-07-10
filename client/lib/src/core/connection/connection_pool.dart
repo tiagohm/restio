@@ -247,9 +247,15 @@ class ConnectionPool implements Closeable {
     RequestOptions options,
     Address address,
   ) {
+    final connectHost = address.ip != null
+    ? InternetAddress.fromRawAddress(
+        address.ip.toImmutableBytes(),
+        type: address.ip.isIpv4 ? InternetAddressType.IPv4 : InternetAddressType.IPv6,
+      )
+    : address.host;
     return address.scheme == 'https'
         ? SecureSocket.connect(
-            address.host,
+            connectHost,
             address.port,
             context: SecurityContext(withTrustedRoots: restio.withTrustedRoots),
             supportedProtocols: const [
@@ -269,7 +275,7 @@ class ConnectionPool implements Closeable {
                       false);
             },
           )
-        : Socket.connect(address.host, address.port);
+        : Socket.connect(connectHost, address.port);
   }
 
   @protected
