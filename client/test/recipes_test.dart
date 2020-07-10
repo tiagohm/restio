@@ -932,20 +932,6 @@ void main() {
     await client.close();
   });
 
-  test('Fix DNS timeout bug', () async {
-    const dns = DnsOverUdp.ip('1.1.1.1');
-    final client = Restio(options: const RequestOptions(dns: dns));
-
-    final request = get('https://httpbin.org/absolute-redirect/5');
-    final call = client.newCall(request);
-    final response = await call.execute();
-    await response.close();
-
-    expect(response.code, 200);
-
-    await client.close();
-  });
-
   test('Cookies', () async {
     final client = Restio();
     final request = get('https://postman-echo.com/get');
@@ -1108,286 +1094,382 @@ void main() {
     await client.close();
   });
 
-  test('HTTP Persistent Connection', () async {
-    final client = Restio();
+  group('HTTP Persistent Connection', () {
+    test('Persistent Connection', () async {
+      final client = Restio(options: const RequestOptions(http2: false));
+      final request = Request.get('https://httpbin.org/get');
+      final call = client.newCall(request);
 
-    final request = Request.get('https://httpbin.org/get');
-    final call = client.newCall(request);
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
 
-    final response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
 
-    final response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
+      expect(
+        response1.localPort,
+        response2.localPort,
+      );
 
-    expect(
-      response1.localPort,
-      response2.localPort,
-    );
-
-    await client.close();
-  });
-
-  test('HTTP Persistent Connection With Connection Close', () async {
-    final client = Restio();
-
-    final request = Request.get('https://httpbin.org/get',
-        headers: {'Connection': 'Close'}.asHeaders());
-    final call = client.newCall(request);
-
-    final response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
-
-    final response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
-
-    expect(
-      response1.localPort,
-      isNot(response2.localPort),
-    );
-
-    await client.close();
-  });
-
-  test('Fix Cancelling Persistent Connection', () async {
-    final client = Restio();
-    final request = Request.get('https://httpbin.org/delay/6');
-    var call = client.newCall(request);
-
-    Timer(const Duration(seconds: 3), () {
-      call.cancel('Cancelado!');
+      await client.close();
     });
 
-    await expectLater(call.execute, throwsA(isA<CancelledException>()));
+    test('Persistent Connection & Connection Close', () async {
+      final client = Restio(options: const RequestOptions(http2: false));
+      final request = Request.get('https://httpbin.org/get',
+          headers: {'Connection': 'Close'}.asHeaders());
+      final call = client.newCall(request);
 
-    call = client.newCall(request);
-    final response = await call.execute();
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
 
-    expect(response.code, 200);
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
+
+      expect(
+        response1.localPort,
+        isNot(response2.localPort),
+      );
+
+      await client.close();
+    });
+
+    test('Cancelling Persistent Connection', () async {
+      final client = Restio(options: const RequestOptions(http2: false));
+      final request = Request.get('https://httpbin.org/delay/6');
+      var call = client.newCall(request);
+
+      Timer(const Duration(seconds: 3), () {
+        call.cancel('Cancelado!');
+      });
+
+      await expectLater(call.execute, throwsA(isA<CancelledException>()));
+
+      call = client.newCall(request);
+      final response = await call.execute();
+
+      expect(response.code, 200);
+    });
+
+    test('Persistent Connection On/Off Relay', () async {
+      final client = Restio(options: const RequestOptions(http2: false));
+      final request = Request.get('https://httpbin.org/get');
+
+      final response1 = await client.newCall(request).execute();
+      print(await response1.body.json());
+      await response1.close();
+
+      const options = RequestOptions(persistentConnection: false);
+      final response2 =
+          await client.newCall(request.copyWith(options: options)).execute();
+      print(await response2.body.json());
+      await response2.close();
+
+      final response3 = await client.newCall(request).execute();
+      print(await response3.body.json());
+      await response3.close();
+
+      expect(response1.localPort, isNot(response2.localPort));
+      expect(response3.localPort, isNot(response2.localPort));
+      expect(response1.localPort, response3.localPort);
+
+      await client.close();
+    });
+
+    test('DNS & Persistent Connection', () async {
+      final client = Restio(options: const RequestOptions(http2: false));
+      final request = Request.get('https://httpbin.org/get');
+      final response1 = await client.newCall(request).execute();
+
+      expect(response1.address, isNull);
+
+      const options = RequestOptions(dns: DnsOverUdp.google());
+      final response2 =
+          await client.newCall(request.copyWith(options: options)).execute();
+
+      expect(response2.address, isNotNull);
+    });
+
+    test('Persistent Connection Is Disabled', () async {
+      final client = Restio(options: const RequestOptions(http2: false));
+
+      const options = RequestOptions(persistentConnection: false);
+      final request = Request.get('https://httpbin.org/get', options: options);
+      final call = client.newCall(request);
+
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
+
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
+
+      expect(response1.localPort, isNot(response2.localPort));
+
+      await client.close();
+    });
+
+    test('Persistent Connection Timeout Change', () async {
+      final client = Restio(options: const RequestOptions(http2: false));
+
+      final request = Request.get('https://httpbin.org/get');
+      final call = client.newCall(request);
+
+      var response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
+
+      var response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
+
+      expect(response1.localPort, response2.localPort);
+
+      client.connectionPool.idleTimeout = const Duration(seconds: 5);
+
+      response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
+
+      await Future.delayed(const Duration(seconds: 6));
+
+      response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
+
+      expect(response1.localPort, isNot(response2.localPort));
+
+      await client.close();
+    });
+
+    test('Persistent Connection With Short Timeout', () async {
+      final client = Restio(
+        options: const RequestOptions(http2: false),
+        connectionPool: ConnectionPool(idleTimeout: const Duration(seconds: 5)),
+      );
+
+      final request = Request.get('https://httpbin.org/delay/10');
+      final call = client.newCall(request);
+
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
+
+      await Future.delayed(const Duration(seconds: 6));
+
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
+
+      expect(response1.localPort, isNot(response2.localPort));
+
+      await client.close();
+    });
+
+    test('Not Persist Connection For Two Schemes', () async {
+      final client = Restio(options: const RequestOptions(http2: false));
+      var request = Request.get('https://httpbin.org/get');
+      var call = client.newCall(request);
+
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
+
+      request = Request.get('http://httpbin.org/get');
+      call = client.newCall(request);
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
+
+      expect(response1.localPort, isNot(response2.localPort));
+
+      await client.close();
+    });
+
+    test('Two Call Share Same Connection', () async {
+      final client = Restio(options: const RequestOptions(http2: false));
+      final request = Request.get('https://httpbin.org/get');
+      var call = client.newCall(request);
+
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
+
+      call = client.newCall(request);
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
+
+      expect(response1.localPort, response2.localPort);
+
+      await client.close();
+    });
   });
 
-  test('HTTP Persistent Connection On/Off Relay', () async {
-    final client = Restio();
+  group('HTTP2 Persistent Connection', () {
+    test('Persistent Connection', () async {
+      final client = Restio(options: const RequestOptions(http2: true));
+      final request = Request.get('https://httpbin.org/get');
+      final call = client.newCall(request);
 
-    final request = Request.get('https://httpbin.org/get');
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
 
-    final response1 = await client.newCall(request).execute();
-    print(await response1.body.json());
-    await response1.close();
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
 
-    const options = RequestOptions(persistentConnection: false);
-    final response2 =
-        await client.newCall(request.copyWith(options: options)).execute();
-    print(await response2.body.json());
-    await response2.close();
+      expect(
+        response1.localPort,
+        response2.localPort,
+      );
 
-    final response3 = await client.newCall(request).execute();
-    print(await response3.body.json());
-    await response3.close();
+      await client.close();
+    });
 
-    expect(response1.localPort, isNot(response2.localPort));
-    expect(response3.localPort, isNot(response2.localPort));
-    expect(response1.localPort, response3.localPort);
+    test('Cancelling Persistent Connection', () async {
+      final client = Restio(options: const RequestOptions(http2: true));
+      final request = Request.get('https://httpbin.org/delay/6');
+      var call = client.newCall(request);
 
-    await client.close();
-  });
+      Timer(const Duration(seconds: 3), () {
+        call.cancel('Cancelado!');
+      });
 
-  test('Fix DNS & Persistent Connection', () async {
-    final client = Restio();
-    final request = Request.get('https://httpbin.org/get');
-    final response1 = await client.newCall(request).execute();
+      await expectLater(call.execute, throwsA(isA<CancelledException>()));
 
-    expect(response1.address, isNull);
+      call = client.newCall(request);
+      final response = await call.execute();
 
-    const options = RequestOptions(dns: DnsOverUdp.google());
-    final response2 =
-        await client.newCall(request.copyWith(options: options)).execute();
+      expect(response.code, 200);
+    });
 
-    expect(response2.address, isNotNull);
-  });
+    test('Persistent Connection On/Off Relay', () async {
+      final client = Restio(options: const RequestOptions(http2: true));
+      final request = Request.get('https://httpbin.org/get');
 
-  test('HTTP Persistent Connection Is Disabled', () async {
-    final client = Restio();
+      final response1 = await client.newCall(request).execute();
+      print(await response1.body.json());
+      await response1.close();
 
-    const options = RequestOptions(persistentConnection: false);
-    final request = Request.get('https://httpbin.org/get', options: options);
-    final call = client.newCall(request);
+      const options = RequestOptions(persistentConnection: false);
+      final response2 =
+          await client.newCall(request.copyWith(options: options)).execute();
+      print(await response2.body.json());
+      await response2.close();
 
-    final response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
+      final response3 = await client.newCall(request).execute();
+      print(await response3.body.json());
+      await response3.close();
 
-    final response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
+      expect(response1.localPort, isNot(response2.localPort));
+      expect(response3.localPort, isNot(response2.localPort));
+      expect(response1.localPort, response3.localPort);
 
-    expect(response1.localPort, isNot(response2.localPort));
+      await client.close();
+    });
 
-    await client.close();
-  });
+    test('Persistent Connection Is Disabled', () async {
+      final client = Restio(options: const RequestOptions(http2: true));
 
-  test('HTTP Persistent Connection Timeout Change', () async {
-    final client = Restio(); // 5 min.
+      const options = RequestOptions(persistentConnection: false);
+      final request = Request.get('https://httpbin.org/get', options: options);
+      final call = client.newCall(request);
 
-    final request = Request.get('https://httpbin.org/get');
-    final call = client.newCall(request);
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
 
-    var response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
 
-    var response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
+      expect(response1.localPort, isNot(response2.localPort));
 
-    expect(response1.localPort, response2.localPort);
+      await client.close();
+    });
 
-    client.connectionPool.idleTimeout = const Duration(seconds: 5);
+    test('Persistent Connection Timeout Change', () async {
+      final client = Restio(options: const RequestOptions(http2: true));
 
-    response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
+      final request = Request.get('https://httpbin.org/get');
+      final call = client.newCall(request);
 
-    await Future.delayed(const Duration(seconds: 6));
+      var response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
 
-    response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
+      var response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
 
-    expect(response1.localPort, isNot(response2.localPort));
+      expect(response1.localPort, response2.localPort);
 
-    await client.close();
-  });
+      client.connectionPool.idleTimeout = const Duration(seconds: 5);
 
-  test('HTTP2 Persistent Connection', () async {
-    final client = Restio(options: const RequestOptions(http2: true));
+      response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
 
-    final request = Request.get('https://httpbin.org/get');
-    final call = client.newCall(request);
+      await Future.delayed(const Duration(seconds: 6));
 
-    final response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
+      response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
 
-    final response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
+      expect(response1.localPort, isNot(response2.localPort));
 
-    expect(response1.localPort, response2.localPort);
+      await client.close();
+    });
 
-    await client.close();
-  });
+    test('Persistent Connection With Short Timeout', () async {
+      final client = Restio(
+        options: const RequestOptions(http2: true),
+        connectionPool: ConnectionPool(idleTimeout: const Duration(seconds: 5)),
+      );
 
-  test('HTTP2 Persistent Connection Is Disabled', () async {
-    final client = Restio(options: const RequestOptions(http2: true));
+      final request = Request.get('https://httpbin.org/delay/10');
+      final call = client.newCall(request);
 
-    const options = RequestOptions(persistentConnection: false);
-    final request = Request.get('https://httpbin.org/get', options: options);
-    final call = client.newCall(request);
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
 
-    final response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
+      await Future.delayed(const Duration(seconds: 6));
 
-    final response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
 
-    expect(response1.localPort, isNot(response2.localPort));
+      expect(response1.localPort, isNot(response2.localPort));
 
-    await client.close();
-  });
+      await client.close();
+    });
 
-  test('HTTP Persistent Connection With Short Timeout', () async {
-    final client = Restio(
-      connectionPool: ConnectionPool(idleTimeout: const Duration(seconds: 5)),
-    );
+    test('Two Call Share Same Connection', () async {
+      final client = Restio(options: const RequestOptions(http2: true));
+      final request = Request.get('https://httpbin.org/get');
+      var call = client.newCall(request);
 
-    final request = Request.get('https://httpbin.org/delay/10');
-    final call = client.newCall(request);
+      final response1 = await call.execute();
+      print(await response1.body.json());
+      await response1.close();
 
-    final response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
+      call = client.newCall(request);
+      final response2 = await call.execute();
+      print(await response2.body.json());
+      await response2.close();
 
-    await Future.delayed(const Duration(seconds: 6));
+      expect(response1.localPort, response2.localPort);
 
-    final response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
-
-    expect(response1.localPort, isNot(response2.localPort));
-
-    await client.close();
-  });
-
-  test('HTTP2 Persistent Connection With Short Timeout', () async {
-    final client = Restio(
-      options: const RequestOptions(http2: true),
-      connectionPool: ConnectionPool(idleTimeout: const Duration(seconds: 5)),
-    );
-
-    final request = Request.get('https://httpbin.org/delay/10');
-    final call = client.newCall(request);
-
-    final response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
-
-    await Future.delayed(const Duration(seconds: 6));
-
-    final response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
-
-    expect(response1.localPort, isNot(response2.localPort));
-
-    await client.close();
-  });
-
-  test('Not Persist Connection For Two Schemes', () async {
-    final client = Restio();
-
-    var request = Request.get('https://httpbin.org/get');
-    var call = client.newCall(request);
-
-    final response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
-
-    request = Request.get('http://httpbin.org/get');
-    call = client.newCall(request);
-    final response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
-
-    expect(response1.localPort, isNot(response2.localPort));
-
-    await client.close();
-  });
-
-  test('Two Call Share Same Connection', () async {
-    final client = Restio();
-
-    final request = Request.get('https://httpbin.org/get');
-    var call = client.newCall(request);
-
-    final response1 = await call.execute();
-    print(await response1.body.json());
-    await response1.close();
-
-    call = client.newCall(request);
-    final response2 = await call.execute();
-    print(await response2.body.json());
-    await response2.close();
-
-    expect(response1.localPort, response2.localPort);
-
-    await client.close();
+      await client.close();
+    });
   });
 
   group('Request Options', () {
