@@ -1,3 +1,6 @@
+## 0.10.6
+ - Fix DNS is not used to create socket ([#21](https://github.com/tiagohm/restio/pull/21)).
+
 ## 0.10.5
  - Fix DNS and Proxy bug when using Persistent Connection.
 
