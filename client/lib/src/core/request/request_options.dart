@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:equatable/equatable.dart';
@@ -5,6 +6,7 @@ import 'package:restio/src/core/auth/authenticator.dart';
 import 'package:restio/src/core/certificate/certificate.dart';
 import 'package:restio/src/core/dns/dns.dart';
 import 'package:restio/src/core/proxy/proxy.dart';
+import 'package:restio/src/core/request/request_event.dart';
 
 class RequestOptions extends Equatable {
   final Duration connectTimeout;
@@ -23,6 +25,7 @@ class RequestOptions extends Equatable {
   final bool allowServerPushes;
   final bool persistentConnection;
   final SecurityContext context;
+  final FutureOr<void> Function(RequestEvent event) onEvent;
 
   const RequestOptions({
     this.connectTimeout,
@@ -41,6 +44,7 @@ class RequestOptions extends Equatable {
     this.allowServerPushes,
     this.persistentConnection,
     this.context,
+    this.onEvent,
   });
 
   static const empty = RequestOptions();
@@ -73,6 +77,7 @@ class RequestOptions extends Equatable {
     bool allowServerPushes,
     bool persistentConnection,
     SecurityContext context,
+    FutureOr<void> Function(RequestEvent event) onEvent,
   }) {
     return RequestOptions(
       connectTimeout: connectTimeout ?? this.connectTimeout,
@@ -91,6 +96,7 @@ class RequestOptions extends Equatable {
       allowServerPushes: allowServerPushes ?? this.allowServerPushes,
       persistentConnection: persistentConnection ?? this.persistentConnection,
       context: context ?? this.context,
+      onEvent: onEvent ?? this.onEvent,
     );
   }
 
@@ -112,6 +118,7 @@ class RequestOptions extends Equatable {
       allowServerPushes: options.allowServerPushes,
       persistentConnection: options.persistentConnection,
       context: options.context,
+      onEvent: options.onEvent,
     );
   }
 
@@ -133,6 +140,7 @@ class RequestOptions extends Equatable {
         allowServerPushes,
         persistentConnection,
         context,
+        onEvent,
       ];
 
   @override

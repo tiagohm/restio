@@ -896,15 +896,20 @@ void main() {
   });
 
   test('Cancelling DNS', () async {
+    Call call;
     const dns = DnsOverUdp.google();
-    final client = Restio(options: const RequestOptions(dns: dns));
+    final client = Restio(
+      options: RequestOptions(
+        dns: dns,
+        onEvent: (event) {
+          if (event is DnsStart) {
+            call.cancel('Cancel DNS lookup');
+          }
+        },
+      ),
+    );
     final request = get('https://httpbin.org/get?a=b');
-    final call = client.newCall(request);
-
-    // TODO: Implementar RequestEvent.
-    Timer(const Duration(milliseconds: 1), () {
-      call.cancel('Cancel DNS lookup');
-    });
+    call = client.newCall(request);
 
     await expectLater(call.execute, throwsA(isA<CancelledException>()));
 

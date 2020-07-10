@@ -59,6 +59,10 @@ class DnsOverUdp extends PacketBasedDns {
     InternetAddressType type = InternetAddressType.any,
     Cancellable cancellable,
   }) async {
+    if (cancellable != null && cancellable.isCancelled) {
+      throw cancellable.exception;
+    }
+
     final completer = Completer<DnsPacket>();
 
     final dnsPacket = DnsPacket();

@@ -60,6 +60,7 @@ export 'package:restio/src/core/request/query/queries_builder.dart';
 export 'package:restio/src/core/request/query/query.dart';
 export 'package:restio/src/core/request/request.dart';
 export 'package:restio/src/core/request/request_body.dart';
+export 'package:restio/src/core/request/request_event.dart';
 export 'package:restio/src/core/request/request_options.dart';
 export 'package:restio/src/core/request/request_uri.dart';
 export 'package:restio/src/core/response/challenge.dart';

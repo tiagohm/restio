@@ -116,6 +116,10 @@ class DnsOverHttps extends PacketBasedDns {
     InternetAddressType type = InternetAddressType.any,
     Cancellable cancellable,
   }) async {
+    if (cancellable != null && cancellable.isCancelled) {
+      throw cancellable.exception;
+    }
+
     //  Are we are resolving host of the DNS-over-HTTPS service?
     if (name == uri.host) {
       final dns = this.dns ?? const DnsOverUdp.google();

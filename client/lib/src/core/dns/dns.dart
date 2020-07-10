@@ -36,27 +36,7 @@ abstract class Dns {
     String name, {
     InternetAddressType type = InternetAddressType.any,
     Cancellable cancellable,
-  }) async {
-    final addresses = await lookup(
-      name,
-      type: type,
-      cancellable: cancellable,
-    );
-
-    final result = DnsPacket.withResponse();
-    result.answers = [
-      for (final ipAddress in addresses)
-        DnsResourceRecord.withAnswer(
-          name: name,
-          type: ipAddress is Ip4Address
-              ? DnsResourceRecord.typeIp4
-              : DnsResourceRecord.typeIp6,
-          data: ipAddress.toImmutableBytes(),
-        ),
-    ];
-
-    return result;
-  }
+  });
 
   Future<DnsPacket> handlePacket(
     DnsPacket packet, {
@@ -122,11 +102,46 @@ class _SystemDns extends Dns {
     InternetAddressType type = InternetAddressType.any,
     Cancellable cancellable,
   }) async {
+    if (cancellable != null && cancellable.isCancelled) {
+      throw cancellable.exception;
+    }
+
     final addresses = await InternetAddress.lookup(host, type: type);
 
     return [
       for (final item in addresses) IpAddress.fromBytes(item.rawAddress),
     ];
+  }
+
+  @override
+  Future<DnsPacket> lookupPacket(
+    String name, {
+    InternetAddressType type = InternetAddressType.any,
+    Cancellable cancellable,
+  }) async {
+    if (cancellable != null && cancellable.isCancelled) {
+      throw cancellable.exception;
+    }
+
+    final addresses = await lookup(
+      name,
+      type: type,
+      cancellable: cancellable,
+    );
+
+    final result = DnsPacket.withResponse();
+    result.answers = [
+      for (final ipAddress in addresses)
+        DnsResourceRecord.withAnswer(
+          name: name,
+          type: ipAddress is Ip4Address
+              ? DnsResourceRecord.typeIp4
+              : DnsResourceRecord.typeIp6,
+          data: ipAddress.toImmutableBytes(),
+        ),
+    ];
+
+    return result;
   }
 }
 
@@ -146,6 +161,10 @@ abstract class PacketBasedDns extends Dns {
     InternetAddressType type = InternetAddressType.any,
     Cancellable cancellable,
   }) async {
+    if (cancellable != null && cancellable.isCancelled) {
+      throw cancellable.exception;
+    }
+
     final result = <IpAddress>[];
 
     final packet = await lookupPacket(
@@ -154,14 +173,16 @@ abstract class PacketBasedDns extends Dns {
       cancellable: cancellable,
     );
 
-    for (final answer in packet.answers) {
-      try {
-        if (name.endsWith(answer.name)) {
-          final ipAddress = IpAddress.fromBytes(answer.data);
-          result.add(ipAddress);
+    if (packet != null) {
+      for (final answer in packet.answers) {
+        try {
+          if (name.endsWith(answer.name)) {
+            final ipAddress = IpAddress.fromBytes(answer.data);
+            result.add(ipAddress);
+          }
+        } catch (e) {
+          // nada.
         }
-      } catch (e) {
-        // nada.
       }
     }
 

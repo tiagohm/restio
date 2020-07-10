@@ -12,6 +12,7 @@ import 'package:restio/src/core/connection/connection.dart';
 import 'package:restio/src/core/connection/connection_state.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_event.dart';
 import 'package:restio/src/core/request/request_options.dart';
 
 /// Manages reuse of HTTP and HTTP/2 connections for reduced network latency.
@@ -66,6 +67,10 @@ class ConnectionPool implements Closeable {
       throw const RestioException('ConnectionPool is closed');
     }
 
+    if (cancellable != null && cancellable.isCancelled) {
+      throw cancellable.exception;
+    }
+
     final options = request.options;
     final uri = request.uri;
     final key = _key(request);
@@ -81,7 +86,14 @@ class ConnectionPool implements Closeable {
     // Verificar se não é um IP.
     // Busca o real endereço (IP) do host através de um DNS.
     if (options.dns != null && !isIp(uri.host)) {
-      final addresses = await options.dns.lookup(uri.host);
+      options.onEvent?.call(DnsStart(request));
+
+      final addresses = await options.dns.lookup(
+        uri.host,
+        cancellable: cancellable,
+      );
+
+      options.onEvent?.call(DnsEnd(request, addresses));
 
       if (addresses != null && addresses.isNotEmpty) {
         ip = addresses[0];
