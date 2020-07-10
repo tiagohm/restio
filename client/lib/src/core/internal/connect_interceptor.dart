@@ -32,9 +32,9 @@ class ConnectInterceptor implements Interceptor {
     final transport =
         request.options.http2 ? Http2Transport(client) : HttpTransport(client);
 
-    void cancelTransport() async {
+    void cancelTransport(String message) async {
       try {
-        await transport.cancel();
+        await transport.cancel(message);
       } catch (e) {
         // nada.
       }
@@ -44,7 +44,7 @@ class ConnectInterceptor implements Interceptor {
 
     try {
       final sentAt = DateTime.now();
-      final response = await transport.send(request);
+      final response = await transport.send(request, cancellable: cancellable);
       final receivedAt = DateTime.now();
 
       if (cancellable != null && cancellable.isCancelled) {

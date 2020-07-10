@@ -99,10 +99,14 @@ class DnsOverHttps extends PacketBasedDns {
           queries: _ctDnsJson,
         );
 
-  Future<Response> _execute(RequestUri uri) async {
+  Future<Response> _execute(
+    RequestUri uri,
+    Cancellable cancellable,
+  ) async {
     final options = RequestOptions(connectTimeout: timeout);
     final request = Request(uri: uri, options: options);
     final call = client.newCall(request);
+    cancellable?.add(call.cancel);
     return call.execute();
   }
 
@@ -110,6 +114,7 @@ class DnsOverHttps extends PacketBasedDns {
   Future<DnsPacket> lookupPacket(
     String name, {
     InternetAddressType type = InternetAddressType.any,
+    Cancellable cancellable,
   }) async {
     //  Are we are resolving host of the DNS-over-HTTPS service?
     if (name == uri.host) {
@@ -140,7 +145,10 @@ class DnsOverHttps extends PacketBasedDns {
     uri.queries.forEach((item) => queries.add(item.name, item.value));
     this.queries?.forEach((item) => queries.add(item.name, item.value));
 
-    final response = await _execute(uri.copyWith(queries: queries.build()));
+    final response = await _execute(
+      uri.copyWith(queries: queries.build()),
+      cancellable,
+    );
 
     if (response.code != 200) {
       throw RestioException(

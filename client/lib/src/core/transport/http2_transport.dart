@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:http2/http2.dart';
 import 'package:restio/src/common/helpers.dart';
+import 'package:restio/src/core/call/cancellable.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/connection/connection.dart';
 import 'package:restio/src/core/exceptions.dart';
@@ -28,16 +29,20 @@ class Http2Transport implements Transport {
   Http2Transport(this.client);
 
   @override
-  Future<void> cancel() async {
+  Future<void> cancel(String message) async {
     _socket?.destroy();
   }
 
   @override
-  Future<Response> send(final Request request) async {
+  Future<Response> send(
+    final Request request, {
+    Cancellable cancellable,
+  }) async {
     final options = request.options;
 
     try {
-      final state = (await client.connectionPool.get(client, request));
+      final state =
+          (await client.connectionPool.get(client, request, cancellable));
 
       _connection = state.connection;
       _socket = state.connection.data[0];

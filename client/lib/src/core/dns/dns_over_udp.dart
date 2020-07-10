@@ -57,6 +57,7 @@ class DnsOverUdp extends PacketBasedDns {
   Future<DnsPacket> lookupPacket(
     String name, {
     InternetAddressType type = InternetAddressType.any,
+    Cancellable cancellable,
   }) async {
     final completer = Completer<DnsPacket>();
 
@@ -76,7 +77,15 @@ class DnsOverUdp extends PacketBasedDns {
       completer.completeError(TimedOutException("DNS query '$name' timeout"));
     });
 
-    socket.listen(
+    StreamSubscription subscription;
+
+    cancellable?.add((message) async {
+      timer.cancel();
+      await subscription?.cancel();
+      completer.complete(null);
+    });
+
+    subscription = socket.listen(
       (event) {
         if (event == RawSocketEvent.read) {
           // Read UDP packet.

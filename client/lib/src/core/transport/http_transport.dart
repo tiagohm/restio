@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:restio/src/common/helpers.dart';
+import 'package:restio/src/core/call/cancellable.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/connection/connection.dart';
 import 'package:restio/src/core/exceptions.dart';
@@ -22,14 +23,17 @@ class HttpTransport implements Transport {
   HttpTransport(this.client) : assert(client != null);
 
   @override
-  Future<void> cancel() async {
+  Future<void> cancel(String message) async {
     // Irá fechar todas as conexões para um determinado [scheme:host:port].
     // _httpClient?.close(force: true);
     await _connection.cancel();
   }
 
   @override
-  Future<Response> send(final Request request) async {
+  Future<Response> send(
+    final Request request, {
+    Cancellable cancellable,
+  }) async {
     final options = request.options;
 
     HttpClientRequest clientRequest;
@@ -37,7 +41,8 @@ class HttpTransport implements Transport {
 
     var uri = request.uri;
 
-    final state = (await client.connectionPool.get(client, request))..stop();
+    final state =
+        (await client.connectionPool.get(client, request, cancellable))..stop();
     final address = state.connection.address.ip;
 
     if (address != null) {

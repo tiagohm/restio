@@ -16,6 +16,7 @@
 import 'dart:io';
 
 import 'package:ip/ip.dart';
+import 'package:restio/src/core/call/cancellable.dart';
 import 'package:restio/src/core/dns/dns_packet.dart';
 
 abstract class Dns {
@@ -28,17 +29,23 @@ abstract class Dns {
   Future<List<IpAddress>> lookup(
     String name, {
     InternetAddressType type = InternetAddressType.any,
+    Cancellable cancellable,
   });
 
   Future<DnsPacket> lookupPacket(
     String name, {
     InternetAddressType type = InternetAddressType.any,
+    Cancellable cancellable,
   }) async {
-    final list = await lookup(name);
+    final addresses = await lookup(
+      name,
+      type: type,
+      cancellable: cancellable,
+    );
 
     final result = DnsPacket.withResponse();
     result.answers = [
-      for (final ipAddress in list)
+      for (final ipAddress in addresses)
         DnsResourceRecord.withAnswer(
           name: name,
           type: ipAddress is Ip4Address
@@ -113,6 +120,7 @@ class _SystemDns extends Dns {
   Future<List<IpAddress>> lookup(
     String host, {
     InternetAddressType type = InternetAddressType.any,
+    Cancellable cancellable,
   }) async {
     final addresses = await InternetAddress.lookup(host, type: type);
 
@@ -129,15 +137,22 @@ abstract class PacketBasedDns extends Dns {
   Future<DnsPacket> lookupPacket(
     String name, {
     InternetAddressType type = InternetAddressType.any,
+    Cancellable cancellable,
   });
 
   @override
   Future<List<IpAddress>> lookup(
     String name, {
     InternetAddressType type = InternetAddressType.any,
+    Cancellable cancellable,
   }) async {
-    final packet = await lookupPacket(name, type: type);
     final result = <IpAddress>[];
+
+    final packet = await lookupPacket(
+      name,
+      type: type,
+      cancellable: cancellable,
+    );
 
     for (final answer in packet.answers) {
       try {
@@ -146,7 +161,7 @@ abstract class PacketBasedDns extends Dns {
           result.add(ipAddress);
         }
       } catch (e) {
-        print(e);
+        // nada.
       }
     }
 

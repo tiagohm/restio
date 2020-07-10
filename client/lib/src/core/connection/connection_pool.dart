@@ -5,6 +5,7 @@ import 'package:ip/ip.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/src/common/closeable.dart';
 import 'package:restio/src/common/helpers.dart';
+import 'package:restio/src/core/call/cancellable.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/connection/address.dart';
 import 'package:restio/src/core/connection/connection.dart';
@@ -59,6 +60,7 @@ class ConnectionPool implements Closeable {
   Future<ConnectionState> get(
     Restio restio,
     Request request,
+    Cancellable cancellable,
   ) async {
     if (isClosed) {
       throw const RestioException('ConnectionPool is closed');

@@ -895,6 +895,22 @@ void main() {
     await client.close();
   });
 
+  test('Cancelling DNS', () async {
+    const dns = DnsOverUdp.google();
+    final client = Restio(options: const RequestOptions(dns: dns));
+    final request = get('https://httpbin.org/get?a=b');
+    final call = client.newCall(request);
+
+    // TODO: Implementar RequestEvent.
+    Timer(const Duration(milliseconds: 1), () {
+      call.cancel('Cancel DNS lookup');
+    });
+
+    await expectLater(call.execute, throwsA(isA<CancelledException>()));
+
+    await client.close();
+  });
+
   test('Custom Host Header', () async {
     final dns = DnsOverHttps.google();
     final client = Restio(options: RequestOptions(dns: dns));

@@ -3,25 +3,27 @@ import 'dart:async';
 import 'package:restio/restio.dart';
 import 'package:restio/src/core/exceptions.dart';
 
+typedef CancellableCallback = FutureOr<void> Function(String message);
+
 class Cancellable implements Closeable {
   final Completer<CancelledException> _completer;
   StreamSubscription<CancelledException> _streamSubscription;
   CancelledException _exception;
-  final _actions = <void Function()>[];
+  final _actions = <CancellableCallback>[];
 
   Cancellable() : _completer = Completer() {
     _streamSubscription = _completer.future.asStream().listen((e) {
       for (final action in _actions) {
-        action();
+        action(e.message);
       }
     });
   }
 
-  void add(void Function() action) {
+  void add(CancellableCallback action) {
     _actions.add(action);
   }
 
-  void remove(void Function() action) {
+  void remove(CancellableCallback action) {
     _actions.remove(action);
   }
 
