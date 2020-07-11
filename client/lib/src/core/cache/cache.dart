@@ -18,6 +18,7 @@ import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/http_method.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_event.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/response.dart';
 import 'package:restio/src/core/response/response_stream.dart';

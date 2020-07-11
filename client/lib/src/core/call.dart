@@ -26,6 +26,8 @@ class _Call implements Call {
     _executing = true;
     _cancellable = Cancellable();
 
+    final options = mergeOptions(client, request);
+
     try {
       final interceptors = [
         // Interceptors.
@@ -55,11 +57,15 @@ class _Call implements Call {
         index: 0,
       );
 
+      options.onEvent?.call(CallStart(request));
+
       final response = await chain.proceed(request);
 
       return response;
     } catch (e) {
-      if (_cancellable.isCancelled) {
+      options.onEvent?.call(CallFailed(request, e));
+
+      if (e is! CancelledException && _cancellable.isCancelled) {
         throw _cancellable.exception;
       } else {
         rethrow;
@@ -67,6 +73,8 @@ class _Call implements Call {
     } finally {
       _executing = false;
       await _cancellable.close();
+
+      options.onEvent?.call(CallEnd(request));
     }
   }
 

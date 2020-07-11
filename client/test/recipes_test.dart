@@ -192,7 +192,7 @@ void main() {
     await client.close();
   });
 
-  test('Posting Binary File By HTTP2', () async {
+  test('HTTP2 Posting Binary File', () async {
     var isDone = false;
 
     void onProgress(Request entity, int sent, int total, bool done) {

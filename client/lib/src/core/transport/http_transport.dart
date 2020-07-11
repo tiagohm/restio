@@ -10,6 +10,7 @@ import 'package:restio/src/core/request/header/headers.dart';
 import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_event.dart';
 import 'package:restio/src/core/response/response.dart';
 import 'package:restio/src/core/transport/transport.dart';
 
@@ -53,6 +54,9 @@ class HttpTransport implements Transport {
     _httpClient = _connection.data[0];
 
     try {
+      options.onEvent
+          ?.call(ConnectStart(request, uri.host, _connection.address.proxy));
+
       if (options.connectTimeout != null &&
           !options.connectTimeout.isNegative) {
         clientRequest = await _httpClient
@@ -64,6 +68,8 @@ class HttpTransport implements Transport {
           uri.toUri(),
         );
       }
+
+      options.onEvent?.call(ConnectEnd(request));
 
       // Não seguir redirecionamentos.
       clientRequest.followRedirects = false;
@@ -206,7 +212,7 @@ class HttpTransport implements Transport {
 
     final stream = request.body.write().transform(listener);
 
-    if (request.body.contentLength == null || request.body.contentLength <= 0) {
+    if (request.body.contentLength == null || request.body.contentLength < 0) {
       final data = await readStream(stream);
 
       clientRequest.headers.add(

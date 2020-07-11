@@ -123,7 +123,7 @@ class ConnectionPool implements Closeable {
       ip: ip,
     );
 
-    final client = await makeClient(restio, options, address);
+    final client = await makeClient(restio, request, address);
 
     final connection = await makeConnection(
       options,
@@ -147,13 +147,13 @@ class ConnectionPool implements Closeable {
   @protected
   Future makeClient(
     Restio restio,
-    RequestOptions options,
+    Request request,
     Address address,
   ) {
-    if (options.http2) {
-      return makeHttp2Client(restio, options, address);
+    if (request.options.http2) {
+      return makeHttp2Client(restio, request, address);
     } else {
-      return makeHttpClient(restio, options, address);
+      return makeHttpClient(restio, request, address);
     }
   }
 
@@ -206,9 +206,10 @@ class ConnectionPool implements Closeable {
   @protected
   Future<HttpClient> makeHttpClient(
     Restio restio,
-    RequestOptions options,
+    Request request,
     Address address,
   ) async {
+    final options = request.options;
     final context = options.context ?? createContext(restio, options, address);
     final httpClient = HttpClient(context: context);
 
@@ -234,17 +235,20 @@ class ConnectionPool implements Closeable {
   @protected
   Future<List> makeHttp2Client(
     Restio restio,
-    RequestOptions options,
+    Request request,
     Address address,
   ) async {
+    final options = request.options;
     Socket socket;
 
     if (options.connectTimeout != null && !options.connectTimeout.isNegative) {
-      socket = await createSocket(restio, options, address)
+      socket = await createSocket(restio, request, address)
           .timeout(options.connectTimeout);
     } else {
-      socket = await createSocket(restio, options, address);
+      socket = await createSocket(restio, request, address);
     }
+
+    options.onEvent?.call(ConnectEnd(request));
 
     final settings =
         ClientSettings(allowServerPushes: options.allowServerPushes);
@@ -258,7 +262,7 @@ class ConnectionPool implements Closeable {
   @protected
   Future<Socket> createSocket(
     Restio restio,
-    RequestOptions options,
+    Request request,
     Address address,
   ) {
     final connectHost = address.ip != null
@@ -269,6 +273,9 @@ class ConnectionPool implements Closeable {
                 : InternetAddressType.IPv6,
           )
         : address.host;
+
+    request.options.onEvent?.call(
+        ConnectStart(request, address.ip ?? address.host, address.proxy));
 
     return address.scheme == 'https'
         ? SecureSocket.connect(
@@ -283,7 +290,7 @@ class ConnectionPool implements Closeable {
               'h2'
             ],
             onBadCertificate: (cert) {
-              return !options.verifySSLCertificate ||
+              return !request.options.verifySSLCertificate ||
                   (restio?.onBadCertificate?.call(
                         cert,
                         address.host,

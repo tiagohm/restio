@@ -22,6 +22,7 @@ import 'package:restio/src/core/push/sse/sse.dart';
 import 'package:restio/src/core/push/ws/ws.dart';
 import 'package:restio/src/core/redirect/redirect_policy.dart';
 import 'package:restio/src/core/request/request.dart';
+import 'package:restio/src/core/request/request_event.dart';
 import 'package:restio/src/core/request/request_options.dart';
 import 'package:restio/src/core/response/response.dart';
 

@@ -12,13 +12,12 @@ class CacheInterceptor implements Interceptor {
 
   Future<Response> _execute(Chain chain) async {
     final cache = client.cache;
+    final request = chain.request;
 
     // Cache is ON?
     if (cache == null || cache.store == null) {
       return null;
     }
-
-    final request = chain.request;
 
     final cacheCandidate = await cache._get(request);
 
@@ -53,11 +52,22 @@ class CacheInterceptor implements Interceptor {
 
     // If we don't need the network, we're done.
     if (networkRequest == null) {
-      return cacheResponse.copyWith(
+      final response = cacheResponse.copyWith(
         cacheResponse: _stripBody(cacheResponse),
         spentMilliseconds: 0,
         totalMilliseconds: 0,
       );
+
+      request.options.onEvent?.call(CacheHit(request, response));
+
+      return response;
+    }
+
+    if (cacheResponse != null) {
+      request.options.onEvent
+          ?.call(CacheConditionalHit(request, cacheResponse));
+    } else {
+      request.options.onEvent?.call(CacheMiss(request));
     }
 
     Response networkResponse;
@@ -94,6 +104,8 @@ class CacheInterceptor implements Interceptor {
 
         await cache._update(cacheResponse, response);
 
+        request.options.onEvent?.call(CacheHit(request, response));
+
         return response;
       } else {
         await cacheResponse.close();
@@ -108,7 +120,13 @@ class CacheInterceptor implements Interceptor {
     if (response.hasBody && response.canCache(networkRequest)) {
       // Offer this request to the cache.
       final cacheRequest = await cache._put(response);
-      return _cacheWritingResponse(cacheRequest, response);
+      final _response = _cacheWritingResponse(cacheRequest, response);
+
+      if (cacheResponse != null) {
+        request.options.onEvent?.call(CacheMiss(request));
+      }
+
+      return _response;
     }
 
     if (HttpMethod.invalidatesCache(networkRequest.method)) {
