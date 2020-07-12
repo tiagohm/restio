@@ -33,7 +33,7 @@ abstract class ItemListBuilder<T extends Item> {
     Object value,
   ) {
     if (value == null) {
-      addItem(createItem(name, value));
+      addItem(createItem(name, null));
     } else if (value is Iterable) {
       for (final item in value) {
         if (item == null) {

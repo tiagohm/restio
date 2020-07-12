@@ -234,7 +234,7 @@ class _ConverterRequestBody<T> implements RequestBody {
   @override
   final int contentLength;
 
-  final Object value;
+  final T value;
   final BodyConverter converter;
 
   _ConverterRequestBody({

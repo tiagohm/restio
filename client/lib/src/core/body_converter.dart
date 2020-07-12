@@ -28,7 +28,7 @@ class BodyConverter {
     final mimeType = contentType.mimeType;
 
     if (mimeType == 'application/json') {
-      return json.decode(source);
+      return json.decode(source) as T;
     } else {
       throw RestioException('Content type $mimeType not supported');
     }

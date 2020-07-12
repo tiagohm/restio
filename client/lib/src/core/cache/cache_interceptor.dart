@@ -7,7 +7,7 @@ class CacheInterceptor implements Interceptor {
 
   @override
   Future<Response> intercept(Chain chain) async {
-    return await _execute(chain) ?? chain.proceed(chain.request);
+    return await _execute(chain) ?? await chain.proceed(chain.request);
   }
 
   Future<Response> _execute(Chain chain) async {

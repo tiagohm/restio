@@ -14,7 +14,7 @@ class MultiAuthenticator implements Authenticator {
   }) : assert(authenticators != null);
 
   @override
-  Future<Request> authenticate(Response response) {
+  Future<Request> authenticate(Response response) async {
     final auth = selector?.call(response);
 
     if (auth != null) {
