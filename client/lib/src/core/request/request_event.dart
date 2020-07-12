@@ -1,31 +1,19 @@
+import 'package:equatable/equatable.dart';
 import 'package:ip/ip.dart';
 import 'package:restio/src/core/exceptions.dart';
 import 'package:restio/src/core/proxy/proxy.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
 
-/*
- * https://github.com/square/okhttp/blob/master/okhttp/src/main/kotlin/okhttp3/EventListener.kt
- * Events are typically nested with this structure:
- *
- * call ([callStart], [callEnd], [callFailed])
- *   proxy selection ([proxySelectStart], [proxySelectEnd])
- *   dns ([dnsStart], [dnsEnd])
- *   connect ([connectStart], [connectEnd], [connectFailed])
- *     secure connect ([secureConnectStart], [secureConnectEnd])
- *   connection held ([connectionAcquired], [connectionReleased])
- *     request ([requestFailed])
- *       headers ([requestHeadersStart], [requestHeadersEnd])
- *       body ([requestBodyStart], [requestBodyEnd])
- *     response ([responseFailed])
- *       headers ([responseHeadersStart], [responseHeadersEnd])
- *       body ([responseBodyStart], [responseBodyEnd])
-*/
+// https://github.com/square/okhttp/blob/master/okhttp/src/main/kotlin/okhttp3/EventListener.kt
 
-abstract class RequestEvent {
+abstract class RequestEvent extends Equatable {
   final Request request;
 
   const RequestEvent(this.request);
+
+  @override
+  List<Object> get props => [request];
 
   @override
   String toString() {
@@ -49,6 +37,9 @@ class CallFailed extends RequestEvent {
   bool get isCancelled => error is CancelledException;
 
   @override
+  List<Object> get props => [request, error];
+
+  @override
   String toString() {
     return '$CallFailed { request: $request, error: $error }';
   }
@@ -64,6 +55,9 @@ class DnsEnd extends RequestEvent {
   const DnsEnd(Request request, this.addresses) : super(request);
 
   @override
+  List<Object> get props => [request, addresses];
+
+  @override
   String toString() {
     return 'DnsEnd { request: $request, addresses: $addresses }';
   }
@@ -74,6 +68,9 @@ class ConnectStart extends RequestEvent {
   final Proxy proxy;
 
   const ConnectStart(Request request, this.host, this.proxy) : super(request);
+
+  @override
+  List<Object> get props => [request, host, proxy];
 
   @override
   String toString() {
@@ -91,6 +88,9 @@ class CacheHit extends RequestEvent {
   const CacheHit(Request request, this.response) : super(request);
 
   @override
+  List<Object> get props => [request, response];
+
+  @override
   String toString() {
     return 'CacheHit { request: $request, response: $response }';
   }
@@ -105,6 +105,9 @@ class CacheConditionalHit extends RequestEvent {
 
   const CacheConditionalHit(Request request, this.cachedResponse)
       : super(request);
+
+  @override
+  List<Object> get props => [request, cachedResponse];
 
   @override
   String toString() {

@@ -1,5 +1,10 @@
+## 0.10.7
+ - Add Request Event support.
+ - Fix cancelling a request while in DNS lookup.
+ - Bug fixes.
+
 ## 0.10.6
- - Fix DNS is not used to create socket ([#21](https://github.com/tiagohm/restio/pull/21)).
+ - Fix DNS is not used to create socket for HTTP2 ([#21](https://github.com/tiagohm/restio/pull/21)).
 
 ## 0.10.5
  - Fix DNS and Proxy bug when using Persistent Connection.
