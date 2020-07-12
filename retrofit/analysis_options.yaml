@@ -17,3 +17,4 @@ linter:
     prefer_const_declarations: true
     prefer_const_literals_to_create_immutables: false
     prefer_constructors_over_static_methods: true
+    avoid_returning_null_for_future: true

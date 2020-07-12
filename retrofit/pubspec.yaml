@@ -7,15 +7,15 @@ environment:
   sdk: ">=2.8.0 <3.0.0"
 
 dependencies:
-  meta: ^1.1.8
-  source_gen: ^0.9.5
+  meta: ^1.2.2
+  source_gen: ^0.9.6
   build_runner: ^1.10.0
-  analyzer: ^0.39.10
-  code_builder: ^3.3.0
+  analyzer: ^0.39.12
+  code_builder: ^3.4.0
   build: ^1.3.0
   dart_style: ^1.3.6
-  restio: ^0.10.1
+  restio: ^0.10.7
 
 dev_dependencies:
   effective_dart: ^1.2.3
-  test: ^1.15.0
+  test: ^1.15.2
