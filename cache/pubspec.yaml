@@ -7,7 +7,7 @@ environment:
   sdk: ">=2.8.0 <3.0.0"
 
 dependencies:
-  meta: ^1.2.2
+  meta: ^1.1.8
   restio: ^0.10.7
   crypto: ^2.1.4
   convert: ^2.1.1

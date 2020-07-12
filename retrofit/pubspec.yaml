@@ -7,7 +7,7 @@ environment:
   sdk: ">=2.8.0 <3.0.0"
 
 dependencies:
-  meta: ^1.2.2
+  meta: ^1.1.8
   source_gen: ^0.9.6
   build_runner: ^1.10.0
   analyzer: ^0.39.12
