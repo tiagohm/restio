@@ -154,16 +154,20 @@ class DnsOverHttps extends PacketBasedDns {
       cancellable,
     );
 
-    if (response.code != 200) {
-      throw RestioException(
-        'Bad DNS response: ${response.code} (${response.message})',
-      );
-    }
+    try {
+      if (response.code != 200) {
+        throw RestioException(
+          'Bad DNS response: ${response.code} (${response.message})',
+        );
+      }
 
-    // Decode JSON.
-    final data = await response.body.json();
-    // Decode DNS packet from JSON.
-    return _decodeDnsPacket(data);
+      // Decode JSON.
+      final data = await response.body.json();
+      // Decode DNS packet from JSON.
+      return _decodeDnsPacket(data);
+    } finally {
+      await response.close();
+    }
   }
 
   DnsPacket _decodeDnsPacket(Object json) {

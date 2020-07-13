@@ -86,6 +86,7 @@ class DnsOverUdp extends PacketBasedDns {
     cancellable?.add((message) async {
       timer.cancel();
       await subscription?.cancel();
+      socket.close();
       completer.complete(null);
     });
 
@@ -105,6 +106,7 @@ class DnsOverUdp extends PacketBasedDns {
         }
       },
       onError: completer.completeError,
+      onDone: socket.close,
       cancelOnError: true,
     );
 
