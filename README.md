@@ -7,7 +7,7 @@
 
 ---
 
-HTTP client for Dart inspired by [OkHttp](http://square.github.io/okhttp/) and HTTP client generator inspired by [Retrofit](https://square.github.io/retrofit/).
+HTTP client for Dart inspired by [OkHttp](https://square.github.io/okhttp/) and HTTP client generator inspired by [Retrofit](https://square.github.io/retrofit/).
 
 | Package |  Pub   |
 | ------- | ------ |

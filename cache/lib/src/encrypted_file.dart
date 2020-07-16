@@ -381,7 +381,7 @@ class _EncryptIOSink implements IOSink {
   @override
   void writeAll(
     Iterable objects, [
-    String separator = "",
+    String separator = '',
   ]) {
     write(objects.join(separator));
   }
@@ -392,7 +392,7 @@ class _EncryptIOSink implements IOSink {
   }
 
   @override
-  void writeln([Object obj = ""]) {
+  void writeln([Object obj = '']) {
     write(obj);
     write('\n');
   }

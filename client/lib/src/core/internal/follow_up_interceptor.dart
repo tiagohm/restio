@@ -141,15 +141,15 @@ class FollowUpInterceptor implements Interceptor {
 
         if (!maintainBody) {
           final builder = request.headers.toBuilder();
-          builder.removeAll("Transfer-Encoding");
-          builder.removeAll("Content-Length");
-          builder.removeAll("Content-Type");
+          builder.removeAll('Transfer-Encoding');
+          builder.removeAll('Content-Length');
+          builder.removeAll('Content-Type');
           request = request.copyWith(headers: builder.build());
         }
 
         if (!response.request.uri.canReuseConnectionFor(requestUri)) {
           final builder = request.headers.toBuilder();
-          builder.removeAll("Authorization");
+          builder.removeAll('Authorization');
           request = request.copyWith(headers: builder.build());
         }
       }

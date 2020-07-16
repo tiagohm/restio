@@ -259,12 +259,12 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
     // Parameters annotated with @Path.
     final paths = _parametersOfAnnotation(element, annotations.Path);
     // Path value from the @Method annotation.
-    var path = method.peek("path")?.stringValue ?? '';
+    var path = method.peek('path')?.stringValue ?? '';
     // Replaces the path named-segments by the @Path parameter.
     if (path.isNotEmpty) {
       paths.forEach((p, a) {
-        final name = a.peek("name")?.stringValue ?? p.displayName;
-        path = path.replaceFirst("{$name}", "\$${p.displayName}");
+        final name = a.peek('name')?.stringValue ?? p.displayName;
+        path = path.replaceFirst('{$name}', '\$${p.displayName}');
       });
     }
     // Returns the path as String literal.
@@ -1296,7 +1296,7 @@ class RetrofitGenerator extends GeneratorForAnnotation<annotations.Api> {
 
 Builder generatorFactoryBuilder(BuilderOptions options) => SharedPartBuilder(
       [RetrofitGenerator()],
-      "retrofit",
+      'retrofit',
     );
 
 Builder retrofitBuilder(BuilderOptions options) =>
@@ -1316,7 +1316,7 @@ extension DartTypeExtension on DartType {
   }
 
   bool get isDartStream {
-    return element != null && element.name == "Stream";
+    return element != null && element.name == 'Stream';
   }
 
   bool get isDartAsyncStream {
