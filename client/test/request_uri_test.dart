@@ -288,5 +288,22 @@ void main() {
       expect(
           uri.toUriString(), 'https://api.github.com:1234/users/tiagohm/repos');
     });
+
+    // https://github.com/tiagohm/restio/issues/22
+    test('Fix #22', () {
+      var uri = RequestUri.parse('https://discord.com/api/users/@me');
+
+      expect(uri.scheme, 'https');
+      expect(uri.host, 'discord.com');
+      expect(uri.path, '/api/users/@me');
+
+      uri = RequestUri.parse('https://user:pass@discord.com/api/users/@me');
+
+      expect(uri.scheme, 'https');
+      expect(uri.username, 'user');
+      expect(uri.password, 'pass');
+      expect(uri.host, 'discord.com');
+      expect(uri.path, '/api/users/@me');
+    });
   });
 }

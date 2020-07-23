@@ -1,7 +1,7 @@
 final _schemeRegex = RegExp(r'^([^:]*):');
 final _authoritySlashRegex = RegExp(r'^//');
 final _authorityRegex = RegExp(
-    r'^(?:(?<userinfo>.*)@)?(?<host>(?:(?!\[)[^:/?#]+)|\[.*\])(?::(?<port>[^/?#]*))?');
+    r'^(?:(?<userinfo>[^/]*)@)?(?<host>(?:(?!\[)[^:/?#]+)|\[.*\])(?::(?<port>[^/?#]*))?');
 final _pathRegex = RegExp(r'^([^?#]*)');
 final _queryRegex = RegExp(r'^\?([^#]*)');
 final _fragmentRegex = RegExp(r'^#(.*)');
