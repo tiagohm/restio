@@ -1,3 +1,6 @@
+## 0.10.8
+ - Fix [#22](https://github.com/tiagohm/restio/issues/22).
+
 ## 0.10.7
  - Add Request Event support.
  - Fix cancelling a request while in DNS lookup.

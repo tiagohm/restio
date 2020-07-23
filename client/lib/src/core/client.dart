@@ -62,7 +62,7 @@ class Restio implements Closeable {
   })  : options = options ?? RequestOptions.empty,
         connectionPool = connectionPool ?? ConnectionPool();
 
-  static const version = '0.10.7';
+  static const version = '0.10.8';
 
   static BodyConverter get bodyConverter => _bodyConverter;
 

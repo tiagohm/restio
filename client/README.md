@@ -35,7 +35,7 @@ In `pubspec.yaml` add the following dependency:
 
 ```yaml
 dependencies:
-  restio: ^0.10.7
+  restio: ^0.10.8
 ```
 
 ## How to use
@@ -99,7 +99,7 @@ final options = RequestOptions(
   followSslRedirects: true,
   maxRedirects: 5,
   verifySSLCertificate: false,
-  userAgent: 'Restio/0.10.7',
+  userAgent: 'Restio/0.10.8',
   proxy: Proxy(...), // default is null.
   dns: DnsOverHttps(...), // default is null.
   certificate: Certificate(...), // default is null.
