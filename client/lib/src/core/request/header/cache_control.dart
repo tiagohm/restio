@@ -42,7 +42,57 @@ class CacheControl extends Header {
   );
 
   @override
-  String get value => toHeaderString();
+  String get value {
+    final sb = StringBuffer();
+
+    if (noCache) {
+      sb.write('no-cache, ');
+    }
+
+    if (noStore) {
+      sb.write('no-store, ');
+    }
+
+    if (maxAge != null) {
+      sb..write('max-age=')..write(maxAge.inSeconds)..write(', ');
+    }
+
+    if (maxStale != null) {
+      sb..write('max-stale=')..write(maxStale.inSeconds)..write(', ');
+    }
+
+    if (minFresh != null) {
+      sb..write('min-fresh=')..write(minFresh.inSeconds)..write(', ');
+    }
+
+    if (isPrivate) {
+      sb.write('private, ');
+    }
+
+    if (isPublic) {
+      sb.write('public, ');
+    }
+
+    if (noTransform) {
+      sb.write('no-transform, ');
+    }
+
+    if (immutable) {
+      sb.write('immutable, ');
+    }
+
+    if (mustRevalidate) {
+      sb.write('must-revalidate, ');
+    }
+
+    if (onlyIfCached) {
+      sb.write('only-if-cached, ');
+    }
+
+    final text = sb.toString();
+
+    return text.endsWith(', ') ? text.substring(0, text.length - 2) : text;
+  }
 
   factory CacheControl.fromMap(Map<String, String> params) {
     if (params == null) {
@@ -229,58 +279,6 @@ class CacheControl extends Header {
       mustRevalidate: mustRevalidate ?? this.mustRevalidate,
       onlyIfCached: onlyIfCached ?? this.onlyIfCached,
     );
-  }
-
-  String toHeaderString() {
-    final sb = StringBuffer();
-
-    if (noCache) {
-      sb.write('no-cache, ');
-    }
-
-    if (noStore) {
-      sb.write('no-store, ');
-    }
-
-    if (maxAge != null) {
-      sb..write('max-age=')..write(maxAge.inSeconds)..write(', ');
-    }
-
-    if (maxStale != null) {
-      sb..write('max-stale=')..write(maxStale.inSeconds)..write(', ');
-    }
-
-    if (minFresh != null) {
-      sb..write('min-fresh=')..write(minFresh.inSeconds)..write(', ');
-    }
-
-    if (isPrivate) {
-      sb.write('private, ');
-    }
-
-    if (isPublic) {
-      sb.write('public, ');
-    }
-
-    if (noTransform) {
-      sb.write('no-transform, ');
-    }
-
-    if (immutable) {
-      sb.write('immutable, ');
-    }
-
-    if (mustRevalidate) {
-      sb.write('must-revalidate, ');
-    }
-
-    if (onlyIfCached) {
-      sb.write('only-if-cached, ');
-    }
-
-    final text = sb.toString();
-
-    return text.endsWith(', ') ? text.substring(0, text.length - 2) : text;
   }
 
   @override

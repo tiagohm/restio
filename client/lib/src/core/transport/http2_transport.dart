@@ -161,7 +161,7 @@ class Http2Transport implements Transport {
       (msg) {
         if (msg is HeadersStreamMessage) {
           final headersBuilder = _convertHeaders(msg.headers);
-          final code = headersBuilder.first(':status')?.getInt() ?? 0;
+          final code = headersBuilder.first(':status')?.asInt ?? 0;
           headersBuilder.removeAll(':status');
 
           final headers = headersBuilder?.build() ?? Headers.empty;
@@ -263,7 +263,7 @@ Stream<ServerPush> _handlePeerPushes(
         (msg) {
           if (msg is HeadersStreamMessage) {
             final headersBuilder = _convertHeaders(msg.headers);
-            final code = headersBuilder.first(':status')?.getInt() ?? 0;
+            final code = headersBuilder.first(':status')?.asInt ?? 0;
             headersBuilder.removeAll(':status');
 
             final headers = headersBuilder?.build() ?? Headers.empty;

@@ -23,7 +23,7 @@ class Part extends Equatable {
 
     final headers = {
       'Content-Disposition': 'form-data; name="$name"',
-      'Content-Type': body.contentType.toHeaderString(),
+      'Content-Type': body.contentType.value,
     };
 
     return Part(headers: headers, body: body);
@@ -36,7 +36,7 @@ class Part extends Equatable {
   ) {
     final headers = {
       'Content-Disposition': 'form-data; name="$name"; filename="$filename"',
-      'Content-Type': body.contentType.toHeaderString(),
+      'Content-Type': body.contentType.value,
     };
 
     return Part(headers: headers, body: body);

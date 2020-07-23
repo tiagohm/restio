@@ -10,7 +10,7 @@ class Header extends Item {
 
   const Header(this.name, this.value);
 
-  DateTime getDateTime() {
+  DateTime get asDateTime {
     return isEmpty ? null : HttpDate.parse(value);
   }
 

@@ -39,8 +39,7 @@ class Headers extends ItemList<Header> {
     };
   }
 
-  int get contentLength =>
-      first(HttpHeaders.contentLengthHeader)?.getInt() ?? -1;
+  int get contentLength => first(HttpHeaders.contentLengthHeader)?.asInt ?? -1;
 
   List<String> vary() {
     final items = all(HttpHeaders.varyHeader);

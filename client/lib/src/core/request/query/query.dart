@@ -9,7 +9,7 @@ class Query extends Item {
   const Query(this.name, this.value);
 
   @override
-  bool getBool() => isEmpty || super.getBool();
+  bool get asBool => isEmpty || super.asBool;
 
   String toQueryString({
     bool keepEqualSign = false,

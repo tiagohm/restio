@@ -10,19 +10,19 @@ abstract class Item extends Equatable {
 
   bool get isNotEmpty => !isEmpty;
 
-  bool getBool() {
+  bool get asBool {
     return value == '1' || value == 'true';
   }
 
-  int getInt() {
+  int get asInt {
     return value == null ? null : int.tryParse(value);
   }
 
-  double getDouble() {
+  double get asDouble {
     return value == null ? null : double.tryParse(value);
   }
 
-  num getNum() {
+  num get asNum {
     return value == null ? null : num.tryParse(value);
   }
 

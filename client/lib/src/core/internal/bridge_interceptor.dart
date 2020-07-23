@@ -33,8 +33,7 @@ class BridgeInterceptor implements Interceptor {
     // Content-Type.
     if (!request.headers.has(HttpHeaders.contentTypeHeader) &&
         request.body?.contentType != null) {
-      headersBuilder.set(
-          'Content-Type', request.body.contentType.toHeaderString());
+      headersBuilder.set('Content-Type', request.body.contentType.value);
     }
 
     // User-Agent.

@@ -1083,7 +1083,7 @@ void testCache(
             MockResponse(
               body: gzip('ABCABCABC'),
               headers: {
-                'content-type': MediaType.text.toHeaderString(),
+                'content-type': MediaType.text.value,
                 'content-encoding': 'gzip',
                 'last-modified': obtainDate(const Duration(hours: -2)),
                 'expires': obtainDate(const Duration(hours: -1)),
@@ -1092,7 +1092,7 @@ void testCache(
             MockResponse(
               code: io.HttpStatus.notModified,
               headers: {
-                'content-type': MediaType.text.toHeaderString(),
+                'content-type': MediaType.text.value,
                 'content-encoding': 'deflate',
               },
             ),
@@ -1130,7 +1130,7 @@ void testCache(
             MockResponse(
               body: gzip('ABCABCABC'),
               headers: {
-                'content-type': MediaType.text.toHeaderString(),
+                'content-type': MediaType.text.value,
                 'content-encoding': 'gzip',
                 'last-modified': obtainDate(const Duration(hours: -2)),
                 'expires': obtainDate(const Duration(hours: -1)),

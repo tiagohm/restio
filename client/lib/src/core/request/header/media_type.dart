@@ -93,7 +93,21 @@ class MediaType extends Header {
   }
 
   @override
-  String get value => toHeaderString();
+  String get value {
+    final text = StringBuffer()..write('$mimeType');
+
+    if (parameters != null) {
+      for (final name in parameters.keys) {
+        final value = parameters[name];
+
+        if (value != null) {
+          text.write('; $name=$value');
+        }
+      }
+    }
+
+    return text.toString();
+  }
 
   MediaType copyWith({
     String type,
@@ -142,22 +156,6 @@ class MediaType extends Header {
     return mimeType == 'application/json' || mimeType == 'text/plain'
         ? utf8
         : latin1;
-  }
-
-  String toHeaderString() {
-    final text = StringBuffer()..write('$mimeType');
-
-    if (parameters != null) {
-      for (final name in parameters.keys) {
-        final value = parameters[name];
-
-        if (value != null) {
-          text.write('; $name=$value');
-        }
-      }
-    }
-
-    return text.toString();
   }
 
   @override
