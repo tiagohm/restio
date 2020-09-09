@@ -1,6 +1,6 @@
 name: restio
 description: A simple but powerful HTTP Client for Dart inspired by OkHttp.
-version: 0.10.8
+version: 0.10.9
 homepage: https://github.com/tiagohm/restio
 
 environment:

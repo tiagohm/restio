@@ -1,3 +1,6 @@
+## 0.10.9
+ - Fix DNS over HTTPS data is not always ip address [(#24)](https://github.com/tiagohm/restio/pull/24).
+
 ## 0.10.8
  - Fix [#22](https://github.com/tiagohm/restio/issues/22).
 
