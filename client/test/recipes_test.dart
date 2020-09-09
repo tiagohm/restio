@@ -167,6 +167,7 @@ void main() {
   test('Posting Binary File', () async {
     var isDone = false;
 
+    // ignore: avoid_positional_boolean_parameters
     void onProgress(Request entity, int sent, int total, bool done) {
       print('sent: $sent, total: $total, done: $done');
       isDone = done;
@@ -195,6 +196,7 @@ void main() {
   test('HTTP2 Posting Binary File', () async {
     var isDone = false;
 
+    // ignore: avoid_positional_boolean_parameters
     void onProgress(Request entity, int sent, int total, bool done) {
       print('sent: $sent, total: $total, done: $done');
       isDone = done;
@@ -592,6 +594,7 @@ void main() {
     final client = Restio();
     var isDone = false;
 
+    // ignore: avoid_positional_boolean_parameters
     void onProgress(Response entity, int received, int total, bool done) {
       final p = total * 100 ~/ 36001;
       print('received: $received, total: $total, done: $done, $p%');
@@ -620,6 +623,7 @@ void main() {
     final startTime = DateTime.now().millisecondsSinceEpoch;
     Response response;
 
+    // ignore: avoid_positional_boolean_parameters
     void onProgress(Response entity, int rcv, int total, bool done) async {
       print('received: $rcv, total: $total, done: $done');
 
@@ -1692,14 +1696,14 @@ void main() {
     expect(data['headers']['Accept-Encoding'], 'gzip, deflate, br');
 
     request = get('https://httpbin.org/get',
-        headers: Headers.fromMap({'Accept-Encoding': 'deflate'}));
+        headers: Headers.fromMap(const {'Accept-Encoding': 'deflate'}));
     data = await requestJson(client, request);
 
     expect(data['headers']['Accept-Encoding'], 'deflate');
 
     request = get('https://httpbin.org/get',
         options: const RequestOptions(http2: true),
-        headers: Headers.fromMap({'Accept-Encoding': 'deflate'}));
+        headers: Headers.fromMap(const {'Accept-Encoding': 'deflate'}));
     data = await requestJson(client, request);
 
     expect(data['headers']['Accept-Encoding'], 'deflate');

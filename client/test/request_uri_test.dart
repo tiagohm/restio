@@ -87,7 +87,7 @@ void main() {
     final uri = RequestUri(
         scheme: 'https',
         host: 'httpbin.org',
-        paths: ['get'],
+        paths: const ['get'],
         queries: {'a': '', 'c': 'd'}.asQueries(keepEqualSign: true));
     expect(uri.toUriString(), 'https://httpbin.org/get?a=&c=d');
     expect(uri.toUri().toString(), 'https://httpbin.org/get?a=&c=d');
@@ -97,7 +97,7 @@ void main() {
     final uri = RequestUri(
         scheme: 'https',
         host: 'httpbin.org',
-        paths: ['get'],
+        paths: const ['get'],
         queries: {'a': '', 'c': 'd'}.asQueries());
     expect(uri.toUriString(), 'https://httpbin.org/get?a&c=d');
     expect(uri.toUri().toString(), 'https://httpbin.org/get?a&c=d');
@@ -112,7 +112,7 @@ void main() {
     expect(req.host, 'example.com');
     expect(req.port, '8080');
     expect(req.paths, const ['a', 'b', 'c']);
-    expect(req.queries, Queries.fromMap({'d': 'e'}));
+    expect(req.queries, Queries.fromMap(const {'d': 'e'}));
     expect(req.fragment, 'f');
 
     expect(req.toUri(), uri);
@@ -263,27 +263,27 @@ void main() {
     });
 
     test('Path', () {
-      var uri = RequestUri.parse('/tiagohm/repos',
+      final uri = RequestUri.parse('/tiagohm/repos',
           baseUri: 'https://api.github.com/users');
       expect(uri.toUriString(), 'https://api.github.com/users/tiagohm/repos');
     });
 
     test('Query', () {
-      var uri = RequestUri.parse('/users/tiagohm/repos?a=b',
+      final uri = RequestUri.parse('/users/tiagohm/repos?a=b',
           baseUri: 'https://api.github.com?c=d');
       expect(uri.toUriString(),
           'https://api.github.com/users/tiagohm/repos?c=d&a=b');
     });
 
     test('Username & Password', () {
-      var uri = RequestUri.parse('/users/tiagohm/repos',
+      final uri = RequestUri.parse('/users/tiagohm/repos',
           baseUri: 'https://user:pass@api.github.com');
       expect(uri.toUriString(),
           'https://user:pass@api.github.com/users/tiagohm/repos');
     });
 
     test('Port', () {
-      var uri = RequestUri.parse('/users/tiagohm/repos',
+      final uri = RequestUri.parse('/users/tiagohm/repos',
           baseUri: 'https://api.github.com:1234');
       expect(
           uri.toUriString(), 'https://api.github.com:1234/users/tiagohm/repos');

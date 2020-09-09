@@ -20,7 +20,7 @@ class MultiAuthenticator implements Authenticator {
     if (auth != null) {
       return auth.authenticate(response);
     } else {
-      for (var auth in authenticators) {
+      for (final auth in authenticators) {
         final request = auth?.authenticate(response);
 
         if (request != null) {

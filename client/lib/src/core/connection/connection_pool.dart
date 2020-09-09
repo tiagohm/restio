@@ -334,7 +334,7 @@ class ConnectionPool implements Closeable {
   @protected
   Future<Connection> makeConnection(
     RequestOptions options,
-    dynamic client,
+    client,
     Address address,
   ) async {
     if (options.http2) {

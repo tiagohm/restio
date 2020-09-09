@@ -118,7 +118,7 @@ void main() {
 
   group('Request Inspection', () {
     test('Headers', () async {
-      final headers = Headers.fromMap({'g': 6});
+      final headers = Headers.fromMap(const {'g': 6});
       final data = await api.headers(
         '2',
         '3',
@@ -138,7 +138,7 @@ void main() {
     });
 
     test('Queries', () async {
-      final queries = Queries.fromMap({'g': 6});
+      final queries = Queries.fromMap(const {'g': 6});
       final data = await api.queries(
         '2',
         '3',
@@ -163,7 +163,7 @@ void main() {
     });
 
     test('Form', () async {
-      final form = FormBody.fromMap({'g': 6});
+      final form = FormBody.fromMap(const {'g': 6});
       final data = await api.form(
         '2',
         '3',

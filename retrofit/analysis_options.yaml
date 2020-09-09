@@ -1,21 +1,36 @@
-include: package:effective_dart/analysis_options.yaml
+include: package:pedantic/analysis_options.yaml
 
 linter:
   rules:
-    public_member_api_docs: false
-    prefer_relative_imports: false
+    hash_and_equals: true
+    avoid_annotating_with_dynamic: true
+    avoid_classes_with_only_static_members: true
+    avoid_function_literals_in_foreach_calls: true
+    avoid_positional_boolean_parameters: true
+    avoid_returning_this: true
+    avoid_setters_without_getters: true
+    avoid_types_on_closure_parameters: true
+    constant_identifier_names: true
+    directives_ordering: true
     lines_longer_than_80_chars: true
-    one_member_abstracts: false
-    avoid_catches_without_on_clauses: false
-    avoid_positional_boolean_parameters: false
-    overridden_fields: true
-    unnecessary_overrides: true
-    annotate_overrides: true
-    type_annotate_public_apis: false
+    non_constant_identifier_names: true
+    package_api_docs: true
     prefer_const_constructors: true
     prefer_const_constructors_in_immutables: true
     prefer_const_declarations: true
-    prefer_const_literals_to_create_immutables: false
+    prefer_const_literals_to_create_immutables: true
     prefer_constructors_over_static_methods: true
-    avoid_returning_null_for_future: true
-    prefer_single_quotes: true
+    prefer_final_in_for_each: true
+    prefer_final_locals: true
+    prefer_foreach: true
+    prefer_function_declarations_over_variables: true
+    prefer_if_elements_to_conditional_expressions: true
+    prefer_interpolation_to_compose_strings: true
+    prefer_is_not_operator: true
+    prefer_typing_uninitialized_variables: true
+    public_member_api_docs: false
+    unawaited_futures: false
+    unnecessary_brace_in_string_interps: true
+    unnecessary_lambdas: true
+    unnecessary_overrides: true
+    use_setters_to_change_properties: true

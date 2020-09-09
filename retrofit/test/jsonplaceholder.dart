@@ -32,7 +32,7 @@ class User {
 
   const User(this.id, this.name);
 
-  factory User.fromJson(dynamic data) {
+  factory User.fromJson(data) {
     return User(data['id'], data['name']);
   }
 

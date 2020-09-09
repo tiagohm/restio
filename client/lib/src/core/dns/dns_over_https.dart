@@ -279,7 +279,7 @@ class DnsOverHttps extends PacketBasedDns {
                 break;
               case DnsResourceRecord.typeNameServer: // NS
               case DnsResourceRecord.typeCanonicalName: // CNAME
-                var address = value.substring(value.length - 1, value.length);
+                final address = value.substring(value.length - 1, value.length);
                 result.data =
                     InternetAddress(address, type: InternetAddressType.unix)
                         .rawAddress;

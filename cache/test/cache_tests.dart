@@ -43,7 +43,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'a');
@@ -78,7 +78,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'a');
@@ -105,7 +105,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -132,7 +132,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -145,9 +145,9 @@ void testCache(
   }
 
   Future<void> testRequestMethod(
-    String method,
+    String method, {
     bool expectCached,
-  ) async {
+  }) async {
     // 1. Seed the cache (potentially).
     // 2. Expect a cache hit or miss.
 
@@ -175,7 +175,7 @@ void testCache(
       body: requestBodyOrNull(method),
     );
 
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
     await response.body.string();
     await response.close();
@@ -271,7 +271,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
@@ -308,7 +308,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'ABCDE');
@@ -359,7 +359,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'ABC');
@@ -506,7 +506,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'ABC');
@@ -542,7 +542,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -581,7 +581,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -616,7 +616,7 @@ void testCache(
     );
 
     final request = Request.get('$url?foo=bar');
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -705,33 +705,33 @@ void testCache(
   });
 
   test('Options Is Not Cached', () async {
-    await testRequestMethod(HttpMethod.options, false);
+    await testRequestMethod(HttpMethod.options, expectCached: false);
   });
 
   test('Get Is Cached', () async {
-    await testRequestMethod(HttpMethod.get, true);
+    await testRequestMethod(HttpMethod.get, expectCached: true);
   });
 
   test('Head Is Not Cached', () async {
     // We could support this but choose not to for implementation simplicity.
-    await testRequestMethod(HttpMethod.head, false);
+    await testRequestMethod(HttpMethod.head, expectCached: false);
   });
 
   test('Post Is Not Cached', () async {
     // We could support this but choose not to for implementation simplicity.
-    await testRequestMethod(HttpMethod.post, false);
+    await testRequestMethod(HttpMethod.post, expectCached: false);
   });
 
   test('Put Is Not Cached', () async {
-    await testRequestMethod(HttpMethod.put, false);
+    await testRequestMethod(HttpMethod.put, expectCached: false);
   });
 
   test('Delete Is Not Cached', () async {
-    await testRequestMethod(HttpMethod.delete, false);
+    await testRequestMethod(HttpMethod.delete, expectCached: false);
   });
 
   test('Trace Is Not Cached', () async {
-    await testRequestMethod(HttpMethod.trace, false);
+    await testRequestMethod(HttpMethod.trace, expectCached: false);
   });
 
   test('Post Invalidates Cache', () async {
@@ -907,7 +907,7 @@ void testCache(
     );
 
     var request = Request.get(url,
-        headers: Headers.fromMap({'range': 'bytes=1000-1001'}));
+        headers: Headers.fromMap(const {'range': 'bytes=1000-1001'}));
     var call = cacheClient.newCall(request);
     var response = await call.execute();
 
@@ -949,7 +949,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -1055,7 +1055,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
@@ -1103,7 +1103,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
@@ -1149,7 +1149,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
@@ -1189,7 +1189,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'ABCABCABC');
@@ -1343,7 +1343,7 @@ void testCache(
 
     // With max-stale, we'll return that stale response.
     request = Request.get(url,
-        headers: Headers.fromMap({'cache-control': 'max-stale'}));
+        headers: Headers.fromMap(const {'cache-control': 'max-stale'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1382,7 +1382,7 @@ void testCache(
 
     // With max-stale, we'll return that stale response.
     request = Request.get(url,
-        headers: Headers.fromMap({'cache-control': 'max-stale=180'}));
+        headers: Headers.fromMap(const {'cache-control': 'max-stale=180'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1401,7 +1401,7 @@ void testCache(
 
     // With max-stale, we'll return that stale response.
     final request = Request.get(url,
-        headers: Headers.fromMap({'cache-control': 'only-if-cached'}));
+        headers: Headers.fromMap(const {'cache-control': 'only-if-cached'}));
     final call = cacheClient.newCall(request);
     final response = await call.execute();
 
@@ -1436,7 +1436,7 @@ void testCache(
     await response.close();
 
     request = Request.get(url,
-        headers: Headers.fromMap({'cache-control': 'only-if-cached'}));
+        headers: Headers.fromMap(const {'cache-control': 'only-if-cached'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1473,7 +1473,7 @@ void testCache(
     await response.close();
 
     request = Request.get(url,
-        headers: Headers.fromMap({'cache-control': 'only-if-cached'}));
+        headers: Headers.fromMap(const {'cache-control': 'only-if-cached'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1502,7 +1502,7 @@ void testCache(
     await response.close();
 
     request = Request.get(url,
-        headers: Headers.fromMap({'cache-control': 'only-if-cached'}));
+        headers: Headers.fromMap(const {'cache-control': 'only-if-cached'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1539,7 +1539,7 @@ void testCache(
     await response.close();
 
     request = Request.get(url,
-        headers: Headers.fromMap({'cache-control': 'no-cache'}));
+        headers: Headers.fromMap(const {'cache-control': 'no-cache'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1573,8 +1573,8 @@ void testCache(
     expect(await response.body.string(), 'A');
     await response.close();
 
-    request =
-        Request.get(url, headers: Headers.fromMap({'pragma': 'no-cache'}));
+    request = Request.get(url,
+        headers: Headers.fromMap(const {'pragma': 'no-cache'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1600,7 +1600,7 @@ void testCache(
     );
 
     var request = Request.get(url,
-        headers: Headers.fromMap({'authorization': 'password'}));
+        headers: Headers.fromMap(const {'authorization': 'password'}));
     var call = cacheClient.newCall(request);
     var response = await call.execute();
 
@@ -1811,7 +1811,7 @@ void testCache(
     );
 
     var request = Request.get(url,
-        headers: Headers.fromMap({'accept-language': 'pt-BR'}));
+        headers: Headers.fromMap(const {'accept-language': 'pt-BR'}));
     var call = cacheClient.newCall(request);
     var response = await call.execute();
 
@@ -1819,7 +1819,7 @@ void testCache(
     await response.close();
 
     request = Request.get(url,
-        headers: Headers.fromMap({'accept-language': 'en-US'}));
+        headers: Headers.fromMap(const {'accept-language': 'en-US'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1846,7 +1846,7 @@ void testCache(
     );
 
     var request = Request.get(url,
-        headers: Headers.fromMap({'accept-language': 'pt-BR'}));
+        headers: Headers.fromMap(const {'accept-language': 'pt-BR'}));
     var call = cacheClient.newCall(request);
     var response = await call.execute();
 
@@ -1854,7 +1854,7 @@ void testCache(
     await response.close();
 
     request = Request.get(url,
-        headers: Headers.fromMap({'accept-language': 'pt-BR'}));
+        headers: Headers.fromMap(const {'accept-language': 'pt-BR'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1921,7 +1921,7 @@ void testCache(
     await response.close();
 
     request = Request.get(url,
-        headers: Headers.fromMap({'accept-language': 'pt-BR'}));
+        headers: Headers.fromMap(const {'accept-language': 'pt-BR'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -1948,7 +1948,7 @@ void testCache(
     );
 
     var request = Request.get(url,
-        headers: Headers.fromMap({'accept-language': 'pt-BR'}));
+        headers: Headers.fromMap(const {'accept-language': 'pt-BR'}));
     var call = cacheClient.newCall(request);
     var response = await call.execute();
 
@@ -1982,7 +1982,7 @@ void testCache(
     );
 
     var request = Request.get(url,
-        headers: Headers.fromMap({'accept-language': 'pt-BR'}));
+        headers: Headers.fromMap(const {'accept-language': 'pt-BR'}));
     var call = cacheClient.newCall(request);
     var response = await call.execute();
 
@@ -1990,7 +1990,7 @@ void testCache(
     await response.close();
 
     request = Request.get(url,
-        headers: Headers.fromMap({'accept-language': 'pt-BR'}));
+        headers: Headers.fromMap(const {'accept-language': 'pt-BR'}));
     call = cacheClient.newCall(request);
     response = await call.execute();
 
@@ -2018,7 +2018,7 @@ void testCache(
     );
 
     var request = Request.get(url,
-        headers: Headers.fromMap({
+        headers: Headers.fromMap(const {
           'accept-language': 'pt-BR',
           'accept-charset': 'utf-8',
           'accept-encoding': 'identity',
@@ -2032,7 +2032,7 @@ void testCache(
     request = Request.get(
       url,
       headers: Headers.fromMap(
-        {
+        const {
           'accept-language': 'pt-BR',
           'accept-charset': 'utf-8',
           'accept-encoding': 'identity',
@@ -2066,7 +2066,7 @@ void testCache(
     );
 
     var request = Request.get(url,
-        headers: Headers.fromMap({
+        headers: Headers.fromMap(const {
           'accept-language': 'en-US',
           'accept-charset': 'utf-8',
           'accept-encoding': 'identity',
@@ -2078,7 +2078,7 @@ void testCache(
     await response.close();
 
     request = Request.get(url,
-        headers: Headers.fromMap({
+        headers: Headers.fromMap(const {
           'accept-language': 'pt-BR',
           'accept-charset': 'utf-8',
           'accept-encoding': 'identity',
@@ -2315,7 +2315,7 @@ void testCache(
 
     // A cache miss writes the cache.
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(response.headers.value('allow'), isNull);
@@ -2400,7 +2400,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -2431,7 +2431,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -2480,7 +2480,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -2526,7 +2526,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(response.headers.value('Alpha'), 'α');
@@ -2564,7 +2564,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');
@@ -2597,7 +2597,7 @@ void testCache(
     );
 
     final request = Request.get(url);
-    var call = cacheClient.newCall(request);
+    final call = cacheClient.newCall(request);
     var response = await call.execute();
 
     expect(await response.body.string(), 'A');

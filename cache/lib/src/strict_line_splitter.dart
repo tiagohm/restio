@@ -13,8 +13,8 @@ class StrictLineSplitter extends StreamTransformerBase<String, String> {
   StringConversionSink startChunkedConversion(Sink<String> sink) {
     return _StrictLineSplitterSink(
       sink is StringConversionSink ? sink : StringConversionSink.from(sink),
-      () => _hasUnterminatedLine = true,
-      includeUnterminatedLine,
+      onUnterminatedLine: () => _hasUnterminatedLine = true,
+      includeUnterminatedLine: includeUnterminatedLine,
     );
   }
 
@@ -26,8 +26,8 @@ class StrictLineSplitter extends StreamTransformerBase<String, String> {
       stream,
       (sink) => _StrictLineSplitterEventSink(
         sink,
-        () => _hasUnterminatedLine = true,
-        includeUnterminatedLine,
+        onUnterminatedLine: () => _hasUnterminatedLine = true,
+        includeUnterminatedLine: includeUnterminatedLine,
       ),
     );
   }
@@ -39,10 +39,10 @@ class _StrictLineSplitterSink extends StringConversionSinkBase {
   final bool includeUnterminatedLine;
 
   _StrictLineSplitterSink(
-    this._sink, [
+    this._sink, {
     this.onUnterminatedLine,
     this.includeUnterminatedLine,
-  ]);
+  });
 
   @override
   void addSlice(
@@ -94,14 +94,14 @@ class _StrictLineSplitterEventSink extends _StrictLineSplitterSink
   final EventSink<String> _eventSink;
 
   _StrictLineSplitterEventSink(
-    EventSink<String> sink, [
+    EventSink<String> sink, {
     void Function() onUnterminatedLine,
     bool includeUnterminatedLine,
-  ])  : _eventSink = sink,
+  })  : _eventSink = sink,
         super(
           StringConversionSink.from(sink),
-          onUnterminatedLine,
-          includeUnterminatedLine,
+          onUnterminatedLine: onUnterminatedLine,
+          includeUnterminatedLine: includeUnterminatedLine,
         );
 
   @override
