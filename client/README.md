@@ -1,6 +1,6 @@
 # Restio
 
-An HTTP Client for Dart inpired by [OkHttp](http://square.github.io/okhttp/).
+An HTTP Client for Dart inpired by [OkHttp](https://square.github.io/okhttp/).
 
 ## Features
 

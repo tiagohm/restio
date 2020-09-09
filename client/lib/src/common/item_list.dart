@@ -62,7 +62,8 @@ abstract class ItemList<T extends Item> extends Equatable {
 
   List<T> all(String name) {
     return [
-      for (final item in items) if (compareName(item.name, name)) item,
+      for (final item in items)
+        if (compareName(item.name, name)) item,
     ];
   }
 

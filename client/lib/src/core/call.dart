@@ -31,8 +31,7 @@ class _Call implements Call {
     try {
       final interceptors = [
         // Interceptors.
-        if (client.interceptors != null)
-          ...client.interceptors,
+        if (client.interceptors != null) ...client.interceptors,
         // Redirects.
         FollowUpInterceptor(client),
         // Cookies.
@@ -41,8 +40,7 @@ class _Call implements Call {
         // Cache.
         CacheInterceptor(client),
         // Network Interceptors.
-        if (client.networkInterceptors != null)
-          ...client.networkInterceptors,
+        if (client.networkInterceptors != null) ...client.networkInterceptors,
         // Connection.
         ConnectInterceptor(
           client: client,
