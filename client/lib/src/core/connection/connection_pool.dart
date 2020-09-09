@@ -88,10 +88,13 @@ class ConnectionPool implements Closeable {
     if (options.dns != null && !isIp(uri.host)) {
       options.onEvent?.call(DnsStart(request));
 
-      final addresses = await options.dns.lookup(
-        uri.host,
-        cancellable: cancellable,
-      );
+      final addresses = await options.dns
+          .lookup(
+            uri.host,
+            cancellable: cancellable,
+          )
+          .then(
+              (value) => value.map((e) => IpAddress.parse(e.address)).toList());
 
       options.onEvent?.call(DnsEnd(request, addresses));
 
