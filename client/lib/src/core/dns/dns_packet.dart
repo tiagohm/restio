@@ -163,7 +163,7 @@ class DnsResourceRecord extends SelfCodec {
   static const typeMailServer = 15;
 
   /// Text record ('TXT' record).
-  static const typeText = 15;
+  static const typeText = 16;
 
   /// IPv6 host address record.
   static const typeIp6 = 28;
