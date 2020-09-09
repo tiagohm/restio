@@ -17,7 +17,7 @@ void main() {
       const dns = Dns.system;
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
-      expect(response[0].toString(), '104.248.51.46');
+      expect(response[0].address, '64.227.88.163');
     });
   });
 
@@ -36,35 +36,35 @@ void main() {
       const dns = DnsOverUdp.google();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
-      expect(response[0].toString(), '104.248.51.46');
+      expect(response[0].address, '64.227.88.163');
     });
 
     test('Cloudflare Lookup', () async {
       const dns = DnsOverUdp.cloudflare();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
-      expect(response[0].toString(), '104.248.51.46');
+      expect(response[0].address, '64.227.88.163');
     });
 
     test('OpenDNS Lookup', () async {
       const dns = DnsOverUdp.openDns();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
-      expect(response[0].toString(), '104.248.51.46');
+      expect(response[0].address, '64.227.88.163');
     });
 
     test('Norton Lookup', () async {
       const dns = DnsOverUdp.norton();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
-      expect(response[0].toString(), '104.248.51.46');
+      expect(response[0].address, '64.227.88.163');
     });
 
     test('Comodo Lookup', () async {
       const dns = DnsOverUdp.comodo();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
-      expect(response[0].toString(), '104.248.51.46');
+      expect(response[0].address, '64.227.88.163');
     });
   });
 
@@ -83,21 +83,35 @@ void main() {
       final dns = DnsOverHttps.google();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
-      expect(response[0].toString(), '104.248.51.46');
+      expect(response[0].address, '64.227.88.163');
+    });
+
+    test('Google Lookup CNAME', () async {
+      final dns = DnsOverHttps.google();
+      final response = await dns.lookup('IK9KAE8DMD-dsn.algolia.net');
+      expect(response, hasLength(greaterThan(0)));
+      expect(response[0].address.isNotEmpty, isTrue);
     });
 
     test('Cloudflare Lookup', () async {
       final dns = DnsOverHttps.cloudflare();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
-      expect(response[0].toString(), '104.248.51.46');
+      expect(response[0].address, '64.227.88.163');
+    });
+
+    test('Cloudflare Lookup CNAME', () async {
+      final dns = DnsOverHttps.cloudflare();
+      final response = await dns.lookup('IK9KAE8DMD-dsn.algolia.net');
+      expect(response, hasLength(greaterThan(0)));
+      expect(response[0].address.isNotEmpty, isTrue);
     });
 
     test('Mozilla Lookup', () async {
       final dns = DnsOverHttps.mozilla();
       final response = await dns.lookup('tiagohm.dev');
       expect(response, hasLength(greaterThan(0)));
-      expect(response[0].toString(), '104.248.51.46');
+      expect(response[0].address, '64.227.88.163');
     });
   });
 }

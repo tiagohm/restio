@@ -26,7 +26,7 @@ abstract class Dns {
 
   static const Dns system = _SystemDns();
 
-  Future<List<IpAddress>> lookup(
+  Future<List<InternetAddress>> lookup(
     String name, {
     InternetAddressType type = InternetAddressType.any,
     Cancellable cancellable,
@@ -97,7 +97,7 @@ class _SystemDns extends Dns {
   const _SystemDns();
 
   @override
-  Future<List<IpAddress>> lookup(
+  Future<List<InternetAddress>> lookup(
     String host, {
     InternetAddressType type = InternetAddressType.any,
     Cancellable cancellable,
@@ -108,9 +108,7 @@ class _SystemDns extends Dns {
 
     final addresses = await InternetAddress.lookup(host, type: type);
 
-    return [
-      for (final item in addresses) IpAddress.fromBytes(item.rawAddress),
-    ];
+    return addresses;
   }
 
   @override
@@ -137,7 +135,7 @@ class _SystemDns extends Dns {
           type: ipAddress is Ip4Address
               ? DnsResourceRecord.typeIp4
               : DnsResourceRecord.typeIp6,
-          data: ipAddress.toImmutableBytes(),
+          data: ipAddress.rawAddress,
         ),
     ];
 
@@ -156,7 +154,7 @@ abstract class PacketBasedDns extends Dns {
   });
 
   @override
-  Future<List<IpAddress>> lookup(
+  Future<List<InternetAddress>> lookup(
     String name, {
     InternetAddressType type = InternetAddressType.any,
     Cancellable cancellable,
@@ -165,7 +163,7 @@ abstract class PacketBasedDns extends Dns {
       throw cancellable.exception;
     }
 
-    final result = <IpAddress>[];
+    final result = <InternetAddress>[];
 
     final packet = await lookupPacket(
       name,
@@ -174,16 +172,11 @@ abstract class PacketBasedDns extends Dns {
     );
 
     if (packet != null) {
-      for (final answer in packet.answers) {
-        try {
-          if (name.endsWith(answer.name)) {
-            final ipAddress = IpAddress.fromBytes(answer.data);
-            result.add(ipAddress);
-          }
-        } catch (e) {
-          // nada.
-        }
-      }
+      result.addAll(packet.answers
+          .where((answer) =>
+              answer.type == DnsQuestion.typeIp4 ||
+              answer.type == DnsQuestion.typeIp6)
+          .map((answer) => InternetAddress.fromRawAddress(answer.data)));
     }
 
     return result;

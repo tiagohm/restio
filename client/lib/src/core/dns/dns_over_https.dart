@@ -13,9 +13,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:ip/ip.dart';
 import 'package:restio/restio.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/dns/dns.dart';
@@ -272,7 +272,26 @@ class DnsOverHttps extends PacketBasedDns {
             result.ttl = value.toInt();
             break;
           case 'data':
-            result.data = IpAddress.parse(value).toImmutableBytes();
+            switch (result.type) {
+              case DnsResourceRecord.typeIp4: // A
+              case DnsResourceRecord.typeIp6:
+                result.data = InternetAddress(value).rawAddress;
+                break;
+              case DnsResourceRecord.typeNameServer: // NS
+              case DnsResourceRecord.typeCanonicalName: // CNAME
+                var address = value.substring(value.length - 1, value.length);
+                result.data =
+                    InternetAddress(address, type: InternetAddressType.unix)
+                        .rawAddress;
+                break;
+              case DnsResourceRecord.typeDomainNamePointer:
+              case DnsResourceRecord.typeMailServer:
+              case DnsResourceRecord.typeText:
+              case DnsResourceRecord.typeServerDiscovery:
+              default:
+                result.data = utf8.encode(value);
+                break;
+            }
             break;
         }
       }
