@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:restio/src/core/auth/authenticator.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
@@ -7,10 +8,13 @@ import 'package:restio/src/core/response/response.dart';
 class BearerAuthenticator extends Authenticator {
   final String token;
   final String prefix;
+  @override
+  final bool noRedirect;
 
   const BearerAuthenticator({
-    this.token,
+    @required this.token,
     this.prefix = 'Bearer',
+    this.noRedirect = false,
   }) : assert(prefix != null);
 
   @override
@@ -30,6 +34,11 @@ class BearerAuthenticator extends Authenticator {
 
     // Não é obrigatório um challenge!
     return _authenticate(response.request, isProxy);
+  }
+
+  @override
+  Future<Request> authenticateNoRedirect(Request request) async {
+    return _authenticate(request, false);
   }
 
   Request _authenticate(

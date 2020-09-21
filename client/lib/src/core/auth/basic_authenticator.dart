@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:meta/meta.dart';
 import 'package:restio/src/core/auth/authenticator.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/challenge.dart';
@@ -9,10 +10,13 @@ import 'package:restio/src/core/response/response.dart';
 class BasicAuthenticator extends Authenticator {
   final String username;
   final String password;
+  @override
+  final bool noRedirect;
 
   const BasicAuthenticator({
-    this.username,
-    this.password,
+    @required this.username,
+    @required this.password,
+    this.noRedirect = false,
   });
 
   @override
@@ -38,6 +42,11 @@ class BasicAuthenticator extends Authenticator {
     }
 
     return _authenticate(null, response.request, isProxy);
+  }
+
+  @override
+  Future<Request> authenticateNoRedirect(Request request) async {
+    return _authenticate(null, request, false);
   }
 
   Request _authenticate(

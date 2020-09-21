@@ -7,6 +7,8 @@ typedef AuthenticatorSelector = Authenticator Function(Response response);
 class MultiAuthenticator implements Authenticator {
   final List<Authenticator> authenticators;
   final AuthenticatorSelector selector;
+  @override
+  final bool noRedirect = false;
 
   const MultiAuthenticator(
     this.authenticators, {
@@ -30,5 +32,10 @@ class MultiAuthenticator implements Authenticator {
     }
 
     return null;
+  }
+
+  @override
+  Future<Request> authenticateNoRedirect(Request request) async {
+    throw UnimplementedError("Multi don't support no redirect authentication");
   }
 }

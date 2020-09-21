@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:crypto/crypto.dart';
+import 'package:meta/meta.dart';
 import 'package:restio/src/core/auth/authenticator.dart';
 import 'package:restio/src/core/auth/nonce.dart';
 import 'package:restio/src/core/request/request.dart';
@@ -9,10 +10,12 @@ import 'package:restio/src/core/response/response.dart';
 class DigestAuthenticator extends Authenticator {
   final String username;
   final String password;
+  @override
+  final bool noRedirect = false;
 
   const DigestAuthenticator({
-    this.username,
-    this.password,
+    @required this.username,
+    @required this.password,
   });
 
   @override
@@ -68,6 +71,11 @@ class DigestAuthenticator extends Authenticator {
     }
 
     return null;
+  }
+
+  @override
+  Future<Request> authenticateNoRedirect(Request request) async {
+    throw UnimplementedError("Digest don't support no redirect authentication");
   }
 
   String _buildHeader({

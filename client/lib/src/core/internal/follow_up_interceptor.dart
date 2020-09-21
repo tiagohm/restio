@@ -31,6 +31,11 @@ class FollowUpInterceptor implements Interceptor {
     while (true) {
       request = request.copyWith(options: options);
 
+      // No Redirect Authentication.
+      if (options.auth != null && options.auth.noRedirect) {
+        request = await options.auth.authenticateNoRedirect(request);
+      }
+
       final response = await chain.proceed(request);
 
       final elapsedMilliseconds = response.receivedAt.millisecondsSinceEpoch -

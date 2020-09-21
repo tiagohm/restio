@@ -17,12 +17,15 @@ class HawkAuthenticator extends Authenticator {
   final String key;
   final HawkAlgorithm algorithm;
   final String ext;
+  @override
+  final bool noRedirect;
 
   const HawkAuthenticator({
     this.id,
     this.key,
     this.algorithm = HawkAlgorithm.sha256,
     this.ext,
+    this.noRedirect = false,
   });
 
   @override
@@ -48,6 +51,11 @@ class HawkAuthenticator extends Authenticator {
     }
 
     return _authenticate(null, response.request, isProxy);
+  }
+
+  @override
+  Future<Request> authenticateNoRedirect(Request request) async {
+    return _authenticate(null, request, false);
   }
 
   Request _authenticate(

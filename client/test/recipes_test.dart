@@ -290,10 +290,7 @@ void main() {
   test('Basic Auth', () async {
     final client = Restio(
       options: const RequestOptions(
-        auth: BasicAuthenticator(
-          username: 'a',
-          password: 'b',
-        ),
+        auth: BasicAuthenticator(username: 'a', password: 'b'),
       ),
     );
 
@@ -313,9 +310,7 @@ void main() {
     final client = Restio();
     final authClient = client.copyWith(
       options: client.options.copyWith(
-        auth: const BearerAuthenticator(
-          token: '123',
-        ),
+        auth: const BearerAuthenticator(token: '123'),
       ),
     );
 
@@ -335,10 +330,7 @@ void main() {
   test('Digest Auth', () async {
     final client = Restio(
       options: const RequestOptions(
-        auth: DigestAuthenticator(
-          username: 'postman',
-          password: 'password',
-        ),
+        auth: DigestAuthenticator(username: 'postman', password: 'password'),
       ),
     );
 
@@ -1780,6 +1772,41 @@ void main() {
 
       await client.close();
     });
+  });
+
+  test('No Redirect Authentication', () async {
+    const a = RequestOptions(
+      auth: BasicAuthenticator(username: 'a', password: 'b'),
+    );
+    const b = RequestOptions(
+      auth: BasicAuthenticator(
+        username: 'a',
+        password: 'b',
+        noRedirect: true,
+      ),
+    );
+
+    final client = Restio();
+
+    var request = get('https://httpbin.org/basic-auth/a/b', options: a);
+    var response = await requestResponse(client, request);
+    var data = await response.body.json();
+    await response.close();
+
+    expect(response.code, 200);
+    expect(response.redirects, hasLength(1));
+    expect(data['authenticated'], true);
+
+    request = get('https://httpbin.org/basic-auth/a/b', options: b);
+    response = await requestResponse(client, request);
+    data = await response.body.json();
+    await response.close();
+
+    expect(response.code, 200);
+    expect(response.redirects, isEmpty);
+    expect(data['authenticated'], true);
+
+    await client.close();
   });
 }
 
