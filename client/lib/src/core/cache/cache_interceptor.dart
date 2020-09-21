@@ -208,7 +208,7 @@ class CacheInterceptor implements Interceptor {
     }
 
     final cacheStream = response.body.data.transform<List<int>>(
-      StreamTransformer.fromHandlers(
+      StreamTransformer<List<int>, List<int>>.fromHandlers(
         handleData: (data, sink) {
           cacheSink.add(data);
           sink.add(data);

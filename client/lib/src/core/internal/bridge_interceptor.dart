@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -55,9 +56,44 @@ class BridgeInterceptor implements Interceptor {
       decoder = decoderByContentEncoding(contentEncoding);
     }
 
+    var total = 0;
+
+    final data = client.onDownloadProgress == null
+        ? response.body.data
+        : response.body.data.transform<List<int>>(
+            StreamTransformer<List<int>, List<int>>.fromHandlers(
+              handleData: (data, sink) {
+                sink.add(data);
+                total += data.length;
+
+                client.onDownloadProgress(
+                  response,
+                  data.length,
+                  total,
+                  false,
+                );
+              },
+              handleError: (e, stackTrace, sink) {
+                sink.addError(e, stackTrace);
+              },
+              handleDone: (sink) {
+                sink.close();
+
+                if (total > 0) {
+                  client.onDownloadProgress?.call(
+                    response,
+                    0,
+                    total,
+                    true,
+                  );
+                }
+              },
+            ),
+          );
+
     return response.copyWith(
       body: ResponseBody(
-        response.body.data,
+        data,
         contentType: response.body.contentType,
         contentLength: response.body.contentLength,
         decoder: decoder,
