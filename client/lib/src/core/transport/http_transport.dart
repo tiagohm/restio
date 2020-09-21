@@ -205,8 +205,8 @@ class HttpTransport implements Transport {
         client.onUploadProgress?.call(request, chunk.length, total, false);
       },
       handleDone: (sink) {
-        client.onUploadProgress?.call(request, 0, total, true);
         sink.close();
+        client.onUploadProgress?.call(request, 0, total, true);
       },
     );
 

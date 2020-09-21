@@ -25,6 +25,7 @@ import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_event.dart';
 import 'package:restio/src/core/request/request_options.dart';
 import 'package:restio/src/core/response/response.dart';
+import 'package:restio/src/core/response/server_push.dart';
 
 part 'call.dart';
 part 'sse.dart';
@@ -37,6 +38,7 @@ class Restio implements Closeable {
   final bool withTrustedRoots;
   final ProgressCallback<Request> onUploadProgress;
   final ProgressCallback<Response> onDownloadProgress;
+  final ProgressCallback<ServerPush> onServerPushDownloadProgress;
   final BadCertificateCallback onBadCertificate;
   final List<Certificate> certificates;
   final Cache cache;
@@ -53,6 +55,7 @@ class Restio implements Closeable {
     this.withTrustedRoots = true,
     this.onUploadProgress,
     this.onDownloadProgress,
+    this.onServerPushDownloadProgress,
     this.onBadCertificate,
     this.certificates,
     this.cache,
@@ -110,6 +113,7 @@ class Restio implements Closeable {
     bool withTrustedRoots,
     ProgressCallback<Request> onUploadProgress,
     ProgressCallback<Response> onDownloadProgress,
+    ProgressCallback<ServerPush> onServerPushDownloadProgress,
     BadCertificateCallback onBadCertificate,
     List<Certificate> certificates,
     Cache cache,
@@ -124,6 +128,8 @@ class Restio implements Closeable {
       withTrustedRoots: withTrustedRoots ?? this.withTrustedRoots,
       onUploadProgress: onUploadProgress ?? this.onUploadProgress,
       onDownloadProgress: onDownloadProgress ?? this.onDownloadProgress,
+      onServerPushDownloadProgress:
+          onServerPushDownloadProgress ?? this.onServerPushDownloadProgress,
       onBadCertificate: onBadCertificate ?? this.onBadCertificate,
       certificates: certificates ?? this.certificates,
       cache: cache ?? this.cache,

@@ -207,15 +207,21 @@ class CacheInterceptor implements Interceptor {
       return response;
     }
 
-    final cacheStream = ResponseStream(
-      response.body.data,
-      onData: cacheSink.add,
-      onError: (e, stackTrace) async {
-        cacheSink.addError(e, stackTrace);
-      },
-      onClose: () async {
-        await cacheSink.close();
-      },
+    final cacheStream = response.body.data.transform<List<int>>(
+      StreamTransformer<List<int>, List<int>>.fromHandlers(
+        handleData: (data, sink) {
+          cacheSink.add(data);
+          sink.add(data);
+        },
+        handleError: (e, stackTrace, sink) {
+          cacheSink.addError(e, stackTrace);
+          sink.addError(e, stackTrace);
+        },
+        handleDone: (sink) async {
+          await cacheSink.close();
+          sink.close();
+        },
+      ),
     );
 
     return response.copyWith(

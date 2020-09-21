@@ -711,10 +711,16 @@ void main() {
 
   test('HTTP2 Server Push', () async {
     final client = Restio(
-        options: const RequestOptions(
-      http2: true,
-      allowServerPushes: true,
-    ));
+      onServerPushDownloadProgress: (entity, length, total, done) async {
+        print((await entity.response).headers);
+        print('${entity.headers} $length $total'
+            ' $done ${entity.headers.contentLength}');
+      },
+      options: const RequestOptions(
+        http2: true,
+        allowServerPushes: true,
+      ),
+    );
 
     final request = get('https://nghttp2.org/');
     final call = client.newCall(request);

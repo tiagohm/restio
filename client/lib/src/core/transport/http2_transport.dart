@@ -13,7 +13,6 @@ import 'package:restio/src/core/request/header/headers_builder.dart';
 import 'package:restio/src/core/request/header/media_type.dart';
 import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/core/response/response_stream.dart';
 import 'package:restio/src/core/response/server_push.dart';
 import 'package:restio/src/core/transport/transport.dart';
 
@@ -116,8 +115,8 @@ class Http2Transport implements Transport {
         client.onUploadProgress?.call(request, chunk.length, total, false);
       },
       handleDone: (sink) {
-        client.onUploadProgress?.call(request, 0, total, true);
         sink.close();
+        client.onUploadProgress?.call(request, 0, total, true);
       },
     );
 
@@ -200,7 +199,7 @@ class Http2Transport implements Transport {
     );
 
     if (allowServerPushes) {
-      _handlePeerPushes(stream.peerPushes, socket.port)
+      _handlePeerPushes(client, stream.peerPushes, socket.port)
           .pipe(serverPushController);
     }
 
@@ -241,6 +240,7 @@ HeadersBuilder _convertHeaders(List<Header> headers) {
 }
 
 Stream<ServerPush> _handlePeerPushes(
+  Restio client,
   Stream<TransportStreamPush> serverPushes,
   int localPort,
 ) {
@@ -249,10 +249,50 @@ Stream<ServerPush> _handlePeerPushes(
   serverPushes.listen(
     (push) {
       final responseCompleter = Completer<Response>();
+      ServerPush serverPush;
 
-      final serverPush = ServerPush(
+      serverPush = ServerPush(
         _convertHeaders(push.requestHeaders).build(),
-        responseCompleter.future,
+        responseCompleter.future.then((response) {
+          var total = 0;
+
+          final data = client.onServerPushDownloadProgress == null
+              ? response.body.data
+              : response.body.data.transform<List<int>>(
+                  StreamTransformer<List<int>, List<int>>.fromHandlers(
+                    handleData: (data, sink) {
+                      sink.add(data);
+                      total += data.length;
+
+                      client.onServerPushDownloadProgress(
+                        serverPush,
+                        data.length,
+                        total,
+                        false,
+                      );
+                    },
+                    handleError: (e, stackTrace, sink) {
+                      sink.addError(e, stackTrace);
+                    },
+                    handleDone: (sink) {
+                      sink.close();
+
+                      if (total > 0) {
+                        client.onServerPushDownloadProgress?.call(
+                          serverPush,
+                          0,
+                          total,
+                          true,
+                        );
+                      }
+                    },
+                  ),
+                );
+
+          return response.copyWith(
+            body: response.body.copyWith(data: data),
+          );
+        }),
       );
 
       pushesController.add(serverPush);
@@ -272,7 +312,7 @@ Stream<ServerPush> _handlePeerPushes(
 
             final res = Response(
               body: ResponseBody.stream(
-                ResponseStream(dataController.stream),
+                dataController.stream,
                 contentType: contentType,
                 contentLength: contentLength,
               ),
