@@ -1,3 +1,6 @@
+## 0.10.11
+ - Add `noRedirect` property to `Authenticator` classes.
+
 ## 0.10.10
  - Apply otimisations and remove unnecessary classes.
  - Add `onServerPushDownloadProgress` property to `Restio`.
