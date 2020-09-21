@@ -6,7 +6,6 @@ import 'package:restio/src/core/chain.dart';
 import 'package:restio/src/core/client.dart';
 import 'package:restio/src/core/interceptors/interceptor.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/core/response/response_stream.dart';
 
 class BridgeInterceptor implements Interceptor {
   final Restio client;
@@ -56,11 +55,9 @@ class BridgeInterceptor implements Interceptor {
       decoder = decoderByContentEncoding(contentEncoding);
     }
 
-    final data = response.body.data;
-
     return response.copyWith(
       body: ResponseBody(
-        data is ResponseStream ? data : ResponseStream(data),
+        response.body.data,
         contentType: response.body.contentType,
         contentLength: response.body.contentLength,
         decoder: decoder,

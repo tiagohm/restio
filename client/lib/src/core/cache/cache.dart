@@ -20,7 +20,6 @@ import 'package:restio/src/core/request/request.dart';
 import 'package:restio/src/core/request/request_event.dart';
 import 'package:restio/src/core/request/request_uri.dart';
 import 'package:restio/src/core/response/response.dart';
-import 'package:restio/src/core/response/response_stream.dart';
 
 part 'cache_interceptor.dart';
 part 'cache_request.dart';
