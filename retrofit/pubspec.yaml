@@ -4,7 +4,7 @@ version: 0.3.0
 homepage: https://github.com/tiagohm/restio
 
 environment:
-  sdk: ">=2.8.0 <3.0.0"
+  sdk: '>=2.8.0 <3.0.0'
 
 dependencies:
   meta: ^1.1.8
@@ -14,7 +14,8 @@ dependencies:
   code_builder: ^3.4.0
   build: ^1.3.0
   dart_style: ^1.3.6
-  restio: ^0.10.7
+  restio:
+    path: ../client
 
 dev_dependencies:
   pedantic: ^1.9.2
