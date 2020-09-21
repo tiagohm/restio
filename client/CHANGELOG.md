@@ -1,3 +1,8 @@
+## 0.10.10
+ - Apply otimisations and remove unnecessary classes.
+ - Add `onServerPushDownloadProgress` property to `Restio`.
+ - Fix `onDownloadProgressListener` bug.
+
 ## 0.10.9
  - Fix DNS over HTTPS data is not always ip address [(#24)](https://github.com/tiagohm/restio/pull/24).
 
