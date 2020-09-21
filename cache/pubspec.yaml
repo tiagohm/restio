@@ -4,12 +4,11 @@ version: 0.1.2+1
 homepage: https://github.com/tiagohm/restio/
 
 environment:
-  sdk: '>=2.8.0 <3.0.0'
+  sdk: ">=2.8.0 <3.0.0"
 
 dependencies:
   meta: ^1.1.8
-  restio:
-    path: ../client
+  restio: ^0.10.7
   crypto: ^2.1.4
   convert: ^2.1.1
   file: ^5.2.1
