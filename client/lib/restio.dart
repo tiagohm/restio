@@ -1,7 +1,6 @@
 library restio;
 
 export 'package:restio/src/common/closeable.dart';
-export 'package:restio/src/common/decompressor.dart';
 export 'package:restio/src/common/item.dart';
 export 'package:restio/src/common/item_list.dart';
 export 'package:restio/src/common/item_list_builder.dart';

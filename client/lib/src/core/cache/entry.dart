@@ -223,12 +223,12 @@ class _SnapshotableResponseBody extends ResponseBody implements Snapshotable {
     this.snapshot, {
     MediaType contentType,
     int contentLength,
-    Decompressor decompressor,
+    Converter<List<int>, List<int>> decoder,
   }) : super(
           snapshot.source(Cache.entryBody),
           contentType: contentType,
           contentLength: contentLength,
-          decompressor: decompressor,
+          decoder: decoder,
         );
 
   @override
@@ -236,7 +236,7 @@ class _SnapshotableResponseBody extends ResponseBody implements Snapshotable {
     Stream<List<int>> data,
     MediaType contentType,
     int contentLength,
-    Decompressor decompressor,
+    Converter<List<int>, List<int>> decoder,
   }) {
     if (data != null) {
       throw ArgumentError('Snapshot can not copy data');
@@ -246,7 +246,7 @@ class _SnapshotableResponseBody extends ResponseBody implements Snapshotable {
       snapshot,
       contentType: contentType ?? this.contentType,
       contentLength: contentLength ?? this.contentLength,
-      decompressor: decompressor ?? this.decompressor,
+      decoder: decoder ?? this.decoder,
     );
   }
 }

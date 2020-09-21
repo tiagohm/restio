@@ -5,7 +5,6 @@ import 'package:ip/ip.dart';
 import 'package:meta/meta.dart';
 import 'package:restio/restio.dart';
 import 'package:restio/src/common/closeable.dart';
-import 'package:restio/src/common/decompressor.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/common/pausable.dart';
 import 'package:restio/src/core/redirect/redirect.dart';

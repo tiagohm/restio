@@ -4,20 +4,20 @@ class ResponseBody implements Pauseable {
   final Stream<List<int>> data;
   final MediaType contentType;
   final int contentLength;
-  final Decompressor decompressor;
+  final convert.Converter<List<int>, List<int>> decoder;
 
   const ResponseBody(
     this.data, {
     this.contentType,
     this.contentLength,
-    this.decompressor,
+    this.decoder,
   });
 
   factory ResponseBody.bytes(
     List<int> data, {
     MediaType contentType,
     int contentLength = -1,
-    Decompressor decompressor,
+    convert.Converter<List<int>, List<int>> decompressor,
   }) {
     return ResponseBody.stream(
       Stream.fromIterable([data]),
@@ -31,7 +31,7 @@ class ResponseBody implements Pauseable {
     String text, {
     MediaType contentType,
     int contentLength = -1,
-    Decompressor decompressor,
+    convert.Converter<List<int>, List<int>> decompressor,
   }) {
     final encoding = contentType?.encoding ?? convert.utf8;
     return ResponseBody.stream(
@@ -46,13 +46,13 @@ class ResponseBody implements Pauseable {
     Stream<List<int>> data, {
     MediaType contentType,
     int contentLength = -1,
-    Decompressor decompressor,
+    convert.Converter<List<int>, List<int>> decompressor,
   }) {
     return ResponseBody(
       data,
       contentType: contentType,
       contentLength: contentLength,
-      decompressor: decompressor,
+      decoder: decompressor,
     );
   }
 
@@ -87,15 +87,12 @@ class ResponseBody implements Pauseable {
 
   /// Returns the raw response body data.
   Future<List<int>> raw() {
-    return readStream(
-        data.transform(Decompressor(null, decompressor?.onChunkReceived)));
+    return readStream(data);
   }
 
   /// Decompress response body data.
   Future<List<int>> decompressed() {
-    return decompressor == null
-        ? raw()
-        : readStream(data.transform(decompressor));
+    return decoder == null ? raw() : readStream(data.transform(decoder));
   }
 
   /// Decodes response body data to [String].
@@ -125,13 +122,13 @@ class ResponseBody implements Pauseable {
     Stream<List<int>> data,
     MediaType contentType,
     int contentLength,
-    Decompressor decompressor,
+    convert.Converter<List<int>, List<int>> decoder,
   }) {
     return ResponseBody(
       data ?? this.data,
       contentType: contentType ?? this.contentType,
       contentLength: contentLength ?? this.contentLength,
-      decompressor: decompressor ?? this.decompressor,
+      decoder: decoder ?? this.decoder,
     );
   }
 

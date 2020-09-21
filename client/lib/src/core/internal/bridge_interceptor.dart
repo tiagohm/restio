@@ -1,6 +1,6 @@
+import 'dart:convert';
 import 'dart:io';
 
-import 'package:restio/src/common/decompressor.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/chain.dart';
 import 'package:restio/src/core/client.dart';
@@ -19,14 +19,9 @@ class BridgeInterceptor implements Interceptor {
 
     final headersBuilder = request.headers.toBuilder();
 
-    // If we add an "Accept-Encoding" header field
-    // we're responsible for also decompressing the transfer stream.
-    var transparentDecoding = false;
-
     // Accept-Encoding.
     if (!request.headers.has(HttpHeaders.acceptEncodingHeader) &&
         !request.headers.has(HttpHeaders.rangeHeader)) {
-      transparentDecoding = true;
       headersBuilder.set('Accept-Encoding', 'gzip, deflate, br');
     }
 
@@ -47,44 +42,28 @@ class BridgeInterceptor implements Interceptor {
 
     final response =
         await chain.proceed(request.copyWith(headers: headersBuilder.build()));
-    dynamic decoder;
+    Converter<List<int>, List<int>> decoder;
 
     final contentEncoding = response.headers
         .value(HttpHeaders.contentEncodingHeader)
         ?.trim()
         ?.toLowerCase();
 
-    if (transparentDecoding &&
-        (contentEncoding == 'gzip' ||
+    if ((contentEncoding == 'gzip' ||
             contentEncoding == 'deflate' ||
             contentEncoding == 'br') &&
         response.hasBody) {
       decoder = decoderByContentEncoding(contentEncoding);
     }
 
-    var total = 0;
-
-    final decompressor = Decompressor(decoder, (data) {
-      if (client.onDownloadProgress != null) {
-        // End.
-        if (data == null) {
-          client.onDownloadProgress(response, 0, total, true);
-        } else {
-          total += data.length;
-          client.onDownloadProgress(response, data.length, total, false);
-        }
-      }
-    });
-
-    final stream = response.body.data;
-    final data = stream is ResponseStream ? stream : ResponseStream(stream);
+    final data = response.body.data;
 
     return response.copyWith(
       body: ResponseBody(
-        data,
+        data is ResponseStream ? data : ResponseStream(data),
         contentType: response.body.contentType,
         contentLength: response.body.contentLength,
-        decompressor: decompressor,
+        decoder: decoder,
       ),
     );
   }

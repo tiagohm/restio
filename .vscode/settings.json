@@ -1,0 +1,5 @@
+{
+    "files.exclude": {
+        "**/.dart_tool": true
+    }
+}

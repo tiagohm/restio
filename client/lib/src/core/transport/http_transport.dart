@@ -157,7 +157,7 @@ class HttpTransport implements Transport {
 
       return res.copyWith(
         body: ResponseBody.stream(
-          response.cast<List<int>>(),
+          response,
           contentType: MediaType.fromContentType(response.headers.contentType),
           contentLength: response.headers.contentLength,
         ),

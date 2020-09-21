@@ -4,7 +4,6 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:meta/meta.dart';
-import 'package:restio/src/common/decompressor.dart';
 import 'package:restio/src/common/helpers.dart';
 import 'package:restio/src/core/cache/cache_store.dart';
 import 'package:restio/src/core/cache/editor.dart';
